@@ -1,13 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, LayoutDashboard, Trash2, Edit, Eye, Grid } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Input, Textarea } from '../components/ui/Input';
-import { Modal, ConfirmModal } from '../components/ui/Modal';
-import { ChartRenderer } from '../components/charts/ChartRenderer';
-import { dashboardsApi, chartsApi } from '../lib/api';
-import { useAppStore } from '../store/appStore';
+import React, { useState, useEffect, useCallback } from "react";
+import { Plus, LayoutDashboard, Trash2, Edit, Eye, Grid } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { Input, Textarea } from "../components/ui/Input";
+import { Modal, ConfirmModal } from "../components/ui/Modal";
+import { DraggableChart } from "../components/charts/DraggableChart";
+import { dashboardsApi, chartsApi } from "../lib/api";
+import { useAppStore } from "../store/appStore";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface Dashboard {
   id: string;
@@ -54,7 +59,7 @@ export const DashboardsPage: React.FC = () => {
       const response = await dashboardsApi.getAll();
       setDashboards(response.data.dashboards);
     } catch (error) {
-      addToast('error', 'Failed to fetch dashboards');
+      addToast("error", "Failed to fetch dashboards");
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +72,10 @@ export const DashboardsPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await dashboardsApi.delete(id);
-      addToast('success', 'Dashboard deleted');
+      addToast("success", "Dashboard deleted");
       fetchDashboards();
     } catch (error) {
-      addToast('error', 'Failed to delete dashboard');
+      addToast("error", "Failed to delete dashboard");
     } finally {
       setDeleteConfirm(null);
     }
@@ -131,14 +136,12 @@ export const DashboardsPage: React.FC = () => {
                   </span>
                 )}
               </div>
-              
+
               {dashboard.description && (
                 <p className="text-sm text-[#a0a0b0] mb-4 line-clamp-2">{dashboard.description}</p>
               )}
-              
-              <p className="text-xs text-[#606070] mb-4">
-                By {dashboard.created_by_name}
-              </p>
+
+              <p className="text-xs text-[#606070] mb-4">By {dashboard.created_by_name}</p>
 
               <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
                 <Button
@@ -209,17 +212,12 @@ interface DashboardModalProps {
   onSuccess: () => void;
 }
 
-const DashboardModal: React.FC<DashboardModalProps> = ({
-  isOpen,
-  onClose,
-  dashboard,
-  onSuccess,
-}) => {
+const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose, dashboard, onSuccess }) => {
   const { addToast } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     is_public: false,
   });
 
@@ -227,13 +225,13 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
     if (dashboard) {
       setFormData({
         name: dashboard.name,
-        description: dashboard.description || '',
+        description: dashboard.description || "",
         is_public: dashboard.is_public === 1,
       });
     } else {
       setFormData({
-        name: '',
-        description: '',
+        name: "",
+        description: "",
         is_public: false,
       });
     }
@@ -246,32 +244,27 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
     try {
       if (dashboard) {
         await dashboardsApi.update(dashboard.id, formData);
-        addToast('success', 'Dashboard updated successfully');
+        addToast("success", "Dashboard updated successfully");
       } else {
         await dashboardsApi.create(formData);
-        addToast('success', 'Dashboard created successfully');
+        addToast("success", "Dashboard created successfully");
       }
       onSuccess();
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to save dashboard');
+      addToast("error", error.response?.data?.error || "Failed to save dashboard");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={dashboard ? 'Edit Dashboard' : 'Create New Dashboard'}
-      size="md"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={dashboard ? "Edit Dashboard" : "Create New Dashboard"} size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Dashboard Name"
           placeholder="Sales Overview"
           value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
           required
         />
 
@@ -279,7 +272,7 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
           label="Description (optional)"
           placeholder="A brief description of this dashboard"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           rows={3}
         />
 
@@ -287,7 +280,7 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
           <input
             type="checkbox"
             checked={formData.is_public}
-            onChange={(e) => setFormData(prev => ({ ...prev, is_public: e.target.checked }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, is_public: e.target.checked }))}
             className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
           />
           <div>
@@ -301,7 +294,7 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
             Cancel
           </Button>
           <Button type="submit" isLoading={isLoading}>
-            {dashboard ? 'Update' : 'Create'} Dashboard
+            {dashboard ? "Update" : "Create"} Dashboard
           </Button>
         </div>
       </form>
@@ -318,18 +311,36 @@ export const DashboardViewPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [availableCharts, setAvailableCharts] = useState<any[]>([]);
   const [showAddChart, setShowAddChart] = useState(false);
+  const [layouts, setLayouts] = useState<Record<string, Layout[]>>({});
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedChart, setSelectedChart] = useState<DashboardChart | null>(null);
+  const [showChartSettings, setShowChartSettings] = useState(false);
+  const [chartDimensions, setChartDimensions] = useState({ width: 6, height: 4 });
 
   const fetchDashboard = async () => {
     if (!id) return;
     try {
-      const [dashboardRes, dataRes] = await Promise.all([
-        dashboardsApi.getOne(id),
-        dashboardsApi.getData(id),
-      ]);
+      const [dashboardRes, dataRes] = await Promise.all([dashboardsApi.getOne(id), dashboardsApi.getData(id)]);
       setDashboard(dashboardRes.data.dashboard);
       setChartData(dataRes.data.chartData);
+
+      // Initialize layouts from dashboard charts
+      if (dashboardRes.data.dashboard.charts) {
+        const initialLayout = dashboardRes.data.dashboard.charts.map((chart: DashboardChart) => ({
+          i: chart.id,
+          x: chart.position_x || 0,
+          y: chart.position_y || 0,
+          w: chart.width || 6,
+          h: chart.height || 4,
+          minW: 3,
+          minH: 3,
+          maxW: 12,
+          maxH: 12,
+        }));
+        setLayouts({ lg: initialLayout });
+      }
     } catch (error) {
-      addToast('error', 'Failed to load dashboard');
+      addToast("error", "Failed to load dashboard");
     } finally {
       setIsLoading(false);
     }
@@ -340,7 +351,7 @@ export const DashboardViewPage: React.FC = () => {
       const response = await chartsApi.getAll();
       setAvailableCharts(response.data.charts);
     } catch (error) {
-      console.error('Failed to fetch charts');
+      console.error("Failed to fetch charts");
     }
   };
 
@@ -348,6 +359,43 @@ export const DashboardViewPage: React.FC = () => {
     fetchDashboard();
     fetchAvailableCharts();
   }, [id]);
+
+  const handleLayoutChange = useCallback(
+    async (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
+      setLayouts(allLayouts);
+
+      // Debounce API calls to avoid too many requests
+      if (isUpdating) return;
+      setIsUpdating(true);
+
+      setTimeout(async () => {
+        if (!id || !dashboard?.charts) return;
+
+        try {
+          const updatePromises = layout.map((item) => {
+            const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i);
+            if (chart) {
+              return dashboardsApi.updateChart(id, chart.id, {
+                position_x: item.x,
+                position_y: item.y,
+                width: item.w,
+                height: item.h,
+              });
+            }
+            return Promise.resolve();
+          });
+
+          await Promise.all(updatePromises);
+          addToast("success", "Layout updated");
+        } catch (error) {
+          addToast("error", "Failed to update layout");
+        } finally {
+          setIsUpdating(false);
+        }
+      }, 500);
+    },
+    [id, dashboard, isUpdating, addToast]
+  );
 
   const handleAddChart = async (chartId: string) => {
     if (!id) return;
@@ -359,11 +407,11 @@ export const DashboardViewPage: React.FC = () => {
         width: 6,
         height: 4,
       });
-      addToast('success', 'Chart added to dashboard');
+      addToast("success", "Chart added to dashboard");
       fetchDashboard();
       setShowAddChart(false);
     } catch (error) {
-      addToast('error', 'Failed to add chart');
+      addToast("error", "Failed to add chart");
     }
   };
 
@@ -371,10 +419,35 @@ export const DashboardViewPage: React.FC = () => {
     if (!id) return;
     try {
       await dashboardsApi.removeChart(id, dashboardChartId);
-      addToast('success', 'Chart removed from dashboard');
+      addToast("success", "Chart removed from dashboard");
       fetchDashboard();
     } catch (error) {
-      addToast('error', 'Failed to remove chart');
+      addToast("error", "Failed to remove chart");
+    }
+  };
+
+  const handleChartSettings = (chartId: string) => {
+    const chart = dashboard?.charts?.find((c) => c.id === chartId);
+    if (chart) {
+      setSelectedChart(chart);
+      setChartDimensions({ width: chart.width || 6, height: chart.height || 4 });
+      setShowChartSettings(true);
+    }
+  };
+
+  const handleSaveChartSettings = async () => {
+    if (!id || !selectedChart) return;
+    try {
+      await dashboardsApi.updateChart(id, selectedChart.id, {
+        width: chartDimensions.width,
+        height: chartDimensions.height,
+      });
+      addToast("success", "Chart dimensions updated");
+      setShowChartSettings(false);
+      setSelectedChart(null);
+      fetchDashboard();
+    } catch (error) {
+      addToast("error", "Failed to update chart dimensions");
     }
   };
 
@@ -399,54 +472,48 @@ export const DashboardViewPage: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
-          {dashboard.description && (
-            <p className="text-[#a0a0b0] mt-1">{dashboard.description}</p>
-          )}
+          {dashboard.description && <p className="text-[#a0a0b0] mt-1">{dashboard.description}</p>}
         </div>
-        <Button
-          leftIcon={<Plus size={18} />}
-          onClick={() => setShowAddChart(true)}
-        >
+        <Button leftIcon={<Plus size={18} />} onClick={() => setShowAddChart(true)}>
           Add Chart
         </Button>
       </div>
 
       {dashboard.charts && dashboard.charts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {dashboard.charts.map((chart) => {
-            const data = chartData.find(d => d.chartId === chart.chart_id);
-            return (
-              <Card key={chart.id} className="overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a25] border-b border-[#2a2a3a] -mx-5 -mt-5 mb-4">
-                  <span className="text-sm font-medium text-[#f0f0f5]">{chart.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveChart(chart.id)}
-                    className="text-[#ff4757] hover:text-[#ff4757] -mr-2"
-                  >
-                    <Trash2 size={14} />
-                  </Button>
+        <div className="dashboard-grid">
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={layouts}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+            rowHeight={100}
+            onLayoutChange={handleLayoutChange}
+            isDraggable={true}
+            isResizable={true}
+            useCSSTransforms={true}
+            compactType="vertical"
+            preventCollision={false}
+          >
+            {dashboard.charts.map((chart) => {
+              const data = chartData.find((d) => d.chartId === chart.chart_id);
+              const chartHeight = (chart.height || 4) * 100 - 50; // Calculate actual height (rowHeight * height - padding)
+              return (
+                <div key={chart.id} className="grid-item">
+                  <DraggableChart
+                    id={chart.id}
+                    name={chart.name}
+                    chartType={chart.chart_type}
+                    data={data?.data}
+                    config={data?.config || chart.config}
+                    error={data?.error}
+                    onRemove={handleRemoveChart}
+                    onSettings={handleChartSettings}
+                    height={chartHeight}
+                  />
                 </div>
-                <div>
-                  {data?.error ? (
-                    <p className="text-[#ff4757] text-sm">{data.error}</p>
-                  ) : data?.data ? (
-                    <ChartRenderer
-                      type={chart.chart_type as any}
-                      data={data.data}
-                      config={data.config || chart.config}
-                      height={250}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-32">
-                      <div className="spinner" />
-                    </div>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
+              );
+            })}
+          </ResponsiveGridLayout>
         </div>
       ) : (
         <Card className="text-center py-12">
@@ -459,16 +526,9 @@ export const DashboardViewPage: React.FC = () => {
         </Card>
       )}
 
-      <Modal
-        isOpen={showAddChart}
-        onClose={() => setShowAddChart(false)}
-        title="Add Chart to Dashboard"
-        size="lg"
-      >
+      <Modal isOpen={showAddChart} onClose={() => setShowAddChart(false)} title="Add Chart to Dashboard" size="lg">
         {availableCharts.length === 0 ? (
-          <p className="text-center text-[#a0a0b0] py-8">
-            No charts available. Create a chart first.
-          </p>
+          <p className="text-center text-[#a0a0b0] py-8">No charts available. Create a chart first.</p>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {availableCharts.map((chart) => (
@@ -483,6 +543,66 @@ export const DashboardViewPage: React.FC = () => {
             ))}
           </div>
         )}
+      </Modal>
+
+      {/* Chart Dimensions Settings Modal */}
+      <Modal
+        isOpen={showChartSettings}
+        onClose={() => {
+          setShowChartSettings(false);
+          setSelectedChart(null);
+        }}
+        title={`Chart Settings: ${selectedChart?.name}`}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#f0f0f5] mb-2">Width (Columns: 3-12)</label>
+            <Input
+              type="number"
+              min={3}
+              max={12}
+              value={chartDimensions.width}
+              onChange={(e) =>
+                setChartDimensions((prev) => ({
+                  ...prev,
+                  width: Math.max(3, Math.min(12, parseInt(e.target.value) || 3)),
+                }))
+              }
+              helperText="Number of columns in the grid (3-12)"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#f0f0f5] mb-2">Height (Rows: 3-12)</label>
+            <Input
+              type="number"
+              min={3}
+              max={12}
+              value={chartDimensions.height}
+              onChange={(e) =>
+                setChartDimensions((prev) => ({
+                  ...prev,
+                  height: Math.max(3, Math.min(12, parseInt(e.target.value) || 3)),
+                }))
+              }
+              helperText="Number of rows in the grid (3-12)"
+            />
+          </div>
+
+          <div className="p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
+            <p className="text-sm text-[#606070]">
+              💡 Tip: You can also resize charts by dragging the bottom-right corner or drag charts to rearrange them.
+            </p>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button variant="secondary" onClick={() => setShowChartSettings(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveChartSettings}>Save Changes</Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

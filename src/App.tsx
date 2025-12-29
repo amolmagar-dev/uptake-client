@@ -8,13 +8,20 @@ import { SQLEditorPage } from "./pages/SQLEditorPage";
 import { ChartsPage } from "./pages/Charts";
 import { SettingsPage } from "./pages/Settings";
 import { useAuthStore } from "./store/authStore";
+import { useAppStore, applyTheme } from "./store/appStore";
 
 function App() {
   const { checkAuth } = useAuthStore();
+  const { theme } = useAppStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    // Apply theme on mount and whenever it changes
+    applyTheme(theme);
+  }, [theme]);
 
   return (
     <Routes>

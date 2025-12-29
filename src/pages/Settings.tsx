@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, Lock, Server, Palette } from "lucide-react";
+import { User, Lock, Server, Palette, Moon, Sun } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
@@ -213,36 +213,96 @@ VITE_API_URL=https://your-api.com/api npm run build`}
 };
 
 const AppearanceSettings: React.FC = () => {
-  const { theme, toggleTheme } = useAppStore();
+  const { theme, setTheme } = useAppStore();
+
+  const handleThemeChange = (newTheme: "dark" | "light") => {
+    setTheme(newTheme);
+  };
 
   return (
     <Card>
       <h2 className="text-lg font-semibold text-[#f0f0f5] mb-4">Appearance</h2>
       <div className="space-y-6">
+        {/* Theme Selection */}
         <div>
           <label className="block text-sm font-medium text-[#a0a0b0] mb-3">Theme</label>
-          <div className="flex gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            {/* Dark Theme */}
             <button
-              onClick={() => theme !== "dark" && toggleTheme()}
+              onClick={() => handleThemeChange("dark")}
               className={`
-                flex-1 p-4 rounded-lg border-2 transition-all
+                relative p-4 rounded-lg border-2 transition-all group
                 ${theme === "dark" ? "border-[#00f5d4] bg-[#00f5d4]/10" : "border-[#2a2a3a] hover:border-[#3a3a4a]"}
               `}
             >
-              <div className="w-full h-16 rounded bg-[#0a0a0f] mb-3" />
-              <span className="text-sm text-[#f0f0f5]">Dark</span>
+              <div className="w-full h-20 rounded-lg bg-[#0a0a0f] mb-3 relative overflow-hidden border border-[#2a2a3a]">
+                <div className="absolute inset-2 rounded bg-gradient-to-br from-[#7b2cbf]/20 to-[#00f5d4]/10" />
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Moon size={16} className={theme === "dark" ? "text-[#00f5d4]" : "text-[#a0a0b0]"} />
+                <span className={`text-sm ${theme === "dark" ? "text-[#00f5d4]" : "text-[#f0f0f5]"}`}>Dark</span>
+              </div>
+              {theme === "dark" && (
+                <div className="absolute top-2 right-2">
+                  <div className="w-4 h-4 rounded-full bg-[#00f5d4] flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-[#0a0a0f]" />
+                  </div>
+                </div>
+              )}
             </button>
+
+            {/* Light Theme */}
             <button
-              onClick={() => theme !== "light" && toggleTheme()}
+              onClick={() => handleThemeChange("light")}
               className={`
-                flex-1 p-4 rounded-lg border-2 transition-all
+                relative p-4 rounded-lg border-2 transition-all group
                 ${theme === "light" ? "border-[#00f5d4] bg-[#00f5d4]/10" : "border-[#2a2a3a] hover:border-[#3a3a4a]"}
               `}
             >
-              <div className="w-full h-16 rounded bg-gradient-to-br from-gray-100 to-gray-300 mb-3" />
-              <span className="text-sm text-[#f0f0f5]">Light (Coming Soon)</span>
+              <div className="w-full h-20 rounded-lg bg-white mb-3 relative overflow-hidden border border-[#d2d2d7]">
+                <div className="absolute inset-2 rounded bg-gradient-to-br from-[#7b2cbf]/15 to-[#00f5d4]/10" />
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Sun size={16} className={theme === "light" ? "text-[#00f5d4]" : "text-[#a0a0b0]"} />
+                <span className={`text-sm ${theme === "light" ? "text-[#00f5d4]" : "text-[#f0f0f5]"}`}>Light</span>
+              </div>
+              {theme === "light" && (
+                <div className="absolute top-2 right-2">
+                  <div className="w-4 h-4 rounded-full bg-[#00f5d4] flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  </div>
+                </div>
+              )}
             </button>
           </div>
+        </div>
+
+        {/* Theme Description */}
+        <div className="p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
+          <h3 className="font-medium text-[#f0f0f5] mb-2 flex items-center gap-2">
+            <Palette size={18} className="text-[#00f5d4]" />
+            Current Theme: {theme === "dark" ? "Dark Mode" : "Light Mode"}
+          </h3>
+          <p className="text-sm text-[#a0a0b0]">
+            {theme === "dark"
+              ? "Dark mode uses a cyberpunk-inspired color palette with deep blacks and vibrant accents, perfect for late-night coding sessions."
+              : "Light mode provides a clean, modern interface with high contrast and reduced eye strain during daytime use."}
+          </p>
+        </div>
+
+        {/* Accent Colors Info */}
+        <div className="p-4 rounded-lg bg-gradient-to-r from-[#00f5d4]/5 to-[#7b2cbf]/5 border border-[#00f5d4]/20">
+          <h3 className="font-medium text-[#00f5d4] mb-2">🎨 Color Palette</h3>
+          <div className="flex gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-[#00f5d4]" title="Primary Accent" />
+            <div className="w-10 h-10 rounded-lg bg-[#7b2cbf]" title="Secondary Accent" />
+            <div className="w-10 h-10 rounded-lg bg-[#ff6b6b]" title="Tertiary Accent" />
+            <div className="w-10 h-10 rounded-lg bg-[#ffd93d]" title="Warning Accent" />
+            <div className="w-10 h-10 rounded-lg bg-[#4cc9f0]" title="Info Accent" />
+          </div>
+          <p className="text-sm text-[#a0a0b0]">
+            Your theme preference is automatically saved and will persist across sessions.
+          </p>
         </div>
       </div>
     </Card>

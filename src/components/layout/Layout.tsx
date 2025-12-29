@@ -14,7 +14,7 @@ export const Layout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
       <Sidebar />
       <main
         className={`
