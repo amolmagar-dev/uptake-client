@@ -336,7 +336,7 @@ const ChartModal: React.FC<ChartModalProps> = ({
 
     try {
       if (chart) {
-        await chartsApi.update(chart.id, chartData);
+        await chartsApi.update(chart.id, chartData as any);
         addToast('success', 'Chart updated successfully');
       } else {
         await chartsApi.create(chartData as any);

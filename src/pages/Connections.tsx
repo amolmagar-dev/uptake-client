@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Database, Trash2, Edit, RefreshCw, CheckCircle, XCircle, Table } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Card, CardHeader } from '../components/ui/Card';
+import { Card } from '../components/ui/Card';
 import { Input, Select } from '../components/ui/Input';
 import { Modal, ConfirmModal } from '../components/ui/Modal';
-import { connectionsApi } from '../lib/api';
+import { connectionsApi, type ConnectionInput } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 
 interface Connection {
   id: string;
   name: string;
-  type: string;
+  type: ConnectionInput['type'];
   host: string;
   port: number;
   database_name: string;
@@ -288,7 +288,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
 }) => {
   const { addToast } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ConnectionInput>({
     name: '',
     type: 'postgresql',
     host: 'localhost',
@@ -334,7 +334,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
         await connectionsApi.update(connection.id, formData);
         addToast('success', 'Connection updated successfully');
       } else {
-        await connectionsApi.create(formData as any);
+        await connectionsApi.create(formData);
         addToast('success', 'Connection created successfully');
       }
       onSuccess();
@@ -372,7 +372,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
           options={dbTypes}
           value={formData.type}
           onChange={(e) => {
-            const type = e.target.value;
+            const type = e.target.value as ConnectionInput['type'];
             setFormData(prev => ({
               ...prev,
               type,
