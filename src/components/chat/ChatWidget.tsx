@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, Send, X, Maximize2, Minimize2 } from "lucide-react";
 import { aiApi, type ChatMessage } from "../../lib/api";
 
@@ -21,6 +21,14 @@ export const ChatWidget: React.FC = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when messages change or loading state changes
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  }, [messages, loading]);
 
   const containerClasses = useMemo(() => "fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 text-sm", []);
 
@@ -82,6 +90,7 @@ export const ChatWidget: React.FC = () => {
           </div>
 
           <div
+            ref={messagesEndRef}
             className={`overflow-y-auto px-3 py-2 space-y-2 transition-all duration-300 ${
               expanded ? "h-[500px]" : "h-80"
             }`}
@@ -103,6 +112,17 @@ export const ChatWidget: React.FC = () => {
                 </div>
               </div>
             ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div
+                  className="max-w-[85%] px-3 py-2 rounded-lg bg-[var(--color-bg-tertiary)]"
+                  style={{ border: "1px solid var(--color-border)" }}
+                >
+                  <p className="text-xs mb-1 text-[var(--color-text-muted)]">Assistant</p>
+                  <span className="text-[var(--color-text-muted)] italic">Thinking...</span>
+                </div>
+              </div>
+            )}
             {error && (
               <div className="text-red-500 text-xs" role="alert">
                 {error}
