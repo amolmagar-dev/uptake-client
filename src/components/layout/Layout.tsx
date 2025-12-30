@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { ToastContainer } from '../ui/Toast';
+import { ChatWidget } from '../chat/ChatWidget';
 import { useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
 
@@ -27,6 +28,7 @@ export const Layout: React.FC = () => {
         </div>
       </main>
       <ToastContainer />
+      <ChatWidget />
     </div>
   );
 };

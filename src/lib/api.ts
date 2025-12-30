@@ -89,6 +89,16 @@ export const dashboardsApi = {
   getData: (id: string) => api.get(`/dashboards/${id}/data`),
 };
 
+// AI Chat API
+export interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+export const aiApi = {
+  chat: (messages: ChatMessage[]) => api.post("/ai/chat", { messages }),
+};
+
 // Health check
 export const healthCheck = () => api.get("/health");
 
