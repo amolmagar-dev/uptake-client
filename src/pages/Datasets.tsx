@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Database, Trash2, Edit, Eye, RefreshCw, Table, Code, FileSpreadsheet } from 'lucide-react';
+import { Plus, Database, Trash2, Edit, Eye, RefreshCw, Table, Code, FileSpreadsheet, Globe } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input, Select, Textarea } from '../components/ui/Input';
@@ -89,6 +89,8 @@ export function DatasetsPage() {
         return <Database className="h-5 w-5" />;
       case 'googlesheet':
         return <FileSpreadsheet className="h-5 w-5" />;
+      case 'api':
+        return <Globe className="h-5 w-5" />;
       default:
         return <Database className="h-5 w-5" />;
     }
@@ -468,39 +470,50 @@ function DatasetModal({ isOpen, onClose, dataset, connections, onSuccess }: Data
           <Select
             label="Source Type"
             value={formData.source_type}
-            onChange={(e) => setFormData({ ...formData, source_type: e.target.value as DatasetInput['source_type'] })}
+            onChange={(e) => {
+              const newType = e.target.value as DatasetInput['source_type'];
+              setFormData({ 
+                ...formData, 
+                source_type: newType,
+                connection_id: '',
+                dataset_type: newType === 'sql' ? formData.dataset_type : 'physical',
+              });
+            }}
           >
             <option value="sql">SQL Database</option>
-            <option value="googlesheet" disabled>Google Sheets (Coming Soon)</option>
-            <option value="nosql" disabled>NoSQL (Coming Soon)</option>
-            <option value="api" disabled>API (Coming Soon)</option>
-          </Select>
-
-          <Select
-            label="Dataset Type"
-            value={formData.dataset_type}
-            onChange={(e) => setFormData({ ...formData, dataset_type: e.target.value as DatasetInput['dataset_type'] })}
-          >
-            <option value="physical">Physical (Table/View)</option>
-            <option value="virtual">Virtual (SQL Query)</option>
+            <option value="api">REST API</option>
+            <option value="googlesheet">Google Sheets</option>
           </Select>
         </div>
 
         {formData.source_type === 'sql' && (
           <>
-            <Select
-              label="Connection"
-              value={formData.connection_id}
-              onChange={(e) => handleConnectionChange(e.target.value)}
-              required
-            >
-              <option value="">Select a connection...</option>
-              {connections.map((conn) => (
-                <option key={conn.id} value={conn.id}>
-                  {conn.name} ({conn.type})
-                </option>
-              ))}
-            </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <Select
+                label="Dataset Type"
+                value={formData.dataset_type}
+                onChange={(e) => setFormData({ ...formData, dataset_type: e.target.value as DatasetInput['dataset_type'] })}
+              >
+                <option value="physical">Physical (Table/View)</option>
+                <option value="virtual">Virtual (SQL Query)</option>
+              </Select>
+
+              <Select
+                label="Connection"
+                value={formData.connection_id}
+                onChange={(e) => handleConnectionChange(e.target.value)}
+                required
+              >
+                <option value="">Select a connection...</option>
+                {connections
+                  .filter((conn) => ['postgresql', 'mysql', 'mariadb'].includes(conn.type))
+                  .map((conn) => (
+                    <option key={conn.id} value={conn.id}>
+                      {conn.name} ({conn.type})
+                    </option>
+                  ))}
+              </Select>
+            </div>
 
             {formData.dataset_type === 'physical' && (
               <div className="grid grid-cols-3 gap-4">
@@ -586,6 +599,58 @@ function DatasetModal({ isOpen, onClose, dataset, connections, onSuccess }: Data
                   </div>
                 )}
               </div>
+            )}
+          </>
+        )}
+
+        {/* API Source Type */}
+        {formData.source_type === 'api' && (
+          <>
+            <Select
+              label="API Connection"
+              value={formData.connection_id}
+              onChange={(e) => setFormData({ ...formData, connection_id: e.target.value })}
+              required
+            >
+              <option value="">Select an API connection...</option>
+              {connections
+                .filter((conn) => conn.type === 'api')
+                .map((conn) => (
+                  <option key={conn.id} value={conn.id}>
+                    {conn.name}
+                  </option>
+                ))}
+            </Select>
+            {connections.filter(c => c.type === 'api').length === 0 && (
+              <p className="text-sm text-yellow-400">
+                No API connections available. <a href="/connections" className="underline">Create one first</a>.
+              </p>
+            )}
+          </>
+        )}
+
+        {/* Google Sheets Source Type */}
+        {formData.source_type === 'googlesheet' && (
+          <>
+            <Select
+              label="Google Sheets Connection"
+              value={formData.connection_id}
+              onChange={(e) => setFormData({ ...formData, connection_id: e.target.value })}
+              required
+            >
+              <option value="">Select a Google Sheets connection...</option>
+              {connections
+                .filter((conn) => conn.type === 'googlesheet')
+                .map((conn) => (
+                  <option key={conn.id} value={conn.id}>
+                    {conn.name}
+                  </option>
+                ))}
+            </Select>
+            {connections.filter(c => c.type === 'googlesheet').length === 0 && (
+              <p className="text-sm text-yellow-400">
+                No Google Sheets connections available. <a href="/connections" className="underline">Create one first</a>.
+              </p>
             )}
           </>
         )}
