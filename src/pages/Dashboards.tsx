@@ -531,7 +531,9 @@ export const DashboardViewPage: React.FC = () => {
             preventCollision={false}
           >
             {dashboard.charts.map((item) => {
-              const data = chartData.find((d) => d.chartId === item.chart_id);
+              // Find data - for components, look up by component_id; for charts, by chart_id
+              const itemId = item.component_id || item.chart_id;
+              const data = chartData.find((d) => d.chartId === itemId);
               const itemHeight = (item.height || 4) * 100 - 50;
               
               // Render custom component
