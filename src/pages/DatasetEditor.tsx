@@ -106,7 +106,7 @@ export function DatasetEditorPage() {
       setTableName(dataset.table_name || '');
       setSqlQuery(dataset.sql_query || '');
       if (dataset.columns) {
-        setColumns(JSON.parse(dataset.columns));
+        setColumns(dataset.columns);
       }
     } catch (error: any) {
       addToast('error', error.response?.data?.error || 'Failed to load dataset');
@@ -147,7 +147,7 @@ export function DatasetEditorPage() {
     addToast('info', 'Save the dataset first, then use the Preview button on the datasets page');
   };
 
-  const handleCreateClick = () => {
+  const handleSaveClick = () => {
     if (!connectionId) {
       addToast('error', 'Please select a connection');
       return;
@@ -246,7 +246,7 @@ export function DatasetEditorPage() {
             <Button variant="ghost" onClick={() => navigate('/datasets')}>
               Cancel
             </Button>
-            <Button onClick={isEditing ? handleSubmit : handleCreateClick} disabled={saving || !connectionId}>
+            <Button onClick={handleSaveClick} disabled={saving || !connectionId}>
               {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
               {isEditing ? 'Update Dataset' : 'Create Dataset'}
             </Button>
@@ -435,29 +435,6 @@ export function DatasetEditorPage() {
         {/* Main content area */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
-            {/* Dataset details - only shown when editing */}
-            {isEditing && (
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Dataset Details</h2>
-                <div className="space-y-4">
-                  <Input
-                    label="Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="My Dataset"
-                    required
-                  />
-                  <Textarea
-                    label="Description (optional)"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="What does this dataset contain?"
-                    rows={2}
-                  />
-                </div>
-              </Card>
-            )}
-
             {/* SQL Query for Virtual datasets */}
             {sourceType === 'sql' && datasetType === 'virtual' && connectionId && (
               <Card className="p-6">
@@ -546,7 +523,7 @@ export function DatasetEditorPage() {
       <Modal
         isOpen={showSaveModal}
         onClose={() => setShowSaveModal(false)}
-        title="Save Dataset"
+        title={isEditing ? "Update Dataset" : "Save Dataset"}
         size="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -573,12 +550,12 @@ export function DatasetEditorPage() {
               {saving ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                  Creating...
+                  {isEditing ? "Updating..." : "Creating..."}
                 </>
               ) : (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  Create Dataset
+                  {isEditing ? "Update Dataset" : "Create Dataset"}
                 </>
               )}
             </Button>
