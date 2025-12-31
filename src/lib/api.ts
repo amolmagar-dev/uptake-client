@@ -127,13 +127,39 @@ export const healthCheck = () => api.get("/health");
 // Types
 export interface ConnectionInput {
   name: string;
-  type: "postgresql" | "mysql" | "mariadb";
-  host: string;
+  type: "postgresql" | "mysql" | "mariadb" | "api" | "googlesheet";
+  // SQL connection fields
+  host?: string;
   port?: number;
-  database_name: string;
-  username: string;
+  database_name?: string;
+  username?: string;
   password?: string;
   ssl?: boolean;
+  // Config for API and Google Sheets
+  config?: ApiConfig | GoogleSheetsConfig;
+}
+
+export interface ApiConfig {
+  url: string;
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  headers?: Record<string, string>;
+  auth_type?: "none" | "api_key" | "bearer" | "basic";
+  api_key?: string;
+  api_key_name?: string;
+  api_key_location?: "header" | "query";
+  bearer_token?: string;
+  username?: string;
+  password?: string;
+  body?: string;
+  data_path?: string;
+}
+
+export interface GoogleSheetsConfig {
+  spreadsheet_id: string;
+  sheet_name?: string;
+  sheet_gid?: string;
+  range?: string;
+  api_key?: string;
 }
 
 export interface SavedQueryInput {
