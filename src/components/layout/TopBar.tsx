@@ -5,6 +5,7 @@ import {
   Database,
   FileCode,
   BarChart3,
+  Layers,
   Code2,
   Settings,
   LogOut,
@@ -18,6 +19,7 @@ import { useAuthStore } from '../../store/authStore';
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboards' },
   { path: '/connections', icon: Database, label: 'Connections' },
+  { path: '/datasets', icon: Layers, label: 'Datasets' },
   { path: '/sql-editor', icon: FileCode, label: 'SQL Editor' },
   { path: '/charts', icon: BarChart3, label: 'Charts' },
   { path: '/components', icon: Code2, label: 'Components' },

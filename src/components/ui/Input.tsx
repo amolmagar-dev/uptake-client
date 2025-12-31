@@ -121,13 +121,15 @@ export const Textarea: React.FC<TextareaProps> = ({
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: { value: string; label: string }[];
+  options?: { value: string; label: string }[];
+  children?: React.ReactNode;
 }
 
 export const Select: React.FC<SelectProps> = ({
   label,
   error,
   options,
+  children,
   className = '',
   id,
   ...props
@@ -159,11 +161,11 @@ export const Select: React.FC<SelectProps> = ({
         `}
         {...props}
       >
-        {options.map((option) => (
+        {options ? options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
-        ))}
+        )) : children}
       </select>
       {error && (
         <p className="mt-1.5 text-sm text-[#ff4757]">{error}</p>

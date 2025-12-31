@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, BarChart3, Trash2, Edit, Eye, Play } from 'lucide-react';
+import { Plus, BarChart3, Trash2, Edit, Eye, Play, Layers } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input, Select, Textarea } from '../components/ui/Input';
 import { Modal, ConfirmModal } from '../components/ui/Modal';
 import { ChartRenderer } from '../components/charts/ChartRenderer';
-import { chartsApi, connectionsApi, queriesApi } from '../lib/api';
+import { chartsApi, datasetsApi, type Dataset } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 
 interface Chart {
@@ -17,11 +17,15 @@ interface Chart {
   sql_query: string;
   connection_id: string;
   connection_name: string;
+  dataset_id?: string;
+  dataset_name?: string;
+  dataset_type?: string;
 }
 
 export const ChartsPage: React.FC = () => {
-  const { setConnections, addToast } = useAppStore();
+  const { addToast } = useAppStore();
   const [charts, setCharts] = useState<Chart[]>([]);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingChart, setEditingChart] = useState<Chart | null>(null);
@@ -41,18 +45,18 @@ export const ChartsPage: React.FC = () => {
     }
   };
 
-  const fetchConnections = async () => {
+  const fetchDatasets = async () => {
     try {
-      const response = await connectionsApi.getAll();
-      setConnections(response.data.connections);
+      const response = await datasetsApi.getAll();
+      setDatasets(response.data.datasets);
     } catch (error) {
-      console.error('Failed to fetch connections');
+      console.error('Failed to fetch datasets');
     }
   };
 
   useEffect(() => {
     fetchCharts();
-    fetchConnections();
+    fetchDatasets();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -150,8 +154,9 @@ export const ChartsPage: React.FC = () => {
                 <p className="text-sm text-[#a0a0b0] mb-4 line-clamp-2">{chart.description}</p>
               )}
               
-              <p className="text-xs text-[#606070] mb-4">
-                Connection: {chart.connection_name}
+              <p className="text-xs text-[#606070] mb-4 flex items-center gap-1">
+                <Layers size={12} />
+                {chart.dataset_name || chart.connection_name || 'No data source'}
               </p>
 
               <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
@@ -196,6 +201,7 @@ export const ChartsPage: React.FC = () => {
           setEditingChart(null);
         }}
         chart={editingChart}
+        datasets={datasets}
         onSuccess={() => {
           setShowModal(false);
           setEditingChart(null);
@@ -246,6 +252,7 @@ interface ChartModalProps {
   isOpen: boolean;
   onClose: () => void;
   chart: Chart | null;
+  datasets: Dataset[];
   onSuccess: () => void;
 }
 
@@ -253,19 +260,19 @@ const ChartModal: React.FC<ChartModalProps> = ({
   isOpen,
   onClose,
   chart,
+  datasets,
   onSuccess,
 }) => {
-  const { connections, addToast } = useAppStore();
+  const { addToast } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [testData, setTestData] = useState<any[] | null>(null);
-  const [testLoading, setTestLoading] = useState(false);
+  const [columns, setColumns] = useState<Array<{ column_name: string; data_type: string }>>([]);
+  const [columnsLoading, setColumnsLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     chart_type: 'bar',
-    connection_id: '',
-    sql_query: '',
+    dataset_id: '',
     labelColumn: '',
     dataColumns: '',
     showLegend: true,
@@ -278,57 +285,66 @@ const ChartModal: React.FC<ChartModalProps> = ({
         name: chart.name,
         description: chart.description || '',
         chart_type: chart.chart_type,
-        connection_id: chart.connection_id,
-        sql_query: chart.sql_query || '',
+        dataset_id: chart.dataset_id || '',
         labelColumn: chart.config?.labelColumn || '',
         dataColumns: chart.config?.dataColumns?.join(', ') || '',
         showLegend: chart.config?.showLegend !== false,
         showGrid: chart.config?.showGrid !== false,
       });
+      if (chart.dataset_id) {
+        fetchColumns(chart.dataset_id);
+      }
     } else {
       setFormData({
         name: '',
         description: '',
         chart_type: 'bar',
-        connection_id: connections[0]?.id || '',
-        sql_query: '',
+        dataset_id: datasets[0]?.id || '',
         labelColumn: '',
         dataColumns: '',
         showLegend: true,
         showGrid: true,
       });
+      if (datasets[0]?.id) {
+        fetchColumns(datasets[0].id);
+      }
     }
-    setTestData(null);
-  }, [chart, isOpen, connections]);
+  }, [chart, isOpen, datasets]);
 
-  const handleTestQuery = async () => {
-    if (!formData.connection_id || !formData.sql_query) {
-      addToast('error', 'Please select a connection and enter a query');
-      return;
-    }
-
-    setTestLoading(true);
+  const fetchColumns = async (datasetId: string) => {
+    if (!datasetId) return;
+    setColumnsLoading(true);
     try {
-      const response = await queriesApi.execute(formData.connection_id, formData.sql_query);
-      setTestData(response.data.data);
-      addToast('success', `Query returned ${response.data.rowCount} rows`);
-    } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Query failed');
+      const response = await datasetsApi.getColumns(datasetId);
+      setColumns(response.data.columns || []);
+    } catch (error) {
+      console.error('Failed to fetch columns:', error);
+      setColumns([]);
     } finally {
-      setTestLoading(false);
+      setColumnsLoading(false);
     }
+  };
+
+  const handleDatasetChange = (datasetId: string) => {
+    setFormData(prev => ({ ...prev, dataset_id: datasetId, labelColumn: '', dataColumns: '' }));
+    fetchColumns(datasetId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.dataset_id) {
+      addToast('error', 'Please select a dataset');
+      return;
+    }
+
     setIsLoading(true);
 
     const chartData = {
       name: formData.name,
       description: formData.description,
       chart_type: formData.chart_type,
-      connection_id: formData.connection_id,
-      sql_query: formData.sql_query,
+      dataset_id: formData.dataset_id,
       config: {
         labelColumn: formData.labelColumn || undefined,
         dataColumns: formData.dataColumns ? formData.dataColumns.split(',').map(s => s.trim()) : undefined,
@@ -363,10 +379,7 @@ const ChartModal: React.FC<ChartModalProps> = ({
     { value: 'table', label: '📋 Data Table' },
   ];
 
-  const connectionOptions = [
-    { value: '', label: 'Select a connection...' },
-    ...connections.map(c => ({ value: c.id, label: c.name })),
-  ];
+  const selectedDataset = datasets.find(d => d.id === formData.dataset_id);
 
   return (
     <Modal
@@ -400,52 +413,58 @@ const ChartModal: React.FC<ChartModalProps> = ({
         />
 
         <Select
-          label="Database Connection"
-          options={connectionOptions}
-          value={formData.connection_id}
-          onChange={(e) => setFormData(prev => ({ ...prev, connection_id: e.target.value }))}
-        />
+          label="Dataset"
+          value={formData.dataset_id}
+          onChange={(e) => handleDatasetChange(e.target.value)}
+        >
+          <option value="">Select a dataset...</option>
+          {datasets.map(d => (
+            <option key={d.id} value={d.id}>
+              {d.name} ({d.dataset_type})
+            </option>
+          ))}
+        </Select>
 
-        <div>
-          <Textarea
-            label="SQL Query"
-            placeholder="SELECT category, SUM(amount) as total FROM sales GROUP BY category"
-            value={formData.sql_query}
-            onChange={(e) => setFormData(prev => ({ ...prev, sql_query: e.target.value }))}
-            rows={4}
-            className="font-mono text-sm"
-            required
-          />
-          <div className="mt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleTestQuery}
-              isLoading={testLoading}
-              leftIcon={<Play size={14} />}
-            >
-              Test Query
-            </Button>
+        {datasets.length === 0 && (
+          <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm">
+            <p>No datasets available. Please <a href="/datasets" className="underline">create a dataset</a> first.</p>
           </div>
-        </div>
+        )}
 
-        {testData && testData.length > 0 && (
+        {selectedDataset && (
+          <div className="p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-sm">
+            <p className="text-[#a0a0b0]">
+              <span className="font-medium text-[#f0f0f5]">{selectedDataset.name}</span>
+              {' — '}
+              {selectedDataset.dataset_type === 'physical' 
+                ? `${selectedDataset.table_schema}.${selectedDataset.table_name}`
+                : 'Virtual dataset (SQL query)'
+              }
+            </p>
+          </div>
+        )}
+
+        {columns.length > 0 && (
           <div className="p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
-            <p className="text-sm text-[#a0a0b0] mb-2">
-              Available columns: {Object.keys(testData[0]).join(', ')}
+            <p className="text-sm text-[#a0a0b0] mb-3">
+              {columnsLoading ? 'Loading columns...' : `Available columns: ${columns.map(c => c.column_name).join(', ')}`}
             </p>
             <div className="grid grid-cols-2 gap-4">
-              <Input
+              <Select
                 label="Label Column"
-                placeholder={Object.keys(testData[0])[0]}
                 value={formData.labelColumn}
                 onChange={(e) => setFormData(prev => ({ ...prev, labelColumn: e.target.value }))}
-                helperText="Column to use for labels (X-axis or pie slices)"
-              />
+              >
+                <option value="">Select label column...</option>
+                {columns.map(col => (
+                  <option key={col.column_name} value={col.column_name}>
+                    {col.column_name} ({col.data_type})
+                  </option>
+                ))}
+              </Select>
               <Input
                 label="Data Columns"
-                placeholder={Object.keys(testData[0]).slice(1).join(', ')}
+                placeholder={columns.slice(1, 3).map(c => c.column_name).join(', ')}
                 value={formData.dataColumns}
                 onChange={(e) => setFormData(prev => ({ ...prev, dataColumns: e.target.value }))}
                 helperText="Comma-separated column names for values"
@@ -479,7 +498,7 @@ const ChartModal: React.FC<ChartModalProps> = ({
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" isLoading={isLoading}>
+          <Button type="submit" isLoading={isLoading} disabled={!formData.dataset_id}>
             {chart ? 'Update' : 'Create'} Chart
           </Button>
         </div>

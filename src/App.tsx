@@ -6,6 +6,7 @@ import { DashboardsPage, DashboardViewPage } from "./pages/Dashboards";
 import { ConnectionsPage } from "./pages/Connections";
 import { SQLEditorPage } from "./pages/SQLEditorPage";
 import { ChartsPage } from "./pages/Charts";
+import { DatasetsPage } from "./pages/Datasets";
 import { ComponentBuilderPage } from "./pages/ComponentBuilder";
 import { ComponentEditorPage } from "./pages/ComponentEditor";
 import { SettingsPage } from "./pages/Settings";
@@ -37,6 +38,7 @@ function App() {
         <Route path="/dashboard/:id" element={<DashboardViewPage />} />
         <Route path="/dashboard/:id/edit" element={<DashboardViewPage />} />
         <Route path="/connections" element={<ConnectionsPage />} />
+        <Route path="/datasets" element={<DatasetsPage />} />
         <Route path="/sql-editor" element={<SQLEditorPage />} />
         <Route path="/charts" element={<ChartsPage />} />
         <Route path="/components" element={<ComponentBuilderPage />} />

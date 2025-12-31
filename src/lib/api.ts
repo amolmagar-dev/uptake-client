@@ -109,6 +109,18 @@ export const customComponentsApi = {
   getData: (id: string) => api.get(`/components/${id}/data`),
 };
 
+// Datasets API
+export const datasetsApi = {
+  getAll: () => api.get("/datasets"),
+  getOne: (id: string) => api.get(`/datasets/${id}`),
+  create: (data: DatasetInput) => api.post("/datasets", data),
+  update: (id: string, data: Partial<DatasetInput>) => api.put(`/datasets/${id}`, data),
+  delete: (id: string) => api.delete(`/datasets/${id}`),
+  preview: (id: string) => api.get(`/datasets/${id}/preview`),
+  getColumns: (id: string) => api.get(`/datasets/${id}/columns`),
+  refreshColumns: (id: string) => api.post(`/datasets/${id}/refresh-columns`),
+};
+
 // Health check
 export const healthCheck = () => api.get("/health");
 
@@ -184,4 +196,35 @@ export interface CustomComponentInput {
   sql_query?: string;
 }
 
+export interface DatasetInput {
+  name: string;
+  description?: string;
+  source_type: 'sql' | 'googlesheet' | 'nosql' | 'api';
+  dataset_type: 'physical' | 'virtual';
+  connection_id?: string;
+  table_name?: string;
+  table_schema?: string;
+  sql_query?: string;
+  source_config?: Record<string, any>;
+}
+
+export interface Dataset {
+  id: string;
+  name: string;
+  description?: string;
+  source_type: string;
+  dataset_type: string;
+  connection_id?: string;
+  connection_name?: string;
+  connection_type?: string;
+  table_name?: string;
+  table_schema?: string;
+  sql_query?: string;
+  source_config?: Record<string, any>;
+  columns?: Array<{ column_name: string; data_type: string }>;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export default api;
+
