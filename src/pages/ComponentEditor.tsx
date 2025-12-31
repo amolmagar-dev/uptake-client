@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Play } from 'lucide-react';
+import { ArrowLeft, Save, Layers } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { Button } from '../components/ui/Button';
-import { Input, Select, Textarea } from '../components/ui/Input';
-import { customComponentsApi, connectionsApi, queriesApi } from '../lib/api';
+import { Input, Select } from '../components/ui/Input';
+import { customComponentsApi, datasetsApi, type Dataset } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 
 // Sandboxed Component Renderer
@@ -92,12 +92,13 @@ const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = ({
 export const ComponentEditorPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { connections, setConnections, addToast } = useAppStore();
+  const { addToast } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'html' | 'css' | 'js'>('html');
-  const [testData, setTestData] = useState<any[] | null>(null);
-  const [testLoading, setTestLoading] = useState(false);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [previewData, setPreviewData] = useState<any[] | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -105,22 +106,21 @@ export const ComponentEditorPage: React.FC = () => {
     html_content: '<div class="custom-component">\n  <h2>Hello World</h2>\n  <p>Edit this component!</p>\n</div>',
     css_content: '.custom-component {\n  padding: 20px;\n  background: linear-gradient(135deg, #1a1a2e, #16213e);\n  border-radius: 12px;\n  color: #f0f0f5;\n}\n\n.custom-component h2 {\n  color: #00f5d4;\n  margin-bottom: 10px;\n}',
     js_content: '// Access data via window.componentData\nconsole.log("Component loaded!", window.componentData);',
-    connection_id: '',
-    sql_query: '',
+    dataset_id: '',
   });
 
   const isEditing = !!id;
 
   useEffect(() => {
-    const fetchConnections = async () => {
+    const fetchDatasets = async () => {
       try {
-        const response = await connectionsApi.getAll();
-        setConnections(response.data.connections);
+        const response = await datasetsApi.getAll();
+        setDatasets(response.data.datasets);
       } catch (error) {
-        console.error('Failed to fetch connections');
+        console.error('Failed to fetch datasets');
       }
     };
-    fetchConnections();
+    fetchDatasets();
   }, []);
 
   useEffect(() => {
@@ -135,9 +135,12 @@ export const ComponentEditorPage: React.FC = () => {
             html_content: component.html_content || '',
             css_content: component.css_content || '',
             js_content: component.js_content || '',
-            connection_id: component.connection_id || '',
-            sql_query: component.sql_query || '',
+            dataset_id: component.dataset_id || '',
           });
+          // Load preview data if dataset is set
+          if (component.dataset_id) {
+            loadDatasetPreview(component.dataset_id);
+          }
         })
         .catch(() => {
           addToast('error', 'Failed to load component');
@@ -147,22 +150,27 @@ export const ComponentEditorPage: React.FC = () => {
     }
   }, [id]);
 
-  const handleTestQuery = async () => {
-    if (!formData.connection_id || !formData.sql_query) {
-      addToast('error', 'Please select a connection and enter a query');
+  const loadDatasetPreview = async (datasetId: string) => {
+    if (!datasetId) {
+      setPreviewData(null);
       return;
     }
-
-    setTestLoading(true);
+    setPreviewLoading(true);
     try {
-      const response = await queriesApi.execute(formData.connection_id, formData.sql_query);
-      setTestData(response.data.data);
-      addToast('success', `Query returned ${response.data.rowCount} rows`);
+      const response = await datasetsApi.preview(datasetId);
+      setPreviewData(response.data.data);
+      addToast('success', `Loaded ${response.data.rowCount} rows from dataset`);
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Query failed');
+      addToast('error', error.response?.data?.error || 'Failed to load dataset preview');
+      setPreviewData(null);
     } finally {
-      setTestLoading(false);
+      setPreviewLoading(false);
     }
+  };
+
+  const handleDatasetChange = (datasetId: string) => {
+    setFormData(prev => ({ ...prev, dataset_id: datasetId }));
+    loadDatasetPreview(datasetId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -181,8 +189,7 @@ export const ComponentEditorPage: React.FC = () => {
       html_content: formData.html_content,
       css_content: formData.css_content,
       js_content: formData.js_content,
-      connection_id: formData.connection_id || undefined,
-      sql_query: formData.sql_query || undefined,
+      dataset_id: formData.dataset_id || undefined,
       config: {},
     };
 
@@ -202,10 +209,7 @@ export const ComponentEditorPage: React.FC = () => {
     }
   };
 
-  const connectionOptions = [
-    { value: '', label: 'No data source (static)' },
-    ...connections.map(c => ({ value: c.id, label: c.name })),
-  ];
+  const selectedDataset = datasets.find(d => d.id === formData.dataset_id);
 
   const editorOptions = {
     minimap: { enabled: false },
@@ -333,7 +337,7 @@ export const ComponentEditorPage: React.FC = () => {
                 htmlContent={formData.html_content}
                 cssContent={formData.css_content}
                 jsContent={formData.js_content}
-                data={testData}
+                data={previewData}
                 height="100%"
               />
             </div>
@@ -342,43 +346,51 @@ export const ComponentEditorPage: React.FC = () => {
 
         {/* Data Source Section */}
         <div className="mt-4 p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
-          <h4 className="text-sm font-medium text-[#f0f0f5] mb-3">Data Source (Optional)</h4>
+          <h4 className="text-sm font-medium text-[#f0f0f5] mb-3 flex items-center gap-2">
+            <Layers size={16} />
+            Data Source (Optional)
+          </h4>
           <div className="grid grid-cols-3 gap-4">
             <Select
-              label="Database Connection"
-              options={connectionOptions}
-              value={formData.connection_id}
-              onChange={(e) => setFormData(prev => ({ ...prev, connection_id: e.target.value }))}
-            />
+              label="Dataset"
+              value={formData.dataset_id}
+              onChange={(e) => handleDatasetChange(e.target.value)}
+            >
+              <option value="">No data source (static)</option>
+              {datasets.map(d => (
+                <option key={d.id} value={d.id}>
+                  {d.name} ({d.dataset_type})
+                </option>
+              ))}
+            </Select>
             <div className="col-span-2">
-              <Textarea
-                label="SQL Query"
-                placeholder="SELECT * FROM your_table LIMIT 10"
-                value={formData.sql_query}
-                onChange={(e) => setFormData(prev => ({ ...prev, sql_query: e.target.value }))}
-                rows={2}
-                className="font-mono text-sm"
-              />
-            </div>
-          </div>
-          {formData.connection_id && formData.sql_query && (
-            <div className="mt-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleTestQuery}
-                isLoading={testLoading}
-                leftIcon={<Play size={14} />}
-              >
-                Test Query
-              </Button>
-              {testData && (
-                <span className="ml-3 text-sm text-[#00f5d4]">
-                  ✓ {testData.length} rows loaded - Access via window.componentData
-                </span>
+              {selectedDataset ? (
+                <div className="p-3 rounded-lg bg-[#16161f] border border-[#2a2a3a] h-full flex items-center">
+                  <div className="text-sm">
+                    <p className="text-[#f0f0f5] font-medium">{selectedDataset.name}</p>
+                    <p className="text-[#a0a0b0] text-xs mt-1">
+                      {selectedDataset.dataset_type === 'physical' 
+                        ? `${selectedDataset.table_schema}.${selectedDataset.table_name}`
+                        : 'Virtual dataset (SQL query)'
+                      }
+                      {previewLoading && ' — Loading...'}
+                      {previewData && ` — ${previewData.length} rows available`}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-[#16161f] border border-[#2a2a3a] h-full flex items-center">
+                  <p className="text-sm text-[#606070]">
+                    Select a dataset to provide data to your component via <code className="text-[#00f5d4]">window.componentData</code>
+                  </p>
+                </div>
               )}
             </div>
+          </div>
+          {datasets.length === 0 && (
+            <p className="mt-3 text-sm text-yellow-400">
+              No datasets available. <a href="/datasets" className="underline">Create a dataset</a> to use data in your component.
+            </p>
           )}
         </div>
       </form>

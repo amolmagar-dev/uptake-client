@@ -192,6 +192,8 @@ export interface CustomComponentInput {
   css_content?: string;
   js_content?: string;
   config?: Record<string, any>;
+  dataset_id?: string;
+  // Legacy fields for backward compatibility
   connection_id?: string;
   sql_query?: string;
 }
