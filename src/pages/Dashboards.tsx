@@ -125,47 +125,50 @@ export const DashboardsPage: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#f0f0f5]">Dashboards</h1>
-          <p className="text-[#a0a0b0] mt-1">Create and manage your data dashboards</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="flex items-center bg-[#1a1a25] rounded-lg p-1 border border-[#2a2a3a]">
-            <button
-              onClick={() => setViewMode('vertical')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'vertical'
-                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
-                  : 'text-[#606070] hover:text-[#a0a0b0]'
-              }`}
-              title="List View"
-            >
-              <List size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
-                  : 'text-[#606070] hover:text-[#a0a0b0]'
-              }`}
-              title="Grid View"
-            >
-              <LayoutGrid size={18} />
-            </button>
+    <div className="h-full flex flex-col">
+      {/* Sticky Header */}
+      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+        <div className="flex items-center justify-between py-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#f0f0f5]">Dashboards</h1>
+            <p className="text-[#a0a0b0] mt-1">Create and manage your data dashboards</p>
           </div>
-          <Button
-            leftIcon={<Plus size={18} />}
-            onClick={() => {
-              setEditingDashboard(null);
-              setShowModal(true);
-            }}
-          >
-            Create Dashboard
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* View Toggle */}
+            <div className="flex items-center bg-[#1a1a25] rounded-lg p-1 border border-[#2a2a3a]">
+              <button
+                onClick={() => setViewMode('vertical')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'vertical'
+                    ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                    : 'text-[#606070] hover:text-[#a0a0b0]'
+                }`}
+                title="List View"
+              >
+                <List size={18} />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                    : 'text-[#606070] hover:text-[#a0a0b0]'
+                }`}
+                title="Grid View"
+              >
+                <LayoutGrid size={18} />
+              </button>
+            </div>
+            <Button
+              leftIcon={<Plus size={18} />}
+              onClick={() => {
+                setEditingDashboard(null);
+                setShowModal(true);
+              }}
+            >
+              Create Dashboard
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -733,51 +736,54 @@ export const DashboardViewPage: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          {/* Back Button */}
-          <button
-            onClick={() => navigate('/')}
-            className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
-            title="Back to Dashboards"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
-            {dashboard.description && <p className="text-[#a0a0b0] mt-1">{dashboard.description}</p>}
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* View/Edit Toggle */}
-          <div className="flex items-center bg-[#1a1a25] rounded-lg p-1 border border-[#2a2a3a]">
+    <div className="h-full flex flex-col">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6 pt-0 -mt-0">
+        <div className="flex items-center justify-between py-4">
+          <div className="flex items-center gap-4">
+            {/* Back Button */}
             <button
-              onClick={() => navigate(`/dashboard/${id}`)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                !isEditMode
-                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
-                  : 'text-[#606070] hover:text-[#a0a0b0]'
-              }`}
+              onClick={() => navigate('/')}
+              className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
+              title="Back to Dashboards"
             >
-              View
+              <ChevronLeft size={20} />
             </button>
-            <button
-              onClick={() => navigate(`/dashboard/${id}/edit`)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                isEditMode
-                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
-                  : 'text-[#606070] hover:text-[#a0a0b0]'
-              }`}
-            >
-              Edit
-            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
+              {dashboard.description && <p className="text-[#a0a0b0] mt-1">{dashboard.description}</p>}
+            </div>
           </div>
-          {isEditMode && (
-            <Button leftIcon={<Plus size={18} />} onClick={() => setShowAddChart(true)}>
-              Add Chart
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            {/* View/Edit Toggle */}
+            <div className="flex items-center bg-[#1a1a25] rounded-lg p-1 border border-[#2a2a3a]">
+              <button
+                onClick={() => navigate(`/dashboard/${id}`)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  !isEditMode
+                    ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                    : 'text-[#606070] hover:text-[#a0a0b0]'
+                }`}
+              >
+                View
+              </button>
+              <button
+                onClick={() => navigate(`/dashboard/${id}/edit`)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  isEditMode
+                    ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                    : 'text-[#606070] hover:text-[#a0a0b0]'
+                }`}
+              >
+                Edit
+              </button>
+            </div>
+            {isEditMode && (
+              <Button leftIcon={<Plus size={18} />} onClick={() => setShowAddChart(true)}>
+                Add Chart
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

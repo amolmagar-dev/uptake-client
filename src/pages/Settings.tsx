@@ -20,10 +20,13 @@ export const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#f0f0f5]">Settings</h1>
-        <p className="text-[#a0a0b0] mt-1">Manage your account and preferences</p>
+    <div className="h-full flex flex-col">
+      {/* Sticky Header */}
+      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+        <div className="py-4">
+          <h1 className="text-2xl font-bold text-[#f0f0f5]">Settings</h1>
+          <p className="text-[#a0a0b0] mt-1">Manage your account and preferences</p>
+        </div>
       </div>
 
       <div className="flex gap-6">

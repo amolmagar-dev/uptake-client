@@ -120,21 +120,24 @@ export const ConnectionsPage: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#f0f0f5]">Database Connections</h1>
-          <p className="text-[#a0a0b0] mt-1">Manage your database connections</p>
+    <div className="h-full flex flex-col">
+      {/* Sticky Header */}
+      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+        <div className="flex items-center justify-between py-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#f0f0f5]">Database Connections</h1>
+            <p className="text-[#a0a0b0] mt-1">Manage your database connections</p>
+          </div>
+          <Button
+            leftIcon={<Plus size={18} />}
+            onClick={() => {
+              setEditingConnection(null);
+              setShowModal(true);
+            }}
+          >
+            Add Connection
+          </Button>
         </div>
-        <Button
-          leftIcon={<Plus size={18} />}
-          onClick={() => {
-            setEditingConnection(null);
-            setShowModal(true);
-          }}
-        >
-          Add Connection
-        </Button>
       </div>
 
       {connections.length === 0 ? (
