@@ -13,9 +13,9 @@ export const Layout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
       <TopBar />
-      <main className="flex-1">
+      <main className="flex-1 overflow-auto">
         <div className="p-6">
           <Outlet />
         </div>
@@ -25,4 +25,5 @@ export const Layout: React.FC = () => {
     </div>
   );
 };
+
 
