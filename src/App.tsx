@@ -34,6 +34,7 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<DashboardsPage />} />
         <Route path="/dashboard/:id" element={<DashboardViewPage />} />
+        <Route path="/dashboard/:id/edit" element={<DashboardViewPage />} />
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/sql-editor" element={<SQLEditorPage />} />
         <Route path="/charts" element={<ChartsPage />} />

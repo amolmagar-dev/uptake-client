@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Plus, LayoutDashboard, Trash2, Edit, Eye, Grid } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Plus, LayoutDashboard, Trash2, Edit, Eye, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -60,6 +60,34 @@ export const DashboardsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingDashboard, setEditingDashboard] = useState<Dashboard | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'vertical' | 'grid'>('vertical');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Filter dashboards based on search
+  const filteredDashboards = useMemo(() => {
+    if (!searchQuery.trim()) return dashboards;
+    const query = searchQuery.toLowerCase();
+    return dashboards.filter(
+      (d) =>
+        d.name.toLowerCase().includes(query) ||
+        d.description?.toLowerCase().includes(query) ||
+        d.created_by_name?.toLowerCase().includes(query)
+    );
+  }, [dashboards, searchQuery]);
+
+  // Paginate filtered dashboards
+  const totalPages = Math.ceil(filteredDashboards.length / itemsPerPage);
+  const paginatedDashboards = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredDashboards.slice(start, start + itemsPerPage);
+  }, [filteredDashboards, currentPage]);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const fetchDashboards = async () => {
     try {
@@ -103,86 +131,269 @@ export const DashboardsPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-[#f0f0f5]">Dashboards</h1>
           <p className="text-[#a0a0b0] mt-1">Create and manage your data dashboards</p>
         </div>
-        <Button
-          leftIcon={<Plus size={18} />}
-          onClick={() => {
-            setEditingDashboard(null);
-            setShowModal(true);
-          }}
-        >
-          Create Dashboard
-        </Button>
-      </div>
-
-      {dashboards.length === 0 ? (
-        <Card className="text-center py-12">
-          <LayoutDashboard size={48} className="mx-auto mb-4 text-[#606070]" />
-          <h3 className="text-lg font-medium text-[#f0f0f5] mb-2">No dashboards yet</h3>
-          <p className="text-[#a0a0b0] mb-4">Create your first dashboard to organize your charts</p>
-          <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
+        <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="flex items-center bg-[#1a1a25] rounded-lg p-1 border border-[#2a2a3a]">
+            <button
+              onClick={() => setViewMode('vertical')}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === 'vertical'
+                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                  : 'text-[#606070] hover:text-[#a0a0b0]'
+              }`}
+              title="List View"
+            >
+              <List size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                  : 'text-[#606070] hover:text-[#a0a0b0]'
+              }`}
+              title="Grid View"
+            >
+              <LayoutGrid size={18} />
+            </button>
+          </div>
+          <Button
+            leftIcon={<Plus size={18} />}
+            onClick={() => {
+              setEditingDashboard(null);
+              setShowModal(true);
+            }}
+          >
             Create Dashboard
           </Button>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#606070]" />
+          <input
+            type="text"
+            placeholder="Search dashboards by name, description, or creator..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] placeholder-[#606070] focus:outline-none focus:border-[#00f5d4] transition-colors"
+          />
+        </div>
+        {searchQuery && (
+          <p className="text-xs text-[#606070] mt-2">
+            Found {filteredDashboards.length} dashboard{filteredDashboards.length !== 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+
+      {filteredDashboards.length === 0 ? (
+        <Card className="text-center py-12">
+          <LayoutDashboard size={48} className="mx-auto mb-4 text-[#606070]" />
+          <h3 className="text-lg font-medium text-[#f0f0f5] mb-2">
+            {searchQuery ? 'No dashboards found' : 'No dashboards yet'}
+          </h3>
+          <p className="text-[#a0a0b0] mb-4">
+            {searchQuery
+              ? `No dashboards match "${searchQuery}"`
+              : 'Create your first dashboard to organize your charts'
+            }
+          </p>
+          {!searchQuery && (
+            <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
+              Create Dashboard
+            </Button>
+          )}
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {dashboards.map((dashboard) => (
-            <Card key={dashboard.id} hover className="flex flex-col">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00f5d4]/20 to-[#7b2cbf]/20 flex items-center justify-center">
-                    <Grid size={20} className="text-[#00f5d4]" />
+        <>
+        <div className={viewMode === 'vertical' 
+          ? 'flex flex-col gap-3' 
+          : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+        }>
+          {paginatedDashboards.map((dashboard) => (
+            <Card 
+              key={dashboard.id} 
+              hover 
+              className={viewMode === 'vertical' 
+                ? 'flex flex-row items-center justify-between p-4' 
+                : 'flex flex-col'
+              }
+            >
+              {viewMode === 'vertical' ? (
+                /* Vertical/List Layout */
+                <>
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00f5d4]/20 to-[#7b2cbf]/20 flex items-center justify-center flex-shrink-0">
+                      <Grid size={20} className="text-[#00f5d4]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-[#f0f0f5] truncate">{dashboard.name}</h3>
+                        {dashboard.is_public === 1 && (
+                          <span className="px-2 py-0.5 text-xs rounded-full bg-[#00f5d4]/10 text-[#00f5d4] border border-[#00f5d4]/20 flex-shrink-0">
+                            Public
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-[#606070]">
+                        <span>{dashboard.chart_count} charts</span>
+                        <span>•</span>
+                        <span>By {dashboard.created_by_name}</span>
+                        {dashboard.description && (
+                          <>
+                            <span>•</span>
+                            <span className="truncate max-w-xs">{dashboard.description}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-[#f0f0f5]">{dashboard.name}</h3>
-                    <p className="text-xs text-[#606070]">{dashboard.chart_count} charts</p>
+                  <div className="flex items-center gap-2 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/dashboard/${dashboard.id}`)}
+                      leftIcon={<Eye size={14} />}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingDashboard(dashboard);
+                        setShowModal(true);
+                      }}
+                      leftIcon={<Edit size={14} />}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteConfirm(dashboard.id)}
+                      className="text-[#ff4757] hover:text-[#ff4757]"
+                      leftIcon={<Trash2 size={14} />}
+                    >
+                      Delete
+                    </Button>
                   </div>
-                </div>
-                {dashboard.is_public === 1 && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-[#00f5d4]/10 text-[#00f5d4] border border-[#00f5d4]/20">
-                    Public
-                  </span>
-                )}
-              </div>
+                </>
+              ) : (
+                /* Grid/Box Layout */
+                <>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00f5d4]/20 to-[#7b2cbf]/20 flex items-center justify-center">
+                        <Grid size={20} className="text-[#00f5d4]" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-[#f0f0f5]">{dashboard.name}</h3>
+                        <p className="text-xs text-[#606070]">{dashboard.chart_count} charts</p>
+                      </div>
+                    </div>
+                    {dashboard.is_public === 1 && (
+                      <span className="px-2 py-0.5 text-xs rounded-full bg-[#00f5d4]/10 text-[#00f5d4] border border-[#00f5d4]/20">
+                        Public
+                      </span>
+                    )}
+                  </div>
 
-              {dashboard.description && (
-                <p className="text-sm text-[#a0a0b0] mb-4 line-clamp-2">{dashboard.description}</p>
+                  {dashboard.description && (
+                    <p className="text-sm text-[#a0a0b0] mb-4 line-clamp-2">{dashboard.description}</p>
+                  )}
+
+                  <p className="text-xs text-[#606070] mb-4">By {dashboard.created_by_name}</p>
+
+                  <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/dashboard/${dashboard.id}`)}
+                      leftIcon={<Eye size={14} />}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingDashboard(dashboard);
+                        setShowModal(true);
+                      }}
+                      leftIcon={<Edit size={14} />}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteConfirm(dashboard.id)}
+                      className="text-[#ff4757] hover:text-[#ff4757]"
+                      leftIcon={<Trash2 size={14} />}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </>
               )}
-
-              <p className="text-xs text-[#606070] mb-4">By {dashboard.created_by_name}</p>
-
-              <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/dashboard/${dashboard.id}`)}
-                  leftIcon={<Eye size={14} />}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingDashboard(dashboard);
-                    setShowModal(true);
-                  }}
-                  leftIcon={<Edit size={14} />}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteConfirm(dashboard.id)}
-                  className="text-[#ff4757] hover:text-[#ff4757]"
-                  leftIcon={<Trash2 size={14} />}
-                >
-                  Delete
-                </Button>
-              </div>
             </Card>
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#2a2a3a]">
+            <p className="text-sm text-[#606070]">
+              Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDashboards.length)} of {filteredDashboards.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((page) => {
+                    // Show first, last, current, and adjacent pages
+                    if (page === 1 || page === totalPages) return true;
+                    if (Math.abs(page - currentPage) <= 1) return true;
+                    return false;
+                  })
+                  .map((page, idx, arr) => (
+                    <React.Fragment key={page}>
+                      {idx > 0 && arr[idx - 1] !== page - 1 && (
+                        <span className="text-[#606070] px-1">...</span>
+                      )}
+                      <button
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-[#00f5d4] text-[#12121a]'
+                            : 'bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4]'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </React.Fragment>
+                  ))}
+              </div>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+              <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+      </>
       )}
 
       <DashboardModal
@@ -312,6 +523,9 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose, dashbo
 // Dashboard View Page
 export const DashboardViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isEditMode = location.pathname.endsWith('/edit');
   const { addToast } = useAppStore();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [chartData, setChartData] = useState<ChartData[]>([]);
@@ -506,13 +720,50 @@ export const DashboardViewPage: React.FC = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
-          {dashboard.description && <p className="text-[#a0a0b0] mt-1">{dashboard.description}</p>}
+        <div className="flex items-center gap-4">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
+            title="Back to Dashboards"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
+            {dashboard.description && <p className="text-[#a0a0b0] mt-1">{dashboard.description}</p>}
+          </div>
         </div>
-        <Button leftIcon={<Plus size={18} />} onClick={() => setShowAddChart(true)}>
-          Add Chart
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* View/Edit Toggle */}
+          <div className="flex items-center bg-[#1a1a25] rounded-lg p-1 border border-[#2a2a3a]">
+            <button
+              onClick={() => navigate(`/dashboard/${id}`)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                !isEditMode
+                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                  : 'text-[#606070] hover:text-[#a0a0b0]'
+              }`}
+            >
+              View
+            </button>
+            <button
+              onClick={() => navigate(`/dashboard/${id}/edit`)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                isEditMode
+                  ? 'bg-[#2a2a3a] text-[#00f5d4]'
+                  : 'text-[#606070] hover:text-[#a0a0b0]'
+              }`}
+            >
+              Edit
+            </button>
+          </div>
+          {isEditMode && (
+            <Button leftIcon={<Plus size={18} />} onClick={() => setShowAddChart(true)}>
+              Add Chart
+            </Button>
+          )}
+        </div>
       </div>
 
       {dashboard.charts && dashboard.charts.length > 0 ? (
@@ -523,9 +774,9 @@ export const DashboardViewPage: React.FC = () => {
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
             rowHeight={100}
-            onLayoutChange={handleLayoutChange}
-            isDraggable={true}
-            isResizable={true}
+            onLayoutChange={isEditMode ? handleLayoutChange : undefined}
+            isDraggable={isEditMode}
+            isResizable={isEditMode}
             useCSSTransforms={true}
             compactType="vertical"
             preventCollision={false}
@@ -548,8 +799,8 @@ export const DashboardViewPage: React.FC = () => {
                       jsContent={item.js_content}
                       data={data?.data}
                       error={data?.error}
-                      onRemove={handleRemoveChart}
-                      onSettings={handleChartSettings}
+                      onRemove={isEditMode ? handleRemoveChart : undefined}
+                      onSettings={isEditMode ? handleChartSettings : undefined}
                       height={itemHeight}
                     />
                   </div>
@@ -566,8 +817,8 @@ export const DashboardViewPage: React.FC = () => {
                     data={data?.data}
                     config={data?.config || item.config}
                     error={data?.error}
-                    onRemove={handleRemoveChart}
-                    onSettings={handleChartSettings}
+                    onRemove={isEditMode ? handleRemoveChart : undefined}
+                    onSettings={isEditMode ? handleChartSettings : undefined}
                     height={itemHeight}
                   />
                 </div>

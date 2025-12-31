@@ -11,7 +11,7 @@ interface DraggableComponentProps {
   data?: any[] | null;
   error?: string;
   isLoading?: boolean;
-  onRemove: (id: string) => void;
+  onRemove?: (id: string) => void;
   onSettings?: (id: string) => void;
   height?: number;
 }
@@ -100,14 +100,16 @@ export const DraggableComponent: React.FC<DraggableComponentProps> = ({
               <Settings size={14} />
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemove(id)}
-            className="text-[#ff4757] hover:text-[#ff4757] p-1 h-auto"
-          >
-            <Trash2 size={14} />
-          </Button>
+          {onRemove && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onRemove(id)}
+              className="text-[#ff4757] hover:text-[#ff4757] p-1 h-auto"
+            >
+              <Trash2 size={14} />
+            </Button>
+          )}
         </div>
       </div>
 
