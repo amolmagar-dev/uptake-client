@@ -7,7 +7,8 @@ import { Card } from "../components/ui/Card";
 import { Input, Textarea } from "../components/ui/Input";
 import { Modal, ConfirmModal } from "../components/ui/Modal";
 import { DraggableChart } from "../components/charts/DraggableChart";
-import { dashboardsApi, chartsApi } from "../lib/api";
+import { DraggableComponent } from "../components/charts/DraggableComponent";
+import { dashboardsApi, chartsApi, customComponentsApi } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -27,14 +28,20 @@ interface Dashboard {
 
 interface DashboardChart {
   id: string;
-  chart_id: string;
+  chart_id?: string;
+  component_id?: string;
+  type?: 'chart' | 'component';
   name: string;
-  chart_type: string;
+  chart_type?: string;
   config: any;
   position_x: number;
   position_y: number;
   width: number;
   height: number;
+  // Component-specific fields
+  html_content?: string;
+  css_content?: string;
+  js_content?: string;
 }
 
 interface ChartData {
@@ -310,6 +317,7 @@ export const DashboardViewPage: React.FC = () => {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [availableCharts, setAvailableCharts] = useState<any[]>([]);
+  const [availableComponents, setAvailableComponents] = useState<any[]>([]);
   const [showAddChart, setShowAddChart] = useState(false);
   const [layouts, setLayouts] = useState<Record<string, Layout[]>>({});
   const [isUpdating, setIsUpdating] = useState(false);
@@ -355,9 +363,19 @@ export const DashboardViewPage: React.FC = () => {
     }
   };
 
+  const fetchAvailableComponents = async () => {
+    try {
+      const response = await customComponentsApi.getAll();
+      setAvailableComponents(response.data.components);
+    } catch (error) {
+      console.error("Failed to fetch components");
+    }
+  };
+
   useEffect(() => {
     fetchDashboard();
     fetchAvailableCharts();
+    fetchAvailableComponents();
   }, [id]);
 
   const handleLayoutChange = useCallback(
@@ -412,6 +430,24 @@ export const DashboardViewPage: React.FC = () => {
       setShowAddChart(false);
     } catch (error) {
       addToast("error", "Failed to add chart");
+    }
+  };
+
+  const handleAddComponent = async (componentId: string) => {
+    if (!id) return;
+    try {
+      await dashboardsApi.addChart(id, {
+        component_id: componentId,
+        position_x: 0,
+        position_y: 0,
+        width: 6,
+        height: 4,
+      } as any);
+      addToast("success", "Component added to dashboard");
+      fetchDashboard();
+      setShowAddChart(false);
+    } catch (error) {
+      addToast("error", "Failed to add component");
     }
   };
 
@@ -494,21 +530,43 @@ export const DashboardViewPage: React.FC = () => {
             compactType="vertical"
             preventCollision={false}
           >
-            {dashboard.charts.map((chart) => {
-              const data = chartData.find((d) => d.chartId === chart.chart_id);
-              const chartHeight = (chart.height || 4) * 100 - 50; // Calculate actual height (rowHeight * height - padding)
+            {dashboard.charts.map((item) => {
+              const data = chartData.find((d) => d.chartId === item.chart_id);
+              const itemHeight = (item.height || 4) * 100 - 50;
+              
+              // Render custom component
+              if (item.type === 'component' || item.component_id) {
+                return (
+                  <div key={item.id} className="grid-item">
+                    <DraggableComponent
+                      id={item.id}
+                      name={item.name}
+                      htmlContent={item.html_content || ''}
+                      cssContent={item.css_content}
+                      jsContent={item.js_content}
+                      data={data?.data}
+                      error={data?.error}
+                      onRemove={handleRemoveChart}
+                      onSettings={handleChartSettings}
+                      height={itemHeight}
+                    />
+                  </div>
+                );
+              }
+              
+              // Render chart
               return (
-                <div key={chart.id} className="grid-item">
+                <div key={item.id} className="grid-item">
                   <DraggableChart
-                    id={chart.id}
-                    name={chart.name}
-                    chartType={chart.chart_type}
+                    id={item.id}
+                    name={item.name}
+                    chartType={item.chart_type || 'bar'}
                     data={data?.data}
-                    config={data?.config || chart.config}
+                    config={data?.config || item.config}
                     error={data?.error}
                     onRemove={handleRemoveChart}
                     onSettings={handleChartSettings}
-                    height={chartHeight}
+                    height={itemHeight}
                   />
                 </div>
               );
@@ -526,23 +584,50 @@ export const DashboardViewPage: React.FC = () => {
         </Card>
       )}
 
-      <Modal isOpen={showAddChart} onClose={() => setShowAddChart(false)} title="Add Chart to Dashboard" size="lg">
-        {availableCharts.length === 0 ? (
-          <p className="text-center text-[#a0a0b0] py-8">No charts available. Create a chart first.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            {availableCharts.map((chart) => (
-              <button
-                key={chart.id}
-                onClick={() => handleAddChart(chart.id)}
-                className="p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] hover:border-[#00f5d4] transition-colors text-left"
-              >
-                <h4 className="font-medium text-[#f0f0f5]">{chart.name}</h4>
-                <p className="text-sm text-[#606070]">{chart.chart_type}</p>
-              </button>
-            ))}
+      <Modal isOpen={showAddChart} onClose={() => setShowAddChart(false)} title="Add to Dashboard" size="lg">
+        <div className="space-y-6">
+          {/* Charts Section */}
+          <div>
+            <h4 className="text-sm font-medium text-[#00f5d4] mb-3">📊 Charts</h4>
+            {availableCharts.length === 0 ? (
+              <p className="text-sm text-[#606070]">No charts available. Create a chart first.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {availableCharts.map((chart) => (
+                  <button
+                    key={chart.id}
+                    onClick={() => handleAddChart(chart.id)}
+                    className="p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] hover:border-[#00f5d4] transition-colors text-left"
+                  >
+                    <h5 className="font-medium text-[#f0f0f5] text-sm">{chart.name}</h5>
+                    <p className="text-xs text-[#606070]">{chart.chart_type}</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Components Section */}
+          <div>
+            <h4 className="text-sm font-medium text-[#7b2cbf] mb-3">🧩 Custom Components</h4>
+            {availableComponents.length === 0 ? (
+              <p className="text-sm text-[#606070]">No components available. Create a component first.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {availableComponents.map((comp) => (
+                  <button
+                    key={comp.id}
+                    onClick={() => handleAddComponent(comp.id)}
+                    className="p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] hover:border-[#7b2cbf] transition-colors text-left"
+                  >
+                    <h5 className="font-medium text-[#f0f0f5] text-sm">{comp.name}</h5>
+                    <p className="text-xs text-[#606070]">Custom Component</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </Modal>
 
       {/* Chart Dimensions Settings Modal */}

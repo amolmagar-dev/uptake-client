@@ -99,6 +99,16 @@ export const aiApi = {
   chat: (messages: ChatMessage[]) => api.post("/ai/chat", { messages }),
 };
 
+// Custom Components API
+export const customComponentsApi = {
+  getAll: () => api.get("/components"),
+  getOne: (id: string) => api.get(`/components/${id}`),
+  create: (data: CustomComponentInput) => api.post("/components", data),
+  update: (id: string, data: Partial<CustomComponentInput>) => api.put(`/components/${id}`, data),
+  delete: (id: string) => api.delete(`/components/${id}`),
+  getData: (id: string) => api.get(`/components/${id}/data`),
+};
+
 // Health check
 export const healthCheck = () => api.get("/health");
 
@@ -161,6 +171,17 @@ export interface DashboardChartInput {
   position_y?: number;
   width?: number;
   height?: number;
+}
+
+export interface CustomComponentInput {
+  name: string;
+  description?: string;
+  html_content: string;
+  css_content?: string;
+  js_content?: string;
+  config?: Record<string, any>;
+  connection_id?: string;
+  sql_query?: string;
 }
 
 export default api;

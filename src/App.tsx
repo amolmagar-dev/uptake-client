@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
 import { LoginPage, RegisterPage } from "./pages/Login";
@@ -6,6 +6,7 @@ import { DashboardsPage, DashboardViewPage } from "./pages/Dashboards";
 import { ConnectionsPage } from "./pages/Connections";
 import { SQLEditorPage } from "./pages/SQLEditorPage";
 import { ChartsPage } from "./pages/Charts";
+import { ComponentBuilderPage } from "./pages/ComponentBuilder";
 import { SettingsPage } from "./pages/Settings";
 import { useAuthStore } from "./store/authStore";
 import { useAppStore, applyTheme } from "./store/appStore";
@@ -36,6 +37,7 @@ function App() {
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/sql-editor" element={<SQLEditorPage />} />
         <Route path="/charts" element={<ChartsPage />} />
+        <Route path="/components" element={<ComponentBuilderPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 

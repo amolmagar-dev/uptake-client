@@ -5,6 +5,7 @@ import {
   Database,
   FileCode,
   BarChart3,
+  Code2,
   Settings,
   LogOut,
   ChevronLeft,
@@ -19,6 +20,7 @@ const navItems = [
   { path: '/connections', icon: Database, label: 'Connections' },
   { path: '/sql-editor', icon: FileCode, label: 'SQL Editor' },
   { path: '/charts', icon: BarChart3, label: 'Charts' },
+  { path: '/components', icon: Code2, label: 'Components' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
