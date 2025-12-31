@@ -1,31 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Database, Trash2, Edit, Eye, RefreshCw, Table, Code, FileSpreadsheet, Globe } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Input, Select, Textarea } from '../components/ui/Input';
-import { Modal, ConfirmModal } from '../components/ui/Modal';
-import { datasetsApi, connectionsApi, type Dataset, type DatasetInput } from '../lib/api';
+import { ConfirmModal, Modal } from '../components/ui/Modal';
+import { datasetsApi, type Dataset } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 
-interface Connection {
-  id: string;
-  name: string;
-  type: string;
-  database_name: string;
-}
-
-interface TableInfo {
-  table_schema: string;
-  table_name: string;
-  table_type: string;
-}
-
 export function DatasetsPage() {
+  const navigate = useNavigate();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
-  const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDataset, setEditingDataset] = useState<Dataset | null>(null);
   const [deleteDataset, setDeleteDataset] = useState<Dataset | null>(null);
   const [previewDataset, setPreviewDataset] = useState<Dataset | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
@@ -34,7 +19,6 @@ export function DatasetsPage() {
 
   useEffect(() => {
     fetchDatasets();
-    fetchConnections();
   }, []);
 
   const fetchDatasets = async () => {
@@ -46,15 +30,6 @@ export function DatasetsPage() {
       addToast('error', error.response?.data?.error || 'Failed to fetch datasets');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchConnections = async () => {
-    try {
-      const response = await connectionsApi.getAll();
-      setConnections(response.data.connections);
-    } catch (error) {
-      console.error('Failed to fetch connections:', error);
     }
   };
 
@@ -113,10 +88,7 @@ export function DatasetsPage() {
           </div>
           <Button
             variant="primary"
-            onClick={() => {
-              setEditingDataset(null);
-              setIsModalOpen(true);
-            }}
+            onClick={() => navigate('/datasets/new')}
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Dataset
@@ -136,7 +108,7 @@ export function DatasetsPage() {
           <p className="text-[var(--text-tertiary)] mb-6">
             Create your first dataset to start building charts
           </p>
-          <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+          <Button variant="primary" onClick={() => navigate('/datasets/new')}>
             <Plus className="h-4 w-4 mr-2" />
             Create Dataset
           </Button>
@@ -199,10 +171,7 @@ export function DatasetsPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setEditingDataset(dataset);
-                    setIsModalOpen(true);
-                  }}
+                  onClick={() => navigate(`/datasets/${dataset.id}/edit`)}
                   title="Edit"
                 >
                   <Edit className="h-4 w-4" />
@@ -221,23 +190,6 @@ export function DatasetsPage() {
           ))}
         </div>
       )}
-
-      {/* Create/Edit Modal */}
-      <DatasetModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingDataset(null);
-        }}
-        dataset={editingDataset}
-        connections={connections}
-        onSuccess={() => {
-          setIsModalOpen(false);
-          setEditingDataset(null);
-          fetchDatasets();
-        }}
-      />
-
       {/* Delete Confirmation */}
       <ConfirmModal
         isOpen={!!deleteDataset}
@@ -299,372 +251,6 @@ export function DatasetsPage() {
         )}
       </Modal>
     </div>
-  );
-}
-
-// Dataset Modal Component
-interface DatasetModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  dataset: Dataset | null;
-  connections: Connection[];
-  onSuccess: () => void;
-}
-
-function DatasetModal({ isOpen, onClose, dataset, connections, onSuccess }: DatasetModalProps) {
-  const [formData, setFormData] = useState<DatasetInput>({
-    name: '',
-    description: '',
-    source_type: 'sql',
-    dataset_type: 'physical',
-    connection_id: '',
-    table_name: '',
-    table_schema: 'public',
-    sql_query: '',
-  });
-  const [tables, setTables] = useState<TableInfo[]>([]);
-  const [loadingTables, setLoadingTables] = useState(false);
-  const [testResult, setTestResult] = useState<any>(null);
-  const [testLoading, setTestLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const { addToast } = useAppStore();
-
-  useEffect(() => {
-    if (dataset) {
-      setFormData({
-        name: dataset.name,
-        description: dataset.description || '',
-        source_type: dataset.source_type as DatasetInput['source_type'],
-        dataset_type: dataset.dataset_type as DatasetInput['dataset_type'],
-        connection_id: dataset.connection_id || '',
-        table_name: dataset.table_name || '',
-        table_schema: dataset.table_schema || 'public',
-        sql_query: dataset.sql_query || '',
-      });
-      if (dataset.connection_id) {
-        fetchTables(dataset.connection_id);
-      }
-    } else {
-      setFormData({
-        name: '',
-        description: '',
-        source_type: 'sql',
-        dataset_type: 'physical',
-        connection_id: connections[0]?.id || '',
-        table_name: '',
-        table_schema: 'public',
-        sql_query: '',
-      });
-      setTables([]);
-    }
-    setTestResult(null);
-  }, [dataset, isOpen, connections]);
-
-  const fetchTables = async (connectionId: string) => {
-    if (!connectionId) return;
-    setLoadingTables(true);
-    try {
-      const response = await connectionsApi.getTables(connectionId);
-      setTables(response.data.tables);
-    } catch (error) {
-      console.error('Failed to fetch tables:', error);
-    } finally {
-      setLoadingTables(false);
-    }
-  };
-
-  const handleConnectionChange = (connectionId: string) => {
-    setFormData({ ...formData, connection_id: connectionId, table_name: '' });
-    fetchTables(connectionId);
-  };
-
-  const handleTestQuery = async () => {
-    if (!formData.connection_id || !formData.sql_query) {
-      addToast('error', 'Please select a connection and enter a SQL query');
-      return;
-    }
-    setTestLoading(true);
-    setTestResult(null);
-    try {
-      // Create a temporary dataset to test via preview
-      const tempDataset: DatasetInput = {
-        ...formData,
-        name: 'Test Query',
-      };
-      const createResponse = await datasetsApi.create(tempDataset);
-      const tempId = createResponse.data.dataset.id;
-      
-      try {
-        const previewResponse = await datasetsApi.preview(tempId);
-        setTestResult({
-          success: true,
-          data: previewResponse.data,
-        });
-      } finally {
-        // Clean up temp dataset
-        await datasetsApi.delete(tempId);
-      }
-    } catch (error: any) {
-      setTestResult({
-        success: false,
-        error: error.response?.data?.error || 'Query failed',
-      });
-    } finally {
-      setTestLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-
-    try {
-      if (dataset) {
-        await datasetsApi.update(dataset.id, formData);
-        addToast('success', 'Dataset updated successfully');
-      } else {
-        await datasetsApi.create(formData);
-        addToast('success', 'Dataset created successfully');
-      }
-      onSuccess();
-    } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to save dataset');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Group tables by schema
-  const schemaGroups = tables.reduce((acc, table) => {
-    const schema = table.table_schema;
-    if (!acc[schema]) acc[schema] = [];
-    acc[schema].push(table);
-    return acc;
-  }, {} as Record<string, TableInfo[]>);
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={dataset ? 'Edit Dataset' : 'Create Dataset'}
-      size="lg"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="My Dataset"
-          required
-        />
-
-        <Textarea
-          label="Description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Optional description..."
-          rows={2}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <Select
-            label="Source Type"
-            value={formData.source_type}
-            onChange={(e) => {
-              const newType = e.target.value as DatasetInput['source_type'];
-              setFormData({ 
-                ...formData, 
-                source_type: newType,
-                connection_id: '',
-                dataset_type: newType === 'sql' ? formData.dataset_type : 'physical',
-              });
-            }}
-          >
-            <option value="sql">SQL Database</option>
-            <option value="api">REST API</option>
-            <option value="googlesheet">Google Sheets</option>
-          </Select>
-        </div>
-
-        {formData.source_type === 'sql' && (
-          <>
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Dataset Type"
-                value={formData.dataset_type}
-                onChange={(e) => setFormData({ ...formData, dataset_type: e.target.value as DatasetInput['dataset_type'] })}
-              >
-                <option value="physical">Physical (Table/View)</option>
-                <option value="virtual">Virtual (SQL Query)</option>
-              </Select>
-
-              <Select
-                label="Connection"
-                value={formData.connection_id}
-                onChange={(e) => handleConnectionChange(e.target.value)}
-                required
-              >
-                <option value="">Select a connection...</option>
-                {connections
-                  .filter((conn) => ['postgresql', 'mysql', 'mariadb'].includes(conn.type))
-                  .map((conn) => (
-                    <option key={conn.id} value={conn.id}>
-                      {conn.name} ({conn.type})
-                    </option>
-                  ))}
-              </Select>
-            </div>
-
-            {formData.dataset_type === 'physical' && (
-              <div className="grid grid-cols-3 gap-4">
-                <Select
-                  label="Schema"
-                  value={formData.table_schema}
-                  onChange={(e) => setFormData({ ...formData, table_schema: e.target.value })}
-                >
-                  {Object.keys(schemaGroups).length > 0 ? (
-                    Object.keys(schemaGroups).map((schema) => (
-                      <option key={schema} value={schema}>{schema}</option>
-                    ))
-                  ) : (
-                    <option value="public">public</option>
-                  )}
-                </Select>
-
-                <div className="col-span-2">
-                  <Select
-                    label="Table"
-                    value={formData.table_name}
-                    onChange={(e) => setFormData({ ...formData, table_name: e.target.value })}
-                    disabled={loadingTables}
-                    required
-                  >
-                    <option value="">
-                      {loadingTables ? 'Loading tables...' : 'Select a table...'}
-                    </option>
-                    {schemaGroups[formData.table_schema || 'public']?.map((table) => (
-                      <option key={table.table_name} value={table.table_name}>
-                        {table.table_name} ({table.table_type})
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            {formData.dataset_type === 'virtual' && (
-              <div className="space-y-2">
-                <Textarea
-                  label="SQL Query"
-                  value={formData.sql_query}
-                  onChange={(e) => setFormData({ ...formData, sql_query: e.target.value })}
-                  placeholder="SELECT * FROM users WHERE active = true"
-                  rows={6}
-                  className="font-mono text-sm"
-                  required
-                />
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleTestQuery}
-                    disabled={testLoading || !formData.sql_query}
-                  >
-                    {testLoading ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Testing...
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Test Query
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {testResult && (
-                  <div className={`p-3 rounded-lg text-sm ${
-                    testResult.success 
-                      ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
-                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                  }`}>
-                    {testResult.success ? (
-                      <p>✓ Query successful - {testResult.data.rowCount} rows returned</p>
-                    ) : (
-                      <p>✗ {testResult.error}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* API Source Type */}
-        {formData.source_type === 'api' && (
-          <>
-            <Select
-              label="API Connection"
-              value={formData.connection_id}
-              onChange={(e) => setFormData({ ...formData, connection_id: e.target.value })}
-              required
-            >
-              <option value="">Select an API connection...</option>
-              {connections
-                .filter((conn) => conn.type === 'api')
-                .map((conn) => (
-                  <option key={conn.id} value={conn.id}>
-                    {conn.name}
-                  </option>
-                ))}
-            </Select>
-            {connections.filter(c => c.type === 'api').length === 0 && (
-              <p className="text-sm text-yellow-400">
-                No API connections available. <a href="/connections" className="underline">Create one first</a>.
-              </p>
-            )}
-          </>
-        )}
-
-        {/* Google Sheets Source Type */}
-        {formData.source_type === 'googlesheet' && (
-          <>
-            <Select
-              label="Google Sheets Connection"
-              value={formData.connection_id}
-              onChange={(e) => setFormData({ ...formData, connection_id: e.target.value })}
-              required
-            >
-              <option value="">Select a Google Sheets connection...</option>
-              {connections
-                .filter((conn) => conn.type === 'googlesheet')
-                .map((conn) => (
-                  <option key={conn.id} value={conn.id}>
-                    {conn.name}
-                  </option>
-                ))}
-            </Select>
-            {connections.filter(c => c.type === 'googlesheet').length === 0 && (
-              <p className="text-sm text-yellow-400">
-                No Google Sheets connections available. <a href="/connections" className="underline">Create one first</a>.
-              </p>
-            )}
-          </>
-        )}
-
-        <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border-primary)]">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? 'Saving...' : dataset ? 'Update Dataset' : 'Create Dataset'}
-          </Button>
-        </div>
-      </form>
-    </Modal>
   );
 }
 
