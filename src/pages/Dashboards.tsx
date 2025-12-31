@@ -170,25 +170,25 @@ export const DashboardsPage: React.FC = () => {
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Search Bar */}
-      <div className="mb-4">
-        <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#606070]" />
-          <input
-            type="text"
-            placeholder="Search dashboards by name, description, or creator..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] placeholder-[#606070] focus:outline-none focus:border-[#00f5d4] transition-colors"
-          />
+        {/* Search Bar - part of sticky header */}
+        <div className="mt-4">
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#606070]" />
+            <input
+              type="text"
+              placeholder="Search dashboards by name, description, or creator..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] placeholder-[#606070] focus:outline-none focus:border-[#00f5d4] transition-colors"
+            />
+          </div>
+          {searchQuery && (
+            <p className="text-xs text-[#606070] mt-2">
+              Found {filteredDashboards.length} dashboard{filteredDashboards.length !== 1 ? 's' : ''}
+            </p>
+          )}
         </div>
-        {searchQuery && (
-          <p className="text-xs text-[#606070] mt-2">
-            Found {filteredDashboards.length} dashboard{filteredDashboards.length !== 1 ? 's' : ''}
-          </p>
-        )}
       </div>
 
       {filteredDashboards.length === 0 ? (
