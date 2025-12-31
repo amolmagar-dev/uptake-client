@@ -7,6 +7,7 @@ import { ConnectionsPage } from "./pages/Connections";
 import { SQLEditorPage } from "./pages/SQLEditorPage";
 import { ChartsPage } from "./pages/Charts";
 import { ComponentBuilderPage } from "./pages/ComponentBuilder";
+import { ComponentEditorPage } from "./pages/ComponentEditor";
 import { SettingsPage } from "./pages/Settings";
 import { useAuthStore } from "./store/authStore";
 import { useAppStore, applyTheme } from "./store/appStore";
@@ -39,6 +40,8 @@ function App() {
         <Route path="/sql-editor" element={<SQLEditorPage />} />
         <Route path="/charts" element={<ChartsPage />} />
         <Route path="/components" element={<ComponentBuilderPage />} />
+        <Route path="/components/new" element={<ComponentEditorPage />} />
+        <Route path="/components/:id/edit" element={<ComponentEditorPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
