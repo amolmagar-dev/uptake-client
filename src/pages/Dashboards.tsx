@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, Trash2, Edit, Eye, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, LayoutDashboard, Trash2, Edit, Eye, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { Button } from "../components/ui/Button";
@@ -538,6 +538,21 @@ export const DashboardViewPage: React.FC = () => {
   const [selectedChart, setSelectedChart] = useState<DashboardChart | null>(null);
   const [showChartSettings, setShowChartSettings] = useState(false);
   const [chartDimensions, setChartDimensions] = useState({ width: 6, height: 4 });
+  const [drawerTab, setDrawerTab] = useState<'charts' | 'components'>('charts');
+  const [drawerSearch, setDrawerSearch] = useState('');
+
+  // Filter items in drawer based on search
+  const filteredCharts = useMemo(() => {
+    if (!drawerSearch.trim()) return availableCharts;
+    const query = drawerSearch.toLowerCase();
+    return availableCharts.filter((c) => c.name.toLowerCase().includes(query));
+  }, [availableCharts, drawerSearch]);
+
+  const filteredComponents = useMemo(() => {
+    if (!drawerSearch.trim()) return availableComponents;
+    const query = drawerSearch.toLowerCase();
+    return availableComponents.filter((c) => c.name.toLowerCase().includes(query));
+  }, [availableComponents, drawerSearch]);
 
   const fetchDashboard = async () => {
     if (!id) return;
@@ -837,51 +852,120 @@ export const DashboardViewPage: React.FC = () => {
         </Card>
       )}
 
-      <Modal isOpen={showAddChart} onClose={() => setShowAddChart(false)} title="Add to Dashboard" size="lg">
-        <div className="space-y-6">
-          {/* Charts Section */}
-          <div>
-            <h4 className="text-sm font-medium text-[#00f5d4] mb-3">📊 Charts</h4>
-            {availableCharts.length === 0 ? (
-              <p className="text-sm text-[#606070]">No charts available. Create a chart first.</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {availableCharts.map((chart) => (
+      {/* Right Side Drawer for Add Chart */}
+      <div
+        className={`fixed inset-0 z-50 ${showAddChart ? 'visible' : 'invisible'}`}
+      >
+        {/* Overlay */}
+        <div
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
+            showAddChart ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setShowAddChart(false)}
+        />
+        
+        {/* Drawer Panel */}
+        <div
+          className={`absolute right-0 top-0 h-full w-96 bg-[#12121a] border-l border-[#2a2a3a] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
+            showAddChart ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          {/* Fixed Header Section */}
+          <div className="flex-shrink-0">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a3a]">
+              <h2 className="text-lg font-semibold text-[#f0f0f5]">Add to Dashboard</h2>
+              <button
+                onClick={() => setShowAddChart(false)}
+                className="p-2 rounded-lg text-[#606070] hover:text-[#f0f0f5] hover:bg-[#2a2a3a] transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="px-6 py-4 border-b border-[#2a2a3a]">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#606070]" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={drawerSearch}
+                  onChange={(e) => setDrawerSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] text-sm placeholder-[#606070] focus:outline-none focus:border-[#00f5d4] transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="px-6 pt-4 bg-[#12121a]">
+              <div className="flex border-b border-[#2a2a3a]">
+                <button
+                  onClick={() => setDrawerTab('charts')}
+                  className={`flex-1 pb-3 text-sm font-medium transition-colors border-b-2 ${
+                    drawerTab === 'charts'
+                      ? 'text-[#00f5d4] border-[#00f5d4]'
+                      : 'text-[#606070] border-transparent hover:text-[#a0a0b0]'
+                  }`}
+                >
+                  📊 Charts ({filteredCharts.length})
+                </button>
+                <button
+                  onClick={() => setDrawerTab('components')}
+                  className={`flex-1 pb-3 text-sm font-medium transition-colors border-b-2 ${
+                    drawerTab === 'components'
+                      ? 'text-[#7b2cbf] border-[#7b2cbf]'
+                      : 'text-[#606070] border-transparent hover:text-[#a0a0b0]'
+                  }`}
+                >
+                  🧩 Components ({filteredComponents.length})
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-2">
+            {drawerTab === 'charts' ? (
+              // Charts Tab
+              filteredCharts.length === 0 ? (
+                <p className="text-sm text-[#606070] text-center py-4">
+                  {drawerSearch ? 'No charts match your search' : 'No charts available. Create a chart first.'}
+                </p>
+              ) : (
+                filteredCharts.map((chart) => (
                   <button
                     key={chart.id}
                     onClick={() => handleAddChart(chart.id)}
-                    className="p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] hover:border-[#00f5d4] transition-colors text-left"
+                    className="w-full p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] hover:border-[#00f5d4] transition-colors text-left"
                   >
                     <h5 className="font-medium text-[#f0f0f5] text-sm">{chart.name}</h5>
                     <p className="text-xs text-[#606070]">{chart.chart_type}</p>
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Components Section */}
-          <div>
-            <h4 className="text-sm font-medium text-[#7b2cbf] mb-3">🧩 Custom Components</h4>
-            {availableComponents.length === 0 ? (
-              <p className="text-sm text-[#606070]">No components available. Create a component first.</p>
+                ))
+              )
             ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {availableComponents.map((comp) => (
+              // Components Tab
+              filteredComponents.length === 0 ? (
+                <p className="text-sm text-[#606070] text-center py-4">
+                  {drawerSearch ? 'No components match your search' : 'No components available. Create a component first.'}
+                </p>
+              ) : (
+                filteredComponents.map((comp) => (
                   <button
                     key={comp.id}
                     onClick={() => handleAddComponent(comp.id)}
-                    className="p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] hover:border-[#7b2cbf] transition-colors text-left"
+                    className="w-full p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] hover:border-[#7b2cbf] transition-colors text-left"
                   >
                     <h5 className="font-medium text-[#f0f0f5] text-sm">{comp.name}</h5>
                     <p className="text-xs text-[#606070]">Custom Component</p>
                   </button>
-                ))}
-              </div>
+                ))
+              )
             )}
           </div>
         </div>
-      </Modal>
+      </div>
 
       {/* Chart Dimensions Settings Modal */}
       <Modal
