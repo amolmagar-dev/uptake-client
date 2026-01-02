@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, Trash2, Edit, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, LayoutDashboard, Trash2, Edit, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { Button } from "../components/ui/Button";
@@ -8,6 +8,8 @@ import { Input, Textarea } from "../components/ui/Input";
 import { Modal, ConfirmModal } from "../components/ui/Modal";
 import { DraggableChart } from "../components/charts/DraggableChart";
 import { DraggableComponent } from "../components/charts/DraggableComponent";
+import { FiltersSidebar, type DashboardFilter } from "../components/dashboard/FiltersSidebar";
+import { FilterModal } from "../components/dashboard/FilterModal";
 import { dashboardsApi, chartsApi, customComponentsApi } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 import "react-grid-layout/css/styles.css";
@@ -537,6 +539,13 @@ export const DashboardViewPage: React.FC = () => {
   const [drawerTab, setDrawerTab] = useState<'charts' | 'components'>('charts');
   const [drawerSearch, setDrawerSearch] = useState('');
 
+  // Filters state
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [dashboardFilters, setDashboardFilters] = useState<DashboardFilter[]>([]);
+  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+  const [editingFilter, setEditingFilter] = useState<DashboardFilter | null>(null);
+
   // Filter items in drawer based on search
   const filteredCharts = useMemo(() => {
     if (!drawerSearch.trim()) return availableCharts;
@@ -550,12 +559,76 @@ export const DashboardViewPage: React.FC = () => {
     return availableComponents.filter((c) => c.name.toLowerCase().includes(query));
   }, [availableComponents, drawerSearch]);
 
+  // Track if filters are applied
+  const [filtersApplied, setFiltersApplied] = useState(false);
+
+  // Apply filters to chart data
+  const filteredChartData = useMemo(() => {
+    if (!filtersApplied || dashboardFilters.length === 0) {
+      return chartData;
+    }
+
+    // Apply each filter to the chart data
+    return chartData.map((chart) => {
+      if (!chart.data || !Array.isArray(chart.data)) {
+        return chart;
+      }
+
+      let filteredData = [...chart.data];
+
+      dashboardFilters.forEach((filter) => {
+        const filterValue = filterValues[filter.id];
+        if (filterValue === undefined || filterValue === null || filterValue === '') {
+          return; // Skip empty filter values
+        }
+
+        const column = filter.column;
+
+        if (filter.type === 'value') {
+          // Filter by exact value match
+          filteredData = filteredData.filter((row: any) => {
+            const rowValue = row[column];
+            if (filter.config.multiSelect && Array.isArray(filterValue)) {
+              return filterValue.includes(rowValue);
+            }
+            return rowValue === filterValue || String(rowValue) === String(filterValue);
+          });
+        } else if (filter.type === 'time_range') {
+          // Filter by date range
+          if (filterValue.start || filterValue.end) {
+            filteredData = filteredData.filter((row: any) => {
+              const rowDate = new Date(row[column]);
+              if (filterValue.start && rowDate < new Date(filterValue.start)) return false;
+              if (filterValue.end && rowDate > new Date(filterValue.end)) return false;
+              return true;
+            });
+          }
+        } else if (filter.type === 'numerical_range') {
+          // Filter by number range
+          filteredData = filteredData.filter((row: any) => {
+            const rowValue = Number(row[column]);
+            if (filterValue.min !== undefined && filterValue.min !== '' && rowValue < Number(filterValue.min)) return false;
+            if (filterValue.max !== undefined && filterValue.max !== '' && rowValue > Number(filterValue.max)) return false;
+            return true;
+          });
+        }
+      });
+
+      return { ...chart, data: filteredData };
+    });
+  }, [chartData, dashboardFilters, filterValues, filtersApplied]);
+
   const fetchDashboard = async () => {
     if (!id) return;
     try {
       const [dashboardRes, dataRes] = await Promise.all([dashboardsApi.getOne(id), dashboardsApi.getData(id)]);
       setDashboard(dashboardRes.data.dashboard);
       setChartData(dataRes.data.chartData);
+
+      // Load saved filters from dashboard
+      if (dashboardRes.data.dashboard.filters && Array.isArray(dashboardRes.data.dashboard.filters)) {
+        setDashboardFilters(dashboardRes.data.dashboard.filters);
+      }
 
       // Initialize layouts from dashboard charts
       if (dashboardRes.data.dashboard.charts) {
@@ -710,6 +783,62 @@ export const DashboardViewPage: React.FC = () => {
     }
   };
 
+  // Filter handlers
+  const handleToggleFilters = () => {
+    setFiltersOpen(!filtersOpen);
+  };
+
+  const handleAddFilter = () => {
+    setShowFilterModal(true);
+  };
+
+  const handleEditFilter = (filter: DashboardFilter) => {
+    setEditingFilter(filter);
+    setShowFilterModal(true);
+  };
+
+  const handleRemoveFilter = (filterId: string) => {
+    setDashboardFilters(dashboardFilters.filter(f => f.id !== filterId));
+    const newFilterValues = { ...filterValues };
+    delete newFilterValues[filterId];
+    setFilterValues(newFilterValues);
+  };
+
+  const handleSaveFilters = async (filters: DashboardFilter[]) => {
+    console.log('Saving filters:', filters);
+    setDashboardFilters(filters);
+    setShowFilterModal(false);
+    setEditingFilter(null);
+    
+    // Persist filters to backend
+    if (id) {
+      try {
+        await dashboardsApi.update(id, { filters });
+        if (filters.length > 0) {
+          addToast("success", `${filters.length} filter(s) saved`);
+        }
+      } catch (error) {
+        console.error('Failed to save filters:', error);
+        addToast("error", "Failed to save filters");
+      }
+    }
+  };
+
+  const handleApplyFilters = () => {
+    setFiltersApplied(true);
+    addToast("success", "Filters applied");
+  };
+
+  const handleClearFilters = () => {
+    setFilterValues({});
+    setFiltersApplied(false);
+    addToast("info", "Filters cleared");
+  };
+
+  const handleFilterValueChange = (filterId: string, value: any) => {
+    setFilterValues({ ...filterValues, [filterId]: value });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -727,34 +856,60 @@ export const DashboardViewPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Fixed Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-2 -mx-6 px-6 pt-0 -mt-0 border-b border-[#2a2a3a]">
-        <div className="flex items-center justify-between py-2">
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
-              {dashboard.description && <p className="text-[#a0a0b0] mt-1 text-sm">{dashboard.description}</p>}
+    <div className="h-full flex flex-col relative">
+      {/* Filters Sidebar - at root level, fixed position */}
+      <FiltersSidebar
+        isOpen={filtersOpen}
+        onToggle={handleToggleFilters}
+        filters={dashboardFilters}
+        onAddFilter={handleAddFilter}
+        onEditFilter={handleEditFilter}
+        onRemoveFilter={handleRemoveFilter}
+        onApplyFilters={handleApplyFilters}
+        onClearFilters={handleClearFilters}
+        filterValues={filterValues}
+        onFilterValueChange={handleFilterValueChange}
+      />
+
+      {/* Main wrapper with left margin for sidebar */}
+      <div className={`flex-1 flex flex-col ${filtersOpen ? 'ml-72' : 'ml-10'} transition-all duration-200`}>
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-2 px-6 pt-0 border-b border-[#2a2a3a]">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
+                {dashboard.description && <p className="text-[#a0a0b0] mt-1 text-sm">{dashboard.description}</p>}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {isEditMode ? (
+                /* Edit Mode: Exit button */
+                <button
+                  onClick={() => navigate(`/dashboard/${id}`)}
+                  className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
+                  title="Exit Edit Mode"
+                >
+                  <X size={20} />
+                </button>
+              ) : (
+                /* View Mode: Edit dashboard button */
+                <Button
+                  onClick={() => navigate(`/dashboard/${id}/edit`)}
+                  leftIcon={<Edit size={16} />}
+                >
+                  Edit dashboard
+                </Button>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {!isEditMode && (
-              <Button
-                onClick={() => navigate(`/dashboard/${id}/edit`)}
-                leftIcon={<Edit size={16} />}
-              >
-                Edit dashboard
-              </Button>
-            )}
-          </div>
         </div>
-      </div>
 
-      {/* Main Content Area */}
-      <div className={`flex-1 flex ${isEditMode ? '' : ''}`}>
-        {/* Dashboard Content */}
-        <div className={`flex-1 ${isEditMode ? 'mr-80' : ''}`}>
-          {dashboard.charts && dashboard.charts.length > 0 ? (
+        {/* Main Content Area */}
+        <div className={`flex-1 flex ${isEditMode ? '' : ''}`}>
+          {/* Dashboard Content - add right margin for edit sidebar */}
+          <div className={`flex-1 ${isEditMode ? 'mr-80' : ''} transition-all duration-200 px-6`}>
+            {dashboard.charts && dashboard.charts.length > 0 ? (
             <div className="dashboard-grid py-4">
               <ResponsiveGridLayout
                 className="layout"
@@ -772,7 +927,7 @@ export const DashboardViewPage: React.FC = () => {
                 {dashboard.charts.map((item) => {
                   // Find data - for components, look up by component_id; for charts, by chart_id
                   const itemId = item.component_id || item.chart_id;
-                  const data = chartData.find((d) => d.chartId === itemId);
+                  const data = filteredChartData.find((d) => d.chartId === itemId);
                   const itemHeight = (item.height || 4) * 100 - 50;
                   
                   // Render custom component
@@ -850,6 +1005,18 @@ export const DashboardViewPage: React.FC = () => {
         {/* Right Sidebar Panel - Only in Edit Mode */}
         {isEditMode && (
           <div className="fixed right-0 top-[73px] bottom-0 w-80 bg-[#12121a] border-l border-[#2a2a3a] flex flex-col z-40">
+            {/* Sidebar Header with Close Button */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a3a]">
+              <span className="text-sm font-medium text-[#f0f0f5]">Edit Mode</span>
+              <button
+                onClick={() => navigate(`/dashboard/${id}`)}
+                className="p-1.5 rounded-md text-[#606070] hover:text-[#f0f0f5] hover:bg-[#2a2a3a] transition-colors"
+                title="Exit Edit Mode"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
             {/* Tabs Header */}
             <div className="flex border-b border-[#2a2a3a]">
               <button
@@ -948,6 +1115,7 @@ export const DashboardViewPage: React.FC = () => {
           </div>
         )}
       </div>
+    </div>
 
       {/* Chart Dimensions Settings Modal */}
       <Modal
@@ -1008,6 +1176,17 @@ export const DashboardViewPage: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={showFilterModal}
+        onClose={() => {
+          setShowFilterModal(false);
+          setEditingFilter(null);
+        }}
+        filters={dashboardFilters}
+        onSave={handleSaveFilters}
+      />
     </div>
   );
 };

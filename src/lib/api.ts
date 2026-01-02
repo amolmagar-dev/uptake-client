@@ -193,6 +193,7 @@ export interface DashboardInput {
   description?: string;
   layout?: LayoutItem[];
   is_public?: boolean;
+  filters?: any[];
 }
 
 export interface LayoutItem {
