@@ -676,6 +676,16 @@ export const DashboardViewPage: React.FC = () => {
     fetchAvailableComponents();
   }, [id]);
 
+  // Force grid to recalculate width when edit mode or filters sidebar changes
+  useEffect(() => {
+    // Small delay to let DOM update first
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isEditMode, filtersOpen]);
+
+
   const handleLayoutChange = useCallback(
     async (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
       setLayouts(allLayouts);
@@ -906,16 +916,25 @@ export const DashboardViewPage: React.FC = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className={`flex-1 flex ${isEditMode ? '' : ''}`}>
-          {/* Dashboard Content - add right margin for edit sidebar */}
-          <div className={`flex-1 ${isEditMode ? 'mr-80' : ''} transition-all duration-200 px-6`}>
+        <div className="flex-1 flex">
+          {/* Dashboard Content - constrain width properly for edit sidebar */}
+          <div 
+            className="flex-1 transition-all duration-200 px-6"
+            style={{ 
+              width: isEditMode ? 'calc(100% - 320px)' : '100%',
+              maxWidth: isEditMode ? 'calc(100% - 320px)' : '100%'
+            }}
+          >
             {dashboard.charts && dashboard.charts.length > 0 ? (
-            <div className="dashboard-grid py-4">
+            <div className="dashboard-grid py-4" style={{ width: '100%' }}>
+
+
               <ResponsiveGridLayout
+                key={`grid-${isEditMode ? 'edit' : 'view'}-${filtersOpen ? 'filters' : 'nofilters'}`}
                 className="layout"
                 layouts={layouts}
-                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
+                cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
                 rowHeight={100}
                 onLayoutChange={isEditMode ? handleLayoutChange : undefined}
                 isDraggable={isEditMode}
@@ -924,6 +943,8 @@ export const DashboardViewPage: React.FC = () => {
                 compactType="vertical"
                 preventCollision={false}
               >
+
+
                 {dashboard.charts.map((item) => {
                   // Find data - for components, look up by component_id; for charts, by chart_id
                   const itemId = item.component_id || item.chart_id;
