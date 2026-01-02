@@ -178,7 +178,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                 {filter.type === 'value' && (
                   <Select
                     value={filterValues[filter.id] || ''}
-                    onChange={(value) => onFilterValueChange(filter.id, value || '')}
+                    onChange={(value: string | null) => onFilterValueChange(filter.id, value || '')}
                     options={(filterOptions[filter.id] || []).map(option => ({
                       value: option,
                       label: option
