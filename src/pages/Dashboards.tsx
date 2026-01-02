@@ -735,14 +735,6 @@ export const DashboardViewPage: React.FC = () => {
       <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6 pt-0 -mt-0">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center gap-4">
-            {/* Back Button */}
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
-              title="Back to Dashboards"
-            >
-              <ChevronLeft size={20} />
-            </button>
             <div>
               <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
               {dashboard.description && <p className="text-[#a0a0b0] mt-1">{dashboard.description}</p>}
