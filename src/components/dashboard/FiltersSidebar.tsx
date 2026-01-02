@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Settings, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Select } from '../ui/Input';
+
 import { datasetsApi } from '../../lib/api';
+
 
 export interface DashboardFilter {
   id: string;
@@ -173,19 +176,19 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                 
                 {/* Filter Input based on type */}
                 {filter.type === 'value' && (
-                  <select
+                  <Select
                     value={filterValues[filter.id] || ''}
-                    onChange={(e) => onFilterValueChange(filter.id, e.target.value)}
-                    className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#2a2a3a] rounded text-sm text-[#f0f0f5] focus:outline-none focus:border-[#00f5d4] transition-colors"
-                  >
-                    <option value="">Select {filter.column}...</option>
-                    {(filterOptions[filter.id] || []).map((option, idx) => (
-                      <option key={idx} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => onFilterValueChange(filter.id, value || '')}
+                    options={(filterOptions[filter.id] || []).map(option => ({
+                      value: option,
+                      label: option
+                    }))}
+                    placeholder={`Select ${filter.column}...`}
+                    isClearable
+                    isSearchable
+                  />
                 )}
+
                 
                 {filter.type === 'time_range' && (
                   <div className="space-y-2">

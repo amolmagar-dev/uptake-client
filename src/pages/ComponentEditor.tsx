@@ -353,16 +353,18 @@ export const ComponentEditorPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-4">
             <Select
               label="Dataset"
-              value={formData.dataset_id}
-              onChange={(e) => handleDatasetChange(e.target.value)}
-            >
-              <option value="">No data source (static)</option>
-              {datasets.map(d => (
-                <option key={d.id} value={d.id}>
-                  {d.name} ({d.dataset_type})
-                </option>
-              ))}
-            </Select>
+              value={formData.dataset_id || null}
+              onChange={(val: string | null) => handleDatasetChange(val || '')}
+              options={[
+                { value: '', label: 'No data source (static)' },
+                ...datasets.map(d => ({
+                  value: d.id,
+                  label: `${d.name} (${d.dataset_type})`
+                }))
+              ]}
+              isClearable={false}
+            />
+
             <div className="col-span-2">
               {selectedDataset ? (
                 <div className="p-3 rounded-lg bg-[#16161f] border border-[#2a2a3a] h-full flex items-center">

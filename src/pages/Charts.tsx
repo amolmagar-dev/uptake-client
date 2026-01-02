@@ -401,7 +401,8 @@ const ChartModal: React.FC<ChartModalProps> = ({
             label="Chart Type"
             options={chartTypes}
             value={formData.chart_type}
-            onChange={(e) => setFormData(prev => ({ ...prev, chart_type: e.target.value }))}
+            onChange={(val: string | null) => setFormData(prev => ({ ...prev, chart_type: val || 'bar' }))}
+            isClearable={false}
           />
         </div>
 
@@ -414,16 +415,14 @@ const ChartModal: React.FC<ChartModalProps> = ({
 
         <Select
           label="Dataset"
-          value={formData.dataset_id}
-          onChange={(e) => handleDatasetChange(e.target.value)}
-        >
-          <option value="">Select a dataset...</option>
-          {datasets.map(d => (
-            <option key={d.id} value={d.id}>
-              {d.name} ({d.dataset_type})
-            </option>
-          ))}
-        </Select>
+          value={formData.dataset_id || null}
+          onChange={(val: string | null) => handleDatasetChange(val || '')}
+          options={datasets.map(d => ({
+            value: d.id,
+            label: `${d.name} (${d.dataset_type})`
+          }))}
+          placeholder="Select a dataset..."
+        />
 
         {datasets.length === 0 && (
           <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm">
@@ -452,16 +451,14 @@ const ChartModal: React.FC<ChartModalProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <Select
                 label="Label Column"
-                value={formData.labelColumn}
-                onChange={(e) => setFormData(prev => ({ ...prev, labelColumn: e.target.value }))}
-              >
-                <option value="">Select label column...</option>
-                {columns.map(col => (
-                  <option key={col.column_name} value={col.column_name}>
-                    {col.column_name} ({col.data_type})
-                  </option>
-                ))}
-              </Select>
+                value={formData.labelColumn || null}
+                onChange={(val: string | null) => setFormData(prev => ({ ...prev, labelColumn: val || '' }))}
+                options={columns.map(col => ({
+                  value: col.column_name,
+                  label: `${col.column_name} (${col.data_type})`
+                }))}
+                placeholder="Select label column..."
+              />
               <Input
                 label="Data Columns"
                 placeholder={columns.slice(1, 3).map(c => c.column_name).join(', ')}

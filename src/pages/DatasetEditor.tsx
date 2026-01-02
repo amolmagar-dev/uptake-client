@@ -272,19 +272,22 @@ export function DatasetEditorPage() {
                 </div>
                 <Select
                   value={sourceType}
-                  onChange={(e) => {
-                    const newType = e.target.value as 'sql' | 'api' | 'googlesheet';
+                  onChange={(val: string | null) => {
+                    const newType = (val || 'sql') as 'sql' | 'api' | 'googlesheet';
                     setSourceType(newType);
                     setConnectionId('');
                     setTableName('');
                     setColumns([]);
                   }}
-                  className="pl-10"
-                >
-                  <option value="sql">SQL Database</option>
-                  <option value="api">REST API</option>
-                  <option value="googlesheet">Google Sheets</option>
-                </Select>
+
+                  options={[
+                    { value: 'sql', label: 'SQL Database' },
+                    { value: 'api', label: 'REST API' },
+                    { value: 'googlesheet', label: 'Google Sheets' },
+                  ]}
+                  isClearable={false}
+                />
+
               </div>
             </div>
 
@@ -294,20 +297,18 @@ export function DatasetEditorPage() {
                 Connection
               </label>
               <Select
-                value={connectionId}
-                onChange={(e) => {
-                  setConnectionId(e.target.value);
+                value={connectionId || null}
+                onChange={(val: string | null) => {
+                  setConnectionId(val || '');
                   setTableName('');
                   setColumns([]);
                 }}
-              >
-                <option value="">Select a connection...</option>
-                {filteredConnections.map((conn) => (
-                  <option key={conn.id} value={conn.id}>
-                    {conn.name}
-                  </option>
-                ))}
-              </Select>
+                options={filteredConnections.map((conn) => ({
+                  value: conn.id,
+                  label: conn.name
+                }))}
+                placeholder="Select a connection..."
+              />
               {filteredConnections.length === 0 && (
                 <p className="text-xs text-yellow-500 mt-2">
                   No {sourceType} connections available. <a href="/connections" className="underline">Create one</a>.
@@ -372,19 +373,16 @@ export function DatasetEditorPage() {
                       </label>
                       <Select
                         value={tableSchema}
-                        onChange={(e) => {
-                          setTableSchema(e.target.value);
+                        onChange={(val: string | null) => {
+                          setTableSchema(val || 'public');
                           setTableName('');
                         }}
-                      >
-                        {schemas.length > 0 ? (
-                          schemas.map((schema) => (
-                            <option key={schema} value={schema}>{schema}</option>
-                          ))
-                        ) : (
-                          <option value="public">public</option>
-                        )}
-                      </Select>
+                        options={schemas.length > 0 
+                          ? schemas.map((schema) => ({ value: schema, label: schema }))
+                          : [{ value: 'public', label: 'public' }]
+                        }
+                        isClearable={false}
+                      />
                     </div>
 
                     <div>
@@ -402,17 +400,15 @@ export function DatasetEditorPage() {
                         </button>
                       </div>
                       <Select
-                        value={tableName}
-                        onChange={(e) => setTableName(e.target.value)}
-                        disabled={loadingTables}
-                      >
-                        <option value="">{loadingTables ? 'Loading...' : 'Select a table...'}</option>
-                        {schemaGroups[tableSchema]?.map((table) => (
-                          <option key={table.table_name} value={table.table_name}>
-                            {table.table_name} ({table.table_type})
-                          </option>
-                        ))}
-                      </Select>
+                        value={tableName || null}
+                        onChange={(val: string | null) => setTableName(val || '')}
+                        isDisabled={loadingTables}
+                        options={(schemaGroups[tableSchema] || []).map((table) => ({
+                          value: table.table_name,
+                          label: `${table.table_name} (${table.table_type})`
+                        }))}
+                        placeholder={loadingTables ? 'Loading...' : 'Select a table...'}
+                      />
                     </div>
                   </>
                 )}

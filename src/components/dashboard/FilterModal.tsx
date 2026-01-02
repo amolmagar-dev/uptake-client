@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
+import { Input, Select } from '../ui/Input';
 import { datasetsApi, type Dataset } from '../../lib/api';
 import type { DashboardFilter } from './FiltersSidebar';
+
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -137,8 +138,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add and edit filters" size="lg">
-      <div className="flex h-[500px]">
+    <Modal isOpen={isOpen} onClose={onClose} title="Add and edit filters" size="xl">
+      <div className="flex h-[550px]">
+
         {/* Left Panel - Filter List */}
         <div className="w-64 border-r border-[#2a2a3a] flex flex-col">
           <div className="flex-1 overflow-y-auto">
@@ -189,18 +191,13 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               {/* Filter Type & Name */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#a0a0b0] mb-1">Filter Type *</label>
-                  <select
+                  <Select
+                    label="Filter Type *"
                     value={selectedFilter.type}
-                    onChange={(e) => handleFilterChange('type', e.target.value)}
-                    className="w-full px-3 py-2 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] focus:outline-none focus:border-[#00f5d4] transition-colors"
-                  >
-                    {FILTER_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => handleFilterChange('type', value || 'value')}
+                    options={FILTER_TYPES}
+                    isClearable={false}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#a0a0b0] mb-1">Filter name *</label>
@@ -215,37 +212,32 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               {/* Dataset & Column */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#a0a0b0] mb-1">Dataset *</label>
-                  <select
-                    value={selectedFilter.datasetId}
-                    onChange={(e) => handleFilterChange('datasetId', e.target.value)}
-                    className="w-full px-3 py-2 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] focus:outline-none focus:border-[#00f5d4] transition-colors"
-                  >
-                    <option value="">Select a dataset</option>
-                    {datasets.map((dataset) => (
-                      <option key={dataset.id} value={dataset.id}>
-                        {dataset.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    label="Dataset *"
+                    value={selectedFilter.datasetId || null}
+                    onChange={(value) => handleFilterChange('datasetId', value || '')}
+                    options={datasets.map((dataset) => ({
+                      value: dataset.id,
+                      label: dataset.name
+                    }))}
+                    placeholder="Select a dataset"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#a0a0b0] mb-1">Column *</label>
-                  <select
-                    value={selectedFilter.column}
-                    onChange={(e) => handleFilterChange('column', e.target.value)}
-                    className="w-full px-3 py-2 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] focus:outline-none focus:border-[#00f5d4] transition-colors"
-                    disabled={!selectedFilter.datasetId}
-                  >
-                    <option value="">Select a column</option>
-                    {columns.map((col) => (
-                      <option key={col.column_name} value={col.column_name}>
-                        {col.column_name} ({col.data_type})
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    label="Column *"
+                    value={selectedFilter.column || null}
+                    onChange={(value) => handleFilterChange('column', value || '')}
+                    options={columns.map((col) => ({
+                      value: col.column_name,
+                      label: `${col.column_name} (${col.data_type})`
+                    }))}
+                    placeholder="Select a column"
+                    isDisabled={!selectedFilter.datasetId}
+                  />
                 </div>
               </div>
+
 
               {/* Filter Settings */}
               <div className="border-t border-[#2a2a3a] pt-4 mt-4">
