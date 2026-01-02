@@ -82,6 +82,7 @@ export const dashboardsApi = {
   create: (data: DashboardInput) => api.post("/dashboards", data),
   update: (id: string, data: Partial<DashboardInput>) => api.put(`/dashboards/${id}`, data),
   delete: (id: string) => api.delete(`/dashboards/${id}`),
+  clone: (id: string) => api.post(`/dashboards/${id}/clone`),
   addChart: (dashboardId: string, data: DashboardChartInput) => api.post(`/dashboards/${dashboardId}/charts`, data),
   updateChart: (dashboardId: string, chartId: string, data: Partial<DashboardChartInput>) =>
     api.put(`/dashboards/${dashboardId}/charts/${chartId}`, data),

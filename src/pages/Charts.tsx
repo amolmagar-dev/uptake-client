@@ -94,6 +94,8 @@ export const ChartsPage: React.FC = () => {
       area: '📉',
       scatter: '⚡',
       table: '📋',
+      kpi: '🔢',
+      gauge: '🎯',
     };
     return icons[type] || '📊';
   };
@@ -377,6 +379,8 @@ const ChartModal: React.FC<ChartModalProps> = ({
     { value: 'doughnut', label: '🍩 Doughnut Chart' },
     { value: 'scatter', label: '⚡ Scatter Plot' },
     { value: 'table', label: '📋 Data Table' },
+    { value: 'kpi', label: '🔢 KPI Card' },
+    { value: 'gauge', label: '🎯 Gauge Chart' },
   ];
 
   const selectedDataset = datasets.find(d => d.id === formData.dataset_id);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, Trash2, Edit, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Plus, LayoutDashboard, Trash2, Edit, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight, X, Star, Copy, RefreshCw, MoreHorizontal, Timer, Check } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { Button } from "../components/ui/Button";
@@ -12,6 +12,7 @@ import { FiltersSidebar, type DashboardFilter } from "../components/dashboard/Fi
 import { FilterModal } from "../components/dashboard/FilterModal";
 import { dashboardsApi, chartsApi, customComponentsApi } from "../lib/api";
 import { useAppStore } from "../store/appStore";
+import { useFavoritesStore } from "../store/favoritesStore";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
@@ -53,6 +54,65 @@ interface ChartData {
   config: any;
   error?: string;
 }
+
+// Favorite Button Component
+const FavoriteButton: React.FC<{ dashboard: Dashboard }> = ({ dashboard }) => {
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const favorite = isFavorite(dashboard.id);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleFavorite({
+          id: dashboard.id,
+          type: 'dashboard',
+          name: dashboard.name,
+          path: `/dashboard/${dashboard.id}`,
+        });
+      }}
+      className={`p-2 rounded-lg transition-colors ${
+        favorite
+          ? 'text-[#ffd93d] hover:text-[#ffc107]'
+          : 'text-[#606070] hover:text-[#a0a0b0]'
+      }`}
+      title={favorite ? 'Remove from favorites' : 'Add to favorites'}
+    >
+      <Star size={16} fill={favorite ? 'currentColor' : 'none'} />
+    </button>
+  );
+};
+
+// Clone Button Component
+const CloneButton: React.FC<{ dashboardId: string; onClone: () => void }> = ({ dashboardId, onClone }) => {
+  const { addToast } = useAppStore();
+  const [isCloning, setIsCloning] = useState(false);
+
+  const handleClone = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsCloning(true);
+    try {
+      await dashboardsApi.clone(dashboardId);
+      addToast('success', 'Dashboard cloned successfully');
+      onClone();
+    } catch (error) {
+      addToast('error', 'Failed to clone dashboard');
+    } finally {
+      setIsCloning(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClone}
+      disabled={isCloning}
+      className="p-2 rounded-lg text-[#606070] hover:text-[#a0a0b0] transition-colors disabled:opacity-50"
+      title="Clone dashboard"
+    >
+      <Copy size={16} className={isCloning ? 'animate-pulse' : ''} />
+    </button>
+  );
+};
 
 export const DashboardsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -261,6 +321,8 @@ export const DashboardsPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
+                    <FavoriteButton dashboard={dashboard} />
+                    <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
                     <Button
                       variant="ghost"
                       size="sm"
@@ -315,6 +377,8 @@ export const DashboardsPage: React.FC = () => {
                   <p className="text-xs text-[#606070] mb-4">By {dashboard.created_by_name}</p>
 
                   <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
+                    <FavoriteButton dashboard={dashboard} />
+                    <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
                     <Button
                       variant="ghost"
                       size="sm"
@@ -519,6 +583,146 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose, dashbo
   );
 };
 
+// More Options Dropdown Component for Dashboard View
+interface MoreOptionsDropdownProps {
+  onRefresh: () => void;
+  isRefreshing: boolean;
+  lastRefresh: Date | null;
+  autoRefresh: boolean;
+  setAutoRefresh: (value: boolean) => void;
+  refreshInterval: number;
+  setRefreshInterval: (value: number) => void;
+}
+
+const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
+  onRefresh,
+  isRefreshing,
+  lastRefresh,
+  autoRefresh,
+  setAutoRefresh,
+  refreshInterval,
+  setRefreshInterval,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showIntervalMenu, setShowIntervalMenu] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setShowIntervalMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const intervalOptions = [
+    { value: 0, label: 'Off' },
+    { value: 10, label: '10 seconds' },
+    { value: 30, label: '30 seconds' },
+    { value: 60, label: '1 minute' },
+    { value: 300, label: '5 minutes' },
+  ];
+
+  const handleIntervalSelect = (value: number) => {
+    if (value === 0) {
+      setAutoRefresh(false);
+    } else {
+      setAutoRefresh(true);
+      setRefreshInterval(value);
+    }
+    setShowIntervalMenu(false);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Last refresh indicator */}
+      {lastRefresh && (
+        <span className="text-xs text-[#606070] mr-2">
+          Updated {lastRefresh.toLocaleTimeString()}
+        </span>
+      )}
+
+      {/* More Options Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
+        title="More options"
+      >
+        <MoreHorizontal size={20} />
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-1 w-56 bg-[#12121a] border border-[#2a2a3a] rounded-lg shadow-xl z-50 overflow-hidden">
+          {/* Refresh Dashboard */}
+          <button
+            onClick={() => {
+              onRefresh();
+              setIsOpen(false);
+            }}
+            disabled={isRefreshing}
+            className="w-full flex items-center gap-3 px-4 py-3 text-left text-[#f0f0f5] hover:bg-[#1a1a25] transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-[#00f5d4]' : ''} />
+            <span>Refresh dashboard</span>
+          </button>
+
+          {/* Auto-refresh Interval (with submenu) */}
+          <div className="relative">
+            <button
+              onClick={() => setShowIntervalMenu(!showIntervalMenu)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left text-[#f0f0f5] hover:bg-[#1a1a25] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Timer size={16} />
+                <span>Set auto-refresh interval</span>
+              </div>
+              <span className="text-xs text-[#606070]">
+                {autoRefresh ? intervalOptions.find(o => o.value === refreshInterval)?.label : 'Off'}
+              </span>
+            </button>
+
+            {/* Submenu */}
+            {showIntervalMenu && (
+              <div className="absolute left-full top-0 ml-1 w-40 bg-[#12121a] border border-[#2a2a3a] rounded-lg shadow-xl z-50 overflow-hidden">
+                {intervalOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleIntervalSelect(option.value)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-[#f0f0f5] hover:bg-[#1a1a25] transition-colors"
+                  >
+                    <span className="text-sm">{option.label}</span>
+                    {((option.value === 0 && !autoRefresh) || (autoRefresh && option.value === refreshInterval)) && (
+                      <Check size={14} className="text-[#00f5d4]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-[#2a2a3a]" />
+
+          {/* Auto-refresh status indicator */}
+          {autoRefresh && (
+            <div className="px-4 py-2 text-xs text-[#606070] flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#00f5d4] animate-pulse" />
+              Auto-refreshing every {intervalOptions.find(o => o.value === refreshInterval)?.label}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Dashboard View Page
 export const DashboardViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -545,6 +749,12 @@ export const DashboardViewPage: React.FC = () => {
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilter[]>([]);
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
   const [editingFilter, setEditingFilter] = useState<DashboardFilter | null>(null);
+
+  // Auto-refresh state
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(30); // seconds
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   // Filter items in drawer based on search
   const filteredCharts = useMemo(() => {
@@ -684,6 +894,44 @@ export const DashboardViewPage: React.FC = () => {
     }, 100);
     return () => clearTimeout(timer);
   }, [isEditMode, filtersOpen]);
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (!autoRefresh || !id) return;
+
+    const refreshData = async () => {
+      setIsRefreshing(true);
+      try {
+        const dataRes = await dashboardsApi.getData(id);
+        setChartData(dataRes.data.chartData);
+        setLastRefresh(new Date());
+      } catch (error) {
+        console.error('Auto-refresh failed:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    const intervalId = setInterval(refreshData, refreshInterval * 1000);
+    return () => clearInterval(intervalId);
+  }, [autoRefresh, refreshInterval, id]);
+
+  // Manual refresh function
+  const handleManualRefresh = async () => {
+    if (!id || isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const dataRes = await dashboardsApi.getData(id);
+      setChartData(dataRes.data.chartData);
+      setLastRefresh(new Date());
+      addToast('success', 'Dashboard refreshed');
+    } catch (error) {
+      addToast('error', 'Failed to refresh dashboard');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
 
 
   const handleLayoutChange = useCallback(
@@ -893,6 +1141,19 @@ export const DashboardViewPage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* More Options Dropdown */}
+              {!isEditMode && (
+                <MoreOptionsDropdown
+                  onRefresh={handleManualRefresh}
+                  isRefreshing={isRefreshing}
+                  lastRefresh={lastRefresh}
+                  autoRefresh={autoRefresh}
+                  setAutoRefresh={setAutoRefresh}
+                  refreshInterval={refreshInterval}
+                  setRefreshInterval={setRefreshInterval}
+                />
+              )}
+
               {isEditMode ? (
                 /* Edit Mode: Exit button */
                 <button

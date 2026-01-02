@@ -3,6 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { TopBar } from './TopBar';
 import { ToastContainer } from '../ui/Toast';
 import { ChatWidget } from '../chat/ChatWidget';
+import { CommandPalette } from '../ui/CommandPalette';
 import { useAuthStore } from '../../store/authStore';
 
 export const Layout: React.FC = () => {
@@ -22,6 +23,7 @@ export const Layout: React.FC = () => {
       </main>
       <ToastContainer />
       <ChatWidget />
+      <CommandPalette />
     </div>
   );
 };
