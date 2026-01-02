@@ -194,7 +194,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   <Select
                     label="Filter Type *"
                     value={selectedFilter.type}
-                    onChange={(value) => handleFilterChange('type', value || 'value')}
+                    onChange={(value: string | null) => handleFilterChange('type', value || 'value')}
                     options={FILTER_TYPES}
                     isClearable={false}
                   />
@@ -215,7 +215,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   <Select
                     label="Dataset *"
                     value={selectedFilter.datasetId || null}
-                    onChange={(value) => handleFilterChange('datasetId', value || '')}
+                    onChange={(value: string | null) => handleFilterChange('datasetId', value || '')}
                     options={datasets.map((dataset) => ({
                       value: dataset.id,
                       label: dataset.name
@@ -227,7 +227,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   <Select
                     label="Column *"
                     value={selectedFilter.column || null}
-                    onChange={(value) => handleFilterChange('column', value || '')}
+                    onChange={(value: string | null) => handleFilterChange('column', value || '')}
                     options={columns.map((col) => ({
                       value: col.column_name,
                       label: `${col.column_name} (${col.data_type})`
