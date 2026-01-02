@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, Trash2, Edit, Eye, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Plus, LayoutDashboard, Trash2, Edit, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { Button } from "../components/ui/Button";
@@ -233,7 +233,12 @@ export const DashboardsPage: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-[#f0f0f5] truncate">{dashboard.name}</h3>
+                        <h3 
+                          className="font-semibold text-[#f0f0f5] truncate cursor-pointer hover:text-[#00f5d4] hover:underline transition-colors"
+                          onClick={() => navigate(`/dashboard/${dashboard.id}`)}
+                        >
+                          {dashboard.name}
+                        </h3>
                         {dashboard.is_public === 1 && (
                           <span className="px-2 py-0.5 text-xs rounded-full bg-[#00f5d4]/10 text-[#00f5d4] border border-[#00f5d4]/20 flex-shrink-0">
                             Public
@@ -254,14 +259,6 @@ export const DashboardsPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/dashboard/${dashboard.id}`)}
-                      leftIcon={<Eye size={14} />}
-                    >
-                      View
-                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -293,7 +290,12 @@ export const DashboardsPage: React.FC = () => {
                         <Grid size={20} className="text-[#00f5d4]" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-[#f0f0f5]">{dashboard.name}</h3>
+                        <h3 
+                          className="font-semibold text-[#f0f0f5] cursor-pointer hover:text-[#00f5d4] hover:underline transition-colors"
+                          onClick={() => navigate(`/dashboard/${dashboard.id}`)}
+                        >
+                          {dashboard.name}
+                        </h3>
                         <p className="text-xs text-[#606070]">{dashboard.chart_count} charts</p>
                       </div>
                     </div>
@@ -311,14 +313,6 @@ export const DashboardsPage: React.FC = () => {
                   <p className="text-xs text-[#606070] mb-4">By {dashboard.created_by_name}</p>
 
                   <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/dashboard/${dashboard.id}`)}
-                      leftIcon={<Eye size={14} />}
-                    >
-                      View
-                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
