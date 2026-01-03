@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { Play, Save, History, Loader2 } from 'lucide-react';
-import { Button } from '../../shared/components/ui/Button';
-import { Select } from '../../shared/components/ui/Input';
-import { DataTable } from '../../shared/components/ui/Table';
+import { Button } from '../ui/Button';
+import { Select } from '../ui/Input';
+import { DataTable } from '../ui/Table';
 import { queriesApi } from '../../lib/api';
 import { useAppStore } from '../../store/appStore';
 

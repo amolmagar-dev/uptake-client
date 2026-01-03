@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Database, Trash2, Edit, Eye, RefreshCw, Table, Code, FileSpreadsheet, Globe } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { ConfirmModal, Modal } from '../components/ui/Modal';
+import { Button } from '../shared/components/ui/Button';
+import { Card } from '../shared/components/ui/Card';
+import { ConfirmModal, Modal } from '../shared/components/ui/Modal';
 import { datasetsApi, type Dataset } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 

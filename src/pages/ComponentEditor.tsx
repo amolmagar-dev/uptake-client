@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Layers } from 'lucide-react';
 import Editor from '@monaco-editor/react';
-import { Button } from '../components/ui/Button';
-import { Input, Select } from '../components/ui/Input';
+import { Button } from '../shared/components/ui/Button';
+import { Input, Select } from '../shared/components/ui/Input';
 import { customComponentsApi, datasetsApi, type Dataset } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 

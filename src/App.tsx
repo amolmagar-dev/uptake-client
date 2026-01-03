@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Layout } from "./components/layout/Layout";
+import { Layout } from "./shared/components/layout/Layout";
 import { LoginPage, RegisterPage } from "./pages/Login";
 import { DashboardsPage, DashboardViewPage } from "./pages/Dashboards";
 import { ConnectionsPage } from "./pages/Connections";

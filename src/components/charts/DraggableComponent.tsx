@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Trash2, Settings } from "lucide-react";
-import { Button } from "../ui/Button";
+import { Button } from "../../shared/components/ui/Button";
 
 interface DraggableComponentProps {
   id: string;

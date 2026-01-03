@@ -13,8 +13,8 @@ import {
   ChevronRight,
   Zap,
 } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
-import { useAppStore } from '../../store/appStore';
+import { useAuthStore } from '../../../store/authStore';
+import { useAppStore } from '../../../store/appStore';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboards' },

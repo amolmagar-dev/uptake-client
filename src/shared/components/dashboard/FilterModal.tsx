@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { Modal } from '../../shared/components/ui/Modal';
-import { Button } from '../../shared/components/ui/Button';
-import { Input, Select } from '../../shared/components/ui/Input';
-import { datasetsApi, type Dataset } from '../../lib/api';
+import { Modal } from '../ui/Modal';
+import { Button } from '../ui/Button';
+import { Input, Select } from '../ui/Input';
+import { datasetsApi, type Dataset } from '../../../lib/api';
 import type { DashboardFilter } from './FiltersSidebar';
 
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Database, Trash2, Edit, RefreshCw, CheckCircle, XCircle, Table, Globe, FileSpreadsheet } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Input, Select, Textarea } from '../components/ui/Input';
-import { Modal, ConfirmModal } from '../components/ui/Modal';
+import { Button } from '../shared/components/ui/Button';
+import { Card } from '../shared/components/ui/Card';
+import { Input, Select, Textarea } from '../shared/components/ui/Input';
+import { Modal, ConfirmModal } from '../shared/components/ui/Modal';
 import { connectionsApi, type ConnectionInput, type ApiConfig, type GoogleSheetsConfig } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 

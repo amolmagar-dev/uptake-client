@@ -14,7 +14,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../../store/authStore';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboards' },

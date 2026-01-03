@@ -13,7 +13,7 @@ import {
   Clock,
   Command,
 } from 'lucide-react';
-import { dashboardsApi, chartsApi, connectionsApi, datasetsApi } from '../../lib/api';
+import { dashboardsApi, chartsApi, connectionsApi, datasetsApi } from '../../../lib/api';
 
 interface SearchResult {
   id: string;

@@ -2,9 +2,9 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { TopBar } from './TopBar';
 import { ToastContainer } from '../ui/Toast';
-import { ChatWidget } from '../chat/ChatWidget';
+import { ChatWidget } from '../../../components/chat/ChatWidget';
 import { CommandPalette } from '../ui/CommandPalette';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../../store/authStore';
 
 export const Layout: React.FC = () => {
   const { user } = useAuthStore();

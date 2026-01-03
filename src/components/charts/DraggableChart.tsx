@@ -1,7 +1,7 @@
 import React from "react";
 import { ChartRenderer } from "./ChartRenderer";
 import { Trash2, Settings } from "lucide-react";
-import { Button } from "../ui/Button";
+import { Button } from "../../shared/components/ui/Button";
 
 interface DraggableChartProps {
   id: string;

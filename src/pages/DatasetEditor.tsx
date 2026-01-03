@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Database, Globe, FileSpreadsheet, RefreshCw, Table, Code, Check, Eye } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Input, Select, Textarea } from '../components/ui/Input';
-import { Modal } from '../components/ui/Modal';
+import { Button } from '../shared/components/ui/Button';
+import { Card } from '../shared/components/ui/Card';
+import { Input, Select, Textarea } from '../shared/components/ui/Input';
+import { Modal } from '../shared/components/ui/Modal';
 import { datasetsApi, connectionsApi } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Code2, Trash2, Edit, Eye } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Modal, ConfirmModal } from '../components/ui/Modal';
+import { Button } from '../shared/components/ui/Button';
+import { Card } from '../shared/components/ui/Card';
+import { Modal, ConfirmModal } from '../shared/components/ui/Modal';
 import { customComponentsApi, connectionsApi } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 

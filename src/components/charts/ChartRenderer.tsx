@@ -13,7 +13,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Bar, Line, Pie, Doughnut, Scatter } from 'react-chartjs-2';
-import { DataTable } from '../ui/Table';
+import { DataTable } from '../../shared/components/ui/Table';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 // Register Chart.js components

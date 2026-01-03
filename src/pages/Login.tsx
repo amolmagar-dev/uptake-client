@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Zap, Mail, Lock, User, ArrowRight } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { Button } from '../shared/components/ui/Button';
+import { Input } from '../shared/components/ui/Input';
 import { useAuthStore } from '../store/authStore';
 
 export const LoginPage: React.FC = () => {
