@@ -219,25 +219,25 @@ export function DatasetEditorPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <RefreshCw className="w-8 h-8 animate-spin text-[var(--accent-primary)]" />
+        <RefreshCw className="w-8 h-8 animate-spin text-accent-primary" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-[var(--bg-primary)]">
+    <div className="h-full flex flex-col bg-bg-primary">
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+      <div className="flex-shrink-0 border-b border-border bg-bg-secondary">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate('/datasets')}>
               <ArrowLeft size={20} />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-[var(--text-primary)]">
+              <h1 className="text-xl font-bold text-text-primary">
                 {isEditing ? 'Edit Dataset' : 'New Dataset'}
               </h1>
-              <p className="text-sm text-[var(--text-tertiary)]">
+              <p className="text-sm text-text-tertiary">
                 {isEditing ? 'Modify dataset configuration' : 'Create a new dataset from your data sources'}
               </p>
             </div>
@@ -257,15 +257,15 @@ export function DatasetEditorPage() {
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left sidebar - Source selection */}
-        <div className="w-80 border-r border-[var(--border-primary)] bg-[var(--bg-secondary)] overflow-y-auto">
+        <div className="w-80 border-r border-border bg-bg-secondary overflow-y-auto">
           <div className="p-4 space-y-4">
             {/* Source Type */}
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Source Type
               </label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary">
                   {sourceType === 'sql' && <Database size={16} />}
                   {sourceType === 'api' && <Globe size={16} />}
                   {sourceType === 'googlesheet' && <FileSpreadsheet size={16} />}
@@ -293,7 +293,7 @@ export function DatasetEditorPage() {
 
             {/* Connection */}
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Connection
               </label>
               <Select
@@ -310,7 +310,7 @@ export function DatasetEditorPage() {
                 placeholder="Select a connection..."
               />
               {filteredConnections.length === 0 && (
-                <p className="text-xs text-yellow-500 mt-2">
+                <p className="text-xs text-accent-warning mt-2">
                   No {sourceType} connections available. <a href="/connections" className="underline">Create one</a>.
                 </p>
               )}
@@ -321,7 +321,7 @@ export function DatasetEditorPage() {
               <>
                 {/* Dataset Type */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Dataset Type
                   </label>
                   <div className="space-y-2">
@@ -333,8 +333,8 @@ export function DatasetEditorPage() {
                         key={value}
                         className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                           datasetType === value
-                            ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                            : 'border-[var(--border-primary)] hover:border-[var(--border-secondary)]'
+                            ? 'border-accent-primary bg-accent-primary/10'
+                            : 'border-border hover:border-border-hover'
                         }`}
                       >
                         <input
@@ -348,14 +348,14 @@ export function DatasetEditorPage() {
                               setTableName('');
                             }
                           }}
-                          className="w-4 h-4 text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] accent-[var(--accent-primary)]"
+                          className="w-4 h-4 text-accent-primary focus:ring-accent-primary accent-accent-primary"
                         />
-                        <Icon size={18} className={datasetType === value ? 'text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'} />
+                        <Icon size={18} className={datasetType === value ? 'text-accent-primary' : 'text-text-tertiary'} />
                         <div className="flex-1">
-                          <span className={`text-sm font-medium ${datasetType === value ? 'text-[var(--accent-primary)]' : 'text-[var(--text-primary)]'}`}>
+                          <span className={`text-sm font-medium ${datasetType === value ? 'text-accent-primary' : 'text-text-primary'}`}>
                             {label}
                           </span>
-                          <span className={`text-xs ml-2 ${datasetType === value ? 'text-[var(--accent-primary)]/70' : 'text-[var(--text-tertiary)]'}`}>
+                          <span className={`text-xs ml-2 ${datasetType === value ? 'text-accent-primary/70' : 'text-text-tertiary'}`}>
                             {desc}
                           </span>
                         </div>
@@ -368,7 +368,7 @@ export function DatasetEditorPage() {
                 {datasetType === 'physical' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                      <label className="block text-sm font-medium text-text-secondary mb-2">
                         Schema
                       </label>
                       <Select
@@ -387,13 +387,13 @@ export function DatasetEditorPage() {
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-[var(--text-secondary)]">
+                        <label className="text-sm font-medium text-text-secondary">
                           Table
                         </label>
                         <button
                           type="button"
                           onClick={fetchTables}
-                          className="text-xs text-[var(--accent-primary)] hover:underline flex items-center gap-1"
+                          className="text-xs text-accent-primary hover:underline flex items-center gap-1"
                         >
                           <RefreshCw size={12} className={loadingTables ? 'animate-spin' : ''} />
                           Refresh
@@ -417,8 +417,8 @@ export function DatasetEditorPage() {
 
             {/* API/Sheet info */}
             {(sourceType === 'api' || sourceType === 'googlesheet') && connectionId && (
-              <div className="p-3 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20">
-                <p className="text-sm text-[var(--text-secondary)]">
+              <div className="p-3 rounded-lg bg-accent-primary/10 border border-accent-primary/20">
+                <p className="text-sm text-text-secondary">
                   {sourceType === 'api' 
                     ? 'Data will be fetched from the API endpoint configured in this connection.'
                     : 'Data will be fetched from the Google Sheet configured in this connection.'}
@@ -434,7 +434,7 @@ export function DatasetEditorPage() {
             {/* SQL Query for Virtual datasets */}
             {sourceType === 'sql' && datasetType === 'virtual' && connectionId && (
               <Card className="p-6">
-                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">SQL Query</h2>
+                <h2 className="text-lg font-semibold text-text-primary mb-4">SQL Query</h2>
                 <Textarea
                   value={sqlQuery}
                   onChange={(e) => setSqlQuery(e.target.value)}
@@ -442,7 +442,7 @@ export function DatasetEditorPage() {
                   rows={8}
                   className="font-mono text-sm"
                 />
-                <p className="text-xs text-[var(--text-tertiary)] mt-2">
+                <p className="text-xs text-text-tertiary mt-2">
                   Write a SQL query to define this virtual dataset
                 </p>
               </Card>
@@ -452,7 +452,7 @@ export function DatasetEditorPage() {
             {columns.length > 0 && (
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  <h2 className="text-lg font-semibold text-text-primary">
                     Columns ({columns.length})
                   </h2>
                   <Button variant="ghost" size="sm" onClick={handlePreviewData}>
@@ -460,22 +460,22 @@ export function DatasetEditorPage() {
                     Preview Data
                   </Button>
                 </div>
-                <div className="border border-[var(--border-primary)] rounded-lg overflow-hidden">
+                <div className="border border-border rounded-lg overflow-hidden">
                   <div className="max-h-[60vh] overflow-y-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-[var(--bg-tertiary)] sticky top-0">
+                      <thead className="bg-bg-tertiary sticky top-0">
                         <tr>
-                          <th className="px-4 py-2 text-left font-medium text-[var(--text-secondary)]">Column Name</th>
-                          <th className="px-4 py-2 text-right font-medium text-[var(--text-secondary)]">Data Type</th>
+                          <th className="px-4 py-2 text-left font-medium text-text-secondary">Column Name</th>
+                          <th className="px-4 py-2 text-right font-medium text-text-secondary">Data Type</th>
                         </tr>
                       </thead>
                       <tbody>
                         {columns.map((col, i) => (
-                          <tr key={i} className="border-t border-[var(--border-primary)]">
-                            <td className="px-4 py-2 text-[var(--text-primary)] font-mono text-xs">
+                          <tr key={i} className="border-t border-border">
+                            <td className="px-4 py-2 text-text-primary font-mono text-xs">
                               {col.column_name}
                             </td>
-                            <td className="px-4 py-2 text-right text-[var(--text-tertiary)] uppercase text-xs">
+                            <td className="px-4 py-2 text-right text-text-tertiary uppercase text-xs">
                               {col.data_type}
                             </td>
                           </tr>
@@ -490,11 +490,11 @@ export function DatasetEditorPage() {
             {/* Empty state */}
             {!connectionId && (
               <Card className="p-12 text-center">
-                <Database className="w-16 h-16 mx-auto text-[var(--text-tertiary)] mb-4" />
-                <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
+                <Database className="w-16 h-16 mx-auto text-text-tertiary mb-4" />
+                <h3 className="text-xl font-semibold text-text-primary mb-2">
                   Select a Data Source
                 </h3>
-                <p className="text-[var(--text-tertiary)]">
+                <p className="text-text-tertiary">
                   Choose a source type and connection from the sidebar to start configuring your dataset.
                 </p>
               </Card>
@@ -502,11 +502,11 @@ export function DatasetEditorPage() {
 
             {connectionId && !tableName && sourceType === 'sql' && datasetType === 'physical' && (
               <Card className="p-12 text-center">
-                <Table className="w-16 h-16 mx-auto text-[var(--text-tertiary)] mb-4" />
-                <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
+                <Table className="w-16 h-16 mx-auto text-text-tertiary mb-4" />
+                <h3 className="text-xl font-semibold text-text-primary mb-2">
                   Select a Table
                 </h3>
-                <p className="text-[var(--text-tertiary)]">
+                <p className="text-text-tertiary">
                   Choose a schema and table from the sidebar to see its columns.
                 </p>
               </Card>
@@ -538,7 +538,7 @@ export function DatasetEditorPage() {
             placeholder="What does this dataset contain?"
             rows={3}
           />
-          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border-primary)]">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <Button type="button" variant="ghost" onClick={() => setShowSaveModal(false)}>
               Cancel
             </Button>

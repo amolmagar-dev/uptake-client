@@ -45,17 +45,17 @@ export function Table<T extends Record<string, any>>({
 
   return (
     <div
-      className={`overflow-auto rounded-lg border border-[#2a2a3a] ${className}`}
+      className={`overflow-auto rounded-lg border border-border ${className}`}
       style={{ maxHeight }}
     >
       <table className="w-full text-left">
-        <thead className="sticky top-0 bg-[#1a1a25] border-b border-[#2a2a3a]">
+        <thead className="sticky top-0 bg-bg-tertiary border-b border-border">
           <tr>
             {columns.map((column, index) => (
               <th
                 key={index}
                 className={`
-                  px-4 py-3 text-sm font-medium text-[#a0a0b0]
+                  px-4 py-3 text-sm font-medium text-text-secondary
                   whitespace-nowrap
                   ${column.className || ''}
                 `}
@@ -65,12 +65,12 @@ export function Table<T extends Record<string, any>>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#2a2a3a]">
+        <tbody className="divide-y divide-border">
           {data.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-4 py-12 text-center text-[#606070]"
+                className="px-4 py-12 text-center text-text-muted"
               >
                 {emptyMessage}
               </td>
@@ -81,7 +81,7 @@ export function Table<T extends Record<string, any>>({
                 key={rowIndex}
                 onClick={() => onRowClick?.(row, rowIndex)}
                 className={`
-                  bg-[#16161f] hover:bg-[#1e1e2a]
+                  bg-bg-card hover:bg-bg-elevated
                   transition-colors duration-150
                   ${onRowClick ? 'cursor-pointer' : ''}
                 `}
@@ -90,7 +90,7 @@ export function Table<T extends Record<string, any>>({
                   <td
                     key={colIndex}
                     className={`
-                      px-4 py-3 text-sm text-[#f0f0f5]
+                      px-4 py-3 text-sm text-text-primary
                       ${column.className || ''}
                     `}
                   >
@@ -121,7 +121,7 @@ export const DataTable: React.FC<DataTableProps> = ({
 }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12 text-[#606070]">
+      <div className="flex items-center justify-center py-12 text-text-muted">
         No data to display
       </div>
     );

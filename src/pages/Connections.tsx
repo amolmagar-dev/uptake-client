@@ -143,11 +143,11 @@ export const ConnectionsPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
         <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#f0f0f5]">Connections</h1>
-            <p className="text-[#a0a0b0] mt-1">Manage databases, APIs, and data sources</p>
+            <h1 className="text-2xl font-bold text-text-primary">Connections</h1>
+            <p className="text-text-secondary mt-1">Manage databases, APIs, and data sources</p>
           </div>
           <Button
             leftIcon={<Plus size={18} />}
@@ -163,9 +163,9 @@ export const ConnectionsPage: React.FC = () => {
 
       {connections.length === 0 ? (
         <Card className="text-center py-12">
-          <Database size={48} className="mx-auto mb-4 text-[#606070]" />
-          <h3 className="text-lg font-medium text-[#f0f0f5] mb-2">No connections yet</h3>
-          <p className="text-[#a0a0b0] mb-4">Add your first connection to get started</p>
+          <Database size={48} className="mx-auto mb-4 text-text-tertiary" />
+          <h3 className="text-lg font-medium text-text-primary mb-2">No connections yet</h3>
+          <p className="text-text-tertiary mb-4">Add your first connection to get started</p>
           <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
             Add Connection
           </Button>
@@ -187,16 +187,16 @@ export const ConnectionsPage: React.FC = () => {
                   </div>
                   
                   <div className="flex-1">
-                    <h3 className="font-semibold text-[#f0f0f5]">{connection.name}</h3>
-                    <p className="text-sm text-[#a0a0b0]">{getConnectionDescription(connection)}</p>
+                    <h3 className="font-semibold text-text-primary">{connection.name}</h3>
+                    <p className="text-sm text-text-secondary">{getConnectionDescription(connection)}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     {testResults[connection.id] !== undefined && (
                       testResults[connection.id] ? (
-                        <CheckCircle size={20} className="text-[#00f5a0]" />
+                        <CheckCircle size={20} className="text-status-success" />
                       ) : (
-                        <XCircle size={20} className="text-[#ff4757]" />
+                        <XCircle size={20} className="text-status-error" />
                       )
                     )}
                     
@@ -237,7 +237,7 @@ export const ConnectionsPage: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeleteConfirm(connection.id)}
-                      className="text-[#ff4757] hover:text-[#ff4757]"
+                      className="text-status-error hover:text-status-error"
                       leftIcon={<Trash2 size={16} />}
                     >
                       Delete
@@ -246,23 +246,23 @@ export const ConnectionsPage: React.FC = () => {
                 </div>
 
                 {expandedConnection === connection.id && isSqlType && (
-                  <div className="mt-4 pt-4 border-t border-[#2a2a3a]">
+                  <div className="mt-4 pt-4 border-t border-border">
                     {loadingTables ? (
                       <div className="flex items-center justify-center py-4">
                         <div className="spinner" />
                       </div>
                     ) : tables.length === 0 ? (
-                      <p className="text-[#606070] text-center py-4">No tables found</p>
+                      <p className="text-text-tertiary text-center py-4">No tables found</p>
                     ) : (
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                         {tables.map((table, i) => (
                           <div
                             key={i}
-                            className="px-3 py-2 rounded-lg bg-[#1a1a25] text-sm flex items-center gap-2"
+                            className="px-3 py-2 rounded-lg bg-bg-tertiary text-sm flex items-center gap-2"
                           >
-                            <Table size={14} className="text-[#606070]" />
-                            <span className="text-[#a0a0b0]">{table.table_schema}.</span>
-                            <span className="text-[#f0f0f5]">{table.table_name}</span>
+                            <Table size={14} className="text-text-tertiary" />
+                            <span className="text-text-secondary">{table.table_schema}.</span>
+                            <span className="text-text-primary">{table.table_name}</span>
                           </div>
                         ))}
                       </div>
@@ -444,7 +444,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
           label="Connection Type"
           options={connectionTypes}
           value={connectionType}
-          onChange={(e) => setConnectionType(e.target.value as ConnectionInput['type'])}
+          onChange={(value: string | null) => setConnectionType(value as ConnectionInput['type'])}
         />
 
         {/* SQL Database Form */}
@@ -501,9 +501,9 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                 type="checkbox"
                 checked={sqlForm.ssl}
                 onChange={(e) => setSqlForm(prev => ({ ...prev, ssl: e.target.checked }))}
-                className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
+                className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
               />
-              <span className="text-sm text-[#a0a0b0]">Use SSL connection</span>
+              <span className="text-sm text-text-secondary">Use SSL connection</span>
             </label>
           </>
         )}
@@ -533,7 +533,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                   { value: 'POST', label: 'POST' },
                 ]}
                 value={apiForm.method}
-                onChange={(e) => setApiForm(prev => ({ ...prev, method: e.target.value as 'GET' | 'POST' }))}
+                onChange={(value: string | null) => setApiForm(prev => ({ ...prev, method: value as 'GET' | 'POST' }))}
               />
               <Select
                 label="Authentication"
@@ -543,7 +543,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                   { value: 'bearer', label: 'Bearer Token' },
                 ]}
                 value={apiForm.auth_type}
-                onChange={(e) => setApiForm(prev => ({ ...prev, auth_type: e.target.value as any }))}
+                onChange={(value: string | null) => setApiForm(prev => ({ ...prev, auth_type: value as any }))}
               />
             </div>
             {apiForm.auth_type === 'api_key' && (
@@ -613,7 +613,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                 onChange={(e) => setSheetsForm(prev => ({ ...prev, api_key: e.target.value }))}
               />
             </div>
-            <p className="text-xs text-[#606070]">
+            <p className="text-xs text-text-tertiary">
               For public sheets, no API key is needed. Make sure sharing is set to "Anyone with the link can view".
             </p>
           </>

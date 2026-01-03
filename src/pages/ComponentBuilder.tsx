@@ -92,11 +92,11 @@ export const ComponentBuilderPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
         <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#f0f0f5]">Component Builder</h1>
-            <p className="text-[#a0a0b0] mt-1">Create custom HTML/CSS/JS components</p>
+            <h1 className="text-2xl font-bold text-text-primary">Component Builder</h1>
+            <p className="text-text-secondary mt-1">Create custom HTML/CSS/JS components</p>
           </div>
           <Button
             leftIcon={<Plus size={18} />}
@@ -109,9 +109,9 @@ export const ComponentBuilderPage: React.FC = () => {
 
       {components.length === 0 ? (
         <Card className="text-center py-12">
-          <Code2 size={48} className="mx-auto mb-4 text-[#606070]" />
-          <h3 className="text-lg font-medium text-[#f0f0f5] mb-2">No custom components yet</h3>
-          <p className="text-[#a0a0b0] mb-4">Create your first custom HTML/CSS/JS component</p>
+          <Code2 size={48} className="mx-auto mb-4 text-text-muted" />
+          <h3 className="text-lg font-medium text-text-primary mb-2">No custom components yet</h3>
+          <p className="text-text-secondary mb-4">Create your first custom HTML/CSS/JS component</p>
           <Button onClick={() => navigate('/components/new')} leftIcon={<Plus size={16} />}>
             Create Component
           </Button>
@@ -124,23 +124,23 @@ export const ComponentBuilderPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">🧩</span>
                   <div>
-                    <h3 className="font-semibold text-[#f0f0f5]">{component.name}</h3>
-                    <p className="text-xs text-[#606070]">Custom Component</p>
+                    <h3 className="font-semibold text-text-primary">{component.name}</h3>
+                    <p className="text-xs text-text-muted">Custom Component</p>
                   </div>
                 </div>
               </div>
               
               {component.description && (
-                <p className="text-sm text-[#a0a0b0] mb-4 line-clamp-2">{component.description}</p>
+                <p className="text-sm text-text-secondary mb-4 line-clamp-2">{component.description}</p>
               )}
               
               {component.connection_name && (
-                <p className="text-xs text-[#606070] mb-4">
+                <p className="text-xs text-text-muted mb-4">
                   Connection: {component.connection_name}
                 </p>
               )}
 
-              <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
+              <div className="mt-auto flex gap-2 pt-4 border-t border-border">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -161,7 +161,7 @@ export const ComponentBuilderPage: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setDeleteConfirm(component.id)}
-                  className="text-[#ff4757] hover:text-[#ff4757]"
+                  className="text-status-error hover:text-status-error/80"
                   leftIcon={<Trash2 size={14} />}
                 >
                   Delete
@@ -205,7 +205,7 @@ export const ComponentBuilderPage: React.FC = () => {
             height={400}
           />
         ) : (
-          <p className="text-center text-[#606070] py-12">No component to preview</p>
+          <p className="text-center text-text-muted py-12">No component to preview</p>
         )}
       </Modal>
     </div>
@@ -287,7 +287,7 @@ export const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = (
         width: '100%',
         height: typeof height === 'number' ? `${height}px` : height,
         border: 'none',
-        background: '#0d0d15',
+        background: 'var(--color-bg-secondary)',
       }}
       title="Component Preview"
     />

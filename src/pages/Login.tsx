@@ -66,22 +66,22 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* Right side - Login form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-8 bg-bg-primary">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00f5d4] to-[#7b2cbf] flex items-center justify-center">
-              <Zap size={26} className="text-[#0a0a0f]" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
+              <Zap size={26} className="text-bg-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-gradient">Uptake</h1>
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent-primary to-accent-secondary">Uptake</h1>
           </div>
 
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-[#f0f0f5] mb-2">Welcome back</h2>
-            <p className="text-[#a0a0b0]">Sign in to your account to continue</p>
+            <h2 className="text-2xl font-bold text-text-primary mb-2">Welcome back</h2>
+            <p className="text-text-secondary">Sign in to your account to continue</p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 rounded-lg bg-[#ff4757]/10 border border-[#ff4757]/30 text-[#ff4757] text-sm">
+            <div className="mb-6 p-4 rounded-lg bg-status-error/10 border border-status-error/30 text-status-error text-sm">
               {error}
             </div>
           )}
@@ -118,17 +118,17 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-[#a0a0b0]">
+          <p className="mt-6 text-center text-text-secondary">
             Don't have an account?{' '}
-            <Link to="/register" className="text-[#00f5d4] hover:underline">
+            <Link to="/register" className="text-accent-primary hover:underline">
               Create one
             </Link>
           </p>
 
-          <div className="mt-8 p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
-            <p className="text-xs text-[#606070] text-center">
+          <div className="mt-8 p-4 rounded-lg bg-bg-secondary border border-border">
+            <p className="text-xs text-text-tertiary text-center">
               Demo credentials:<br />
-              <span className="text-[#a0a0b0]">admin@uptake.local / admin123</span>
+              <span className="text-text-secondary">admin@uptake.local / admin123</span>
             </p>
           </div>
         </div>
@@ -178,22 +178,22 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
+    <div className="min-h-screen flex items-center justify-center p-8 bg-bg-primary">
       <div className="w-full max-w-md">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00f5d4] to-[#7b2cbf] flex items-center justify-center">
-            <Zap size={26} className="text-[#0a0a0f]" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
+            <Zap size={26} className="text-bg-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-gradient">Uptake</h1>
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent-primary to-accent-secondary">Uptake</h1>
         </div>
 
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-[#f0f0f5] mb-2">Create an account</h2>
-          <p className="text-[#a0a0b0]">Get started with Uptake</p>
+          <h2 className="text-2xl font-bold text-text-primary mb-2">Create an account</h2>
+          <p className="text-text-secondary">Get started with Uptake</p>
         </div>
 
         {(error || formError) && (
-          <div className="mb-6 p-4 rounded-lg bg-[#ff4757]/10 border border-[#ff4757]/30 text-[#ff4757] text-sm">
+          <div className="mb-6 p-4 rounded-lg bg-status-error/10 border border-status-error/30 text-status-error text-sm">
             {error || formError}
           </div>
         )}
@@ -249,9 +249,9 @@ export const RegisterPage: React.FC = () => {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-[#a0a0b0]">
+        <p className="mt-6 text-center text-text-secondary">
           Already have an account?{' '}
-          <Link to="/login" className="text-[#00f5d4] hover:underline">
+          <Link to="/login" className="text-accent-primary hover:underline">
             Sign in
           </Link>
         </p>

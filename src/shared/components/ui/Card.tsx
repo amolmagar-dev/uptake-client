@@ -25,10 +25,10 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       className={`
-        bg-[#16161f] border border-[#2a2a3a] rounded-xl
+        bg-bg-card border border-border rounded-xl
         ${paddingStyles[padding]}
-        ${hover ? 'hover:border-[#3a3a4a] hover:shadow-lg transition-all duration-200' : ''}
-        ${glow ? 'hover:shadow-[0_0_30px_rgba(0,245,212,0.1)]' : ''}
+        ${hover ? 'hover:border-border-hover hover:shadow-lg transition-all duration-200' : ''}
+        ${glow ? 'hover:shadow-[0_0_30px_var(--color-accent-primary)]' : ''}
         ${className}
       `}
     >
@@ -50,7 +50,7 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
 }) => {
   return (
     <div className={`flex items-center justify-between mb-4 ${className}`}>
-      <div className="text-lg font-semibold text-[#f0f0f5]">{children}</div>
+      <div className="text-lg font-semibold text-text-primary">{children}</div>
       {action && <div>{action}</div>}
     </div>
   );
@@ -90,12 +90,12 @@ export const StatCard: React.FC<StatCardProps> = ({
     <Card className={`${className}`} hover>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-[#a0a0b0] mb-1">{title}</p>
-          <p className="text-2xl font-bold text-[#f0f0f5]">{value}</p>
+          <p className="text-sm text-text-secondary mb-1">{title}</p>
+          <p className="text-2xl font-bold text-text-primary">{value}</p>
           {trend && (
             <p
               className={`text-sm mt-2 flex items-center gap-1 ${
-                trend.isPositive ? 'text-[#00f5a0]' : 'text-[#ff4757]'
+                trend.isPositive ? 'text-status-success' : 'text-status-error'
               }`}
             >
               <span>{trend.isPositive ? '↑' : '↓'}</span>
@@ -104,7 +104,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           )}
         </div>
         {icon && (
-          <div className="p-3 rounded-lg bg-gradient-to-br from-[#00f5d4]/10 to-[#7b2cbf]/10 text-[#00f5d4]">
+          <div className="p-3 rounded-lg bg-gradient-to-br from-accent-primary/10 to-accent-secondary/10 text-accent-primary">
             {icon}
           </div>
         )}

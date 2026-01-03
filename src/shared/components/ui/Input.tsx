@@ -28,14 +28,14 @@ export const Input: React.FC<InputProps> = ({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-[#a0a0b0] mb-1.5"
+          className="block text-sm font-medium text-text-secondary mb-1.5"
         >
           {label}
         </label>
       )}
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#606070]">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
             {leftIcon}
           </div>
         )}
@@ -43,14 +43,14 @@ export const Input: React.FC<InputProps> = ({
           id={inputId}
           className={`
             w-full px-4 py-2.5 
-            bg-[#1a1a25] border border-[#2a2a3a] rounded-lg
-            text-[#f0f0f5] placeholder-[#606070]
+            bg-bg-tertiary border border-border rounded-lg
+            text-text-primary placeholder-text-muted
             transition-all duration-200
-            focus:border-[#00f5d4] focus:ring-2 focus:ring-[#00f5d4]/20
+            focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20
             disabled:opacity-50 disabled:cursor-not-allowed
             ${leftIcon ? 'pl-10' : ''}
             ${rightIcon ? 'pr-10' : ''}
-            ${error ? 'border-[#ff4757] focus:border-[#ff4757] focus:ring-[#ff4757]/20' : ''}
+            ${error ? 'border-status-error focus:border-status-error focus:ring-status-error/20' : ''}
             ${className}
           `}
           {...props}
@@ -62,10 +62,10 @@ export const Input: React.FC<InputProps> = ({
         )}
       </div>
       {error && (
-        <p className="mt-1.5 text-sm text-[#ff4757]">{error}</p>
+        <p className="mt-1.5 text-sm text-status-error">{error}</p>
       )}
       {helperText && !error && (
-        <p className="mt-1.5 text-sm text-[#606070]">{helperText}</p>
+        <p className="mt-1.5 text-sm text-text-muted">{helperText}</p>
       )}
     </div>
   );
@@ -101,21 +101,21 @@ export const Textarea: React.FC<TextareaProps> = ({
         id={inputId}
         className={`
           w-full px-4 py-2.5 
-          bg-[#1a1a25] border border-[#2a2a3a] rounded-lg
-          text-[#f0f0f5] placeholder-[#606070]
+          bg-bg-tertiary border border-border rounded-lg
+          text-text-primary placeholder-text-muted
           transition-all duration-200 resize-none
-          focus:border-[#00f5d4] focus:ring-2 focus:ring-[#00f5d4]/20
+          focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${error ? 'border-[#ff4757] focus:border-[#ff4757] focus:ring-[#ff4757]/20' : ''}
+          ${error ? 'border-status-error focus:border-status-error focus:ring-status-error/20' : ''}
           ${className}
         `}
         {...props}
       />
       {error && (
-        <p className="mt-1.5 text-sm text-[#ff4757]">{error}</p>
+        <p className="mt-1.5 text-sm text-status-error">{error}</p>
       )}
       {helperText && !error && (
-        <p className="mt-1.5 text-sm text-[#606070]">{helperText}</p>
+        <p className="mt-1.5 text-sm text-text-muted">{helperText}</p>
       )}
     </div>
   );
@@ -127,21 +127,23 @@ export interface SelectOption {
   label: string;
 }
 
-// Custom styles for react-select to match dark theme
+// Custom styles for react-select to match dynamic theme
 export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOption>> = {
   control: (base, state) => ({
     ...base,
-    backgroundColor: '#1a1a25',
-    borderColor: state.isFocused ? '#00f5d4' : '#2a2a3a',
+    backgroundColor: 'var(--color-bg-tertiary)',
+    borderColor: state.isFocused ? 'var(--color-accent-primary)' : 'var(--color-border)',
     borderRadius: '0.5rem',
     padding: '0.125rem 0',
-    boxShadow: state.isFocused ? '0 0 0 2px rgba(0, 245, 212, 0.2)' : 'none',
+    // Simplifying shadow for now to use solid color for the ring
+    boxShadow: state.isFocused ? '0 0 0 2px var(--color-accent-primary)' : 'none',
     transition: 'all 200ms',
     '&:hover': {
-      borderColor: state.isFocused ? '#00f5d4' : '#3a3a4a',
+      borderColor: state.isFocused ? 'var(--color-accent-primary)' : 'var(--color-border-hover)',
     },
     cursor: 'pointer',
     minHeight: '42px',
+    color: 'var(--color-text-primary)',
   }),
   menuPortal: (base) => ({
     ...base,
@@ -149,10 +151,10 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
   }),
   menu: (base) => ({
     ...base,
-    backgroundColor: '#1a1a25',
-    border: '1px solid #2a2a3a',
+    backgroundColor: 'var(--color-bg-tertiary)',
+    border: '1px solid var(--color-border)',
     borderRadius: '0.5rem',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)', // Keep generic shadow for depth
     zIndex: 99999,
   }),
 
@@ -163,67 +165,67 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
   option: (base, state) => ({
     ...base,
     backgroundColor: state.isSelected 
-      ? '#00f5d4' 
+      ? 'var(--color-accent-primary)' 
       : state.isFocused 
-        ? '#2a2a3a' 
+        ? 'var(--color-bg-elevated)' 
         : 'transparent',
-    color: state.isSelected ? '#0a0a0f' : '#f0f0f5',
+    color: state.isSelected ? 'var(--color-bg-primary)' : 'var(--color-text-primary)',
     borderRadius: '0.375rem',
     padding: '8px 12px',
     cursor: 'pointer',
     '&:active': {
-      backgroundColor: state.isSelected ? '#00f5d4' : '#3a3a4a',
+      backgroundColor: state.isSelected ? 'var(--color-accent-primary)' : 'var(--color-border)',
     },
   }),
   singleValue: (base) => ({
     ...base,
-    color: '#f0f0f5',
+    color: 'var(--color-text-primary)',
   }),
   placeholder: (base) => ({
     ...base,
-    color: '#606070',
+    color: 'var(--color-text-muted)',
   }),
   input: (base) => ({
     ...base,
-    color: '#f0f0f5',
+    color: 'var(--color-text-primary)',
   }),
   indicatorSeparator: () => ({
     display: 'none',
   }),
   dropdownIndicator: (base, state) => ({
     ...base,
-    color: state.isFocused ? '#00f5d4' : '#606070',
+    color: state.isFocused ? 'var(--color-accent-primary)' : 'var(--color-text-muted)',
     '&:hover': {
-      color: '#00f5d4',
+      color: 'var(--color-accent-primary)',
     },
   }),
   clearIndicator: (base) => ({
     ...base,
-    color: '#606070',
+    color: 'var(--color-text-muted)',
     '&:hover': {
-      color: '#ff4757',
+      color: 'var(--color-status-error)',
     },
   }),
   multiValue: (base) => ({
     ...base,
-    backgroundColor: '#2a2a3a',
+    backgroundColor: 'var(--color-bg-elevated)', // altered to elevated
     borderRadius: '0.375rem',
   }),
   multiValueLabel: (base) => ({
     ...base,
-    color: '#f0f0f5',
+    color: 'var(--color-text-primary)',
   }),
   multiValueRemove: (base) => ({
     ...base,
-    color: '#606070',
+    color: 'var(--color-text-muted)',
     '&:hover': {
-      backgroundColor: '#ff4757',
+      backgroundColor: 'var(--color-status-error)',
       color: '#fff',
     },
   }),
   noOptionsMessage: (base) => ({
     ...base,
-    color: '#606070',
+    color: 'var(--color-text-muted)',
   }),
 };
 
@@ -290,20 +292,20 @@ export const Select: React.FC<SelectProps> = ({
           disabled={isActuallyDisabled}
           className={`
             w-full px-4 py-2.5 
-            bg-[#1a1a25] border border-[#2a2a3a] rounded-lg
-            text-[#f0f0f5]
+            bg-bg-tertiary border border-border rounded-lg
+            text-text-primary
             transition-all duration-200
-            focus:border-[#00f5d4] focus:ring-2 focus:ring-[#00f5d4]/20
+            focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20
             disabled:opacity-50 disabled:cursor-not-allowed
             cursor-pointer
-            ${error ? 'border-[#ff4757] focus:border-[#ff4757] focus:ring-[#ff4757]/20' : ''}
+            ${error ? 'border-status-error focus:border-status-error focus:ring-status-error/20' : ''}
             ${className || ''}
           `}
         >
           {children}
         </select>
         {error && (
-          <p className="mt-1.5 text-sm text-[#ff4757]">{error}</p>
+          <p className="mt-1.5 text-sm text-status-error">{error}</p>
         )}
       </div>
     );

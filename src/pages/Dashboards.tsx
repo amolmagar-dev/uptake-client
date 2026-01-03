@@ -73,8 +73,8 @@ const FavoriteButton: React.FC<{ dashboard: Dashboard }> = ({ dashboard }) => {
       }}
       className={`p-2 rounded-lg transition-colors ${
         favorite
-          ? 'text-[#ffd93d] hover:text-[#ffc107]'
-          : 'text-[#606070] hover:text-[#a0a0b0]'
+          ? 'text-accent-warning hover:text-accent-warning/80'
+          : 'text-text-muted hover:text-text-secondary'
       }`}
       title={favorite ? 'Remove from favorites' : 'Add to favorites'}
     >
@@ -106,7 +106,7 @@ const CloneButton: React.FC<{ dashboardId: string; onClone: () => void }> = ({ d
     <button
       onClick={handleClone}
       disabled={isCloning}
-      className="p-2 rounded-lg text-[#606070] hover:text-[#a0a0b0] transition-colors disabled:opacity-50"
+      className="p-2 rounded-lg text-text-muted hover:text-text-secondary transition-colors disabled:opacity-50"
       title="Clone dashboard"
     >
       <Copy size={16} className={isCloning ? 'animate-pulse' : ''} />
@@ -189,21 +189,21 @@ export const DashboardsPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
         <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#f0f0f5]">Dashboards</h1>
-            <p className="text-[#a0a0b0] mt-1">Create and manage your data dashboards</p>
+            <h1 className="text-2xl font-bold text-text-primary">Dashboards</h1>
+            <p className="text-text-secondary mt-1">Create and manage your data dashboards</p>
           </div>
           <div className="flex items-center gap-3">
             {/* View Toggle */}
-            <div className="flex items-center bg-[#1a1a25] rounded-lg p-1 border border-[#2a2a3a]">
+            <div className="flex items-center bg-bg-tertiary rounded-lg p-1 border border-border">
               <button
                 onClick={() => setViewMode('vertical')}
                 className={`p-2 rounded-md transition-colors ${
                   viewMode === 'vertical'
-                    ? 'bg-[#2a2a3a] text-[#00f5d4]'
-                    : 'text-[#606070] hover:text-[#a0a0b0]'
+                    ? 'bg-border text-accent-primary'
+                    : 'text-text-muted hover:text-text-secondary'
                 }`}
                 title="List View"
               >
@@ -213,8 +213,8 @@ export const DashboardsPage: React.FC = () => {
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-md transition-colors ${
                   viewMode === 'grid'
-                    ? 'bg-[#2a2a3a] text-[#00f5d4]'
-                    : 'text-[#606070] hover:text-[#a0a0b0]'
+                    ? 'bg-border text-accent-primary'
+                    : 'text-text-muted hover:text-text-secondary'
                 }`}
                 title="Grid View"
               >
@@ -236,17 +236,17 @@ export const DashboardsPage: React.FC = () => {
         {/* Search Bar - part of sticky header */}
         <div className="mt-4">
           <div className="relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#606070]" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Search dashboards by name, description, or creator..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg text-[#f0f0f5] placeholder-[#606070] focus:outline-none focus:border-[#00f5d4] transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-bg-tertiary border border-border rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-primary transition-colors"
             />
           </div>
           {searchQuery && (
-            <p className="text-xs text-[#606070] mt-2">
+            <p className="text-xs text-text-muted mt-2">
               Found {filteredDashboards.length} dashboard{filteredDashboards.length !== 1 ? 's' : ''}
             </p>
           )}
@@ -255,11 +255,11 @@ export const DashboardsPage: React.FC = () => {
 
       {filteredDashboards.length === 0 ? (
         <Card className="text-center py-12">
-          <LayoutDashboard size={48} className="mx-auto mb-4 text-[#606070]" />
-          <h3 className="text-lg font-medium text-[#f0f0f5] mb-2">
+          <LayoutDashboard size={48} className="mx-auto mb-4 text-text-muted" />
+          <h3 className="text-lg font-medium text-text-primary mb-2">
             {searchQuery ? 'No dashboards found' : 'No dashboards yet'}
           </h3>
-          <p className="text-[#a0a0b0] mb-4">
+          <p className="text-text-secondary mb-4">
             {searchQuery
               ? `No dashboards match "${searchQuery}"`
               : 'Create your first dashboard to organize your charts'
@@ -290,24 +290,24 @@ export const DashboardsPage: React.FC = () => {
                 /* Vertical/List Layout */
                 <>
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00f5d4]/20 to-[#7b2cbf]/20 flex items-center justify-center flex-shrink-0">
-                      <Grid size={20} className="text-[#00f5d4]" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 flex items-center justify-center flex-shrink-0">
+                      <Grid size={20} className="text-accent-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 
-                          className="font-semibold text-[#f0f0f5] truncate cursor-pointer hover:text-[#00f5d4] hover:underline transition-colors"
+                          className="font-semibold text-text-primary truncate cursor-pointer hover:text-accent-primary hover:underline transition-colors"
                           onClick={() => navigate(`/dashboard/${dashboard.id}`)}
                         >
                           {dashboard.name}
                         </h3>
                         {dashboard.is_public === 1 && (
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-[#00f5d4]/10 text-[#00f5d4] border border-[#00f5d4]/20 flex-shrink-0">
+                          <span className="px-2 py-0.5 text-xs rounded-full bg-accent-primary/10 text-accent-primary border border-accent-primary/20 flex-shrink-0">
                             Public
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-[#606070]">
+                      <div className="flex items-center gap-3 text-xs text-text-muted">
                         <span>{dashboard.chart_count} charts</span>
                         <span>•</span>
                         <span>By {dashboard.created_by_name}</span>
@@ -338,7 +338,7 @@ export const DashboardsPage: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeleteConfirm(dashboard.id)}
-                      className="text-[#ff4757] hover:text-[#ff4757]"
+                      className="text-status-error hover:text-status-error/80"
                       leftIcon={<Trash2 size={14} />}
                     >
                       Delete
@@ -350,33 +350,33 @@ export const DashboardsPage: React.FC = () => {
                 <>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00f5d4]/20 to-[#7b2cbf]/20 flex items-center justify-center">
-                        <Grid size={20} className="text-[#00f5d4]" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 flex items-center justify-center">
+                        <Grid size={20} className="text-accent-primary" />
                       </div>
                       <div>
                         <h3 
-                          className="font-semibold text-[#f0f0f5] cursor-pointer hover:text-[#00f5d4] hover:underline transition-colors"
+                          className="font-semibold text-text-primary cursor-pointer hover:text-accent-primary hover:underline transition-colors"
                           onClick={() => navigate(`/dashboard/${dashboard.id}`)}
                         >
                           {dashboard.name}
                         </h3>
-                        <p className="text-xs text-[#606070]">{dashboard.chart_count} charts</p>
+                        <p className="text-xs text-text-muted">{dashboard.chart_count} charts</p>
                       </div>
                     </div>
                     {dashboard.is_public === 1 && (
-                      <span className="px-2 py-0.5 text-xs rounded-full bg-[#00f5d4]/10 text-[#00f5d4] border border-[#00f5d4]/20">
+                      <span className="px-2 py-0.5 text-xs rounded-full bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
                         Public
                       </span>
                     )}
                   </div>
 
                   {dashboard.description && (
-                    <p className="text-sm text-[#a0a0b0] mb-4 line-clamp-2">{dashboard.description}</p>
+                    <p className="text-sm text-text-secondary mb-4 line-clamp-2">{dashboard.description}</p>
                   )}
 
-                  <p className="text-xs text-[#606070] mb-4">By {dashboard.created_by_name}</p>
+                  <p className="text-xs text-text-muted mb-4">By {dashboard.created_by_name}</p>
 
-                  <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
+                  <div className="mt-auto flex gap-2 pt-4 border-t border-border">
                     <FavoriteButton dashboard={dashboard} />
                     <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
                     <Button
@@ -394,7 +394,7 @@ export const DashboardsPage: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeleteConfirm(dashboard.id)}
-                      className="text-[#ff4757] hover:text-[#ff4757]"
+                      className="text-status-error hover:text-status-error/80"
                       leftIcon={<Trash2 size={14} />}
                     >
                       Delete
@@ -408,15 +408,15 @@ export const DashboardsPage: React.FC = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#2a2a3a]">
-            <p className="text-sm text-[#606070]">
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+            <p className="text-sm text-text-muted">
               Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDashboards.length)} of {filteredDashboards.length}
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-secondary hover:text-text-primary hover:border-accent-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -431,14 +431,14 @@ export const DashboardsPage: React.FC = () => {
                   .map((page, idx, arr) => (
                     <React.Fragment key={page}>
                       {idx > 0 && arr[idx - 1] !== page - 1 && (
-                        <span className="text-[#606070] px-1">...</span>
+                        <span className="text-text-muted px-1">...</span>
                       )}
                       <button
                         onClick={() => setCurrentPage(page)}
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                           currentPage === page
-                            ? 'bg-[#00f5d4] text-[#12121a]'
-                            : 'bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4]'
+                            ? 'bg-accent-primary text-bg-primary'
+                            : 'bg-bg-tertiary border border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'
                         }`}
                       >
                         {page}
@@ -449,7 +449,7 @@ export const DashboardsPage: React.FC = () => {
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-secondary hover:text-text-primary hover:border-accent-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
               <ChevronRight size={18} />
               </button>
@@ -562,11 +562,11 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose, dashbo
             type="checkbox"
             checked={formData.is_public}
             onChange={(e) => setFormData((prev) => ({ ...prev, is_public: e.target.checked }))}
-            className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
+            className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
           />
           <div>
-            <span className="text-sm text-[#f0f0f5]">Make this dashboard public</span>
-            <p className="text-xs text-[#606070]">Anyone with the link can view this dashboard</p>
+            <span className="text-sm text-text-primary">Make this dashboard public</span>
+            <p className="text-xs text-text-muted">Anyone with the link can view this dashboard</p>
           </div>
         </label>
 
@@ -651,7 +651,7 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
       {/* More Options Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
+        className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"
         title="More options"
       >
         <MoreHorizontal size={20} />
@@ -659,7 +659,7 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-56 bg-[#12121a] border border-[#2a2a3a] rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 w-56 bg-bg-secondary border border-border rounded-lg shadow-xl z-50 overflow-hidden">
           {/* Refresh Dashboard */}
           <button
             onClick={() => {
@@ -667,9 +667,9 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
               setIsOpen(false);
             }}
             disabled={isRefreshing}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left text-[#f0f0f5] hover:bg-[#1a1a25] transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-3 px-4 py-3 text-left text-text-primary hover:bg-bg-tertiary transition-colors disabled:opacity-50"
           >
-            <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-[#00f5d4]' : ''} />
+            <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-accent-primary' : ''} />
             <span>Refresh dashboard</span>
           </button>
 
@@ -677,29 +677,29 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowIntervalMenu(!showIntervalMenu)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left text-[#f0f0f5] hover:bg-[#1a1a25] transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 text-left text-text-primary hover:bg-bg-tertiary transition-colors"
             >
               <div className="flex items-center gap-3">
                 <Timer size={16} />
                 <span>Set auto-refresh interval</span>
               </div>
-              <span className="text-xs text-[#606070]">
+              <span className="text-xs text-text-muted">
                 {autoRefresh ? intervalOptions.find(o => o.value === refreshInterval)?.label : 'Off'}
               </span>
             </button>
 
             {/* Submenu */}
             {showIntervalMenu && (
-              <div className="absolute left-full top-0 ml-1 w-40 bg-[#12121a] border border-[#2a2a3a] rounded-lg shadow-xl z-50 overflow-hidden">
+              <div className="absolute left-full top-0 ml-1 w-40 bg-bg-secondary border border-border rounded-lg shadow-xl z-50 overflow-hidden">
                 {intervalOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => handleIntervalSelect(option.value)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-[#f0f0f5] hover:bg-[#1a1a25] transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-text-primary hover:bg-bg-tertiary transition-colors"
                   >
                     <span className="text-sm">{option.label}</span>
                     {((option.value === 0 && !autoRefresh) || (autoRefresh && option.value === refreshInterval)) && (
-                      <Check size={14} className="text-[#00f5d4]" />
+                      <Check size={14} className="text-accent-primary" />
                     )}
                   </button>
                 ))}
@@ -708,12 +708,12 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
           </div>
 
           {/* Divider */}
-          <div className="border-t border-[#2a2a3a]" />
+          <div className="border-t border-border" />
 
           {/* Auto-refresh status indicator */}
           {autoRefresh && (
-            <div className="px-4 py-2 text-xs text-[#606070] flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#00f5d4] animate-pulse" />
+            <div className="px-4 py-2 text-xs text-text-muted flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
               Auto-refreshing every {intervalOptions.find(o => o.value === refreshInterval)?.label}
             </div>
           )}
@@ -1132,12 +1132,12 @@ export const DashboardViewPage: React.FC = () => {
       {/* Main wrapper with left margin for sidebar */}
       <div className={`flex-1 flex flex-col ${filtersOpen ? 'ml-72' : 'ml-10'} transition-all duration-200`}>
         {/* Fixed Header */}
-        <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-2 px-6 pt-0 border-b border-[#2a2a3a]">
+        <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-2 px-6 pt-0 border-b border-border">
           <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-[#f0f0f5]">{dashboard.name}</h1>
-                {dashboard.description && <p className="text-[#a0a0b0] mt-1 text-sm">{dashboard.description}</p>}
+                <h1 className="text-2xl font-bold text-text-primary">{dashboard.name}</h1>
+                {dashboard.description && <p className="text-text-secondary mt-1 text-sm">{dashboard.description}</p>}
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -1158,7 +1158,7 @@ export const DashboardViewPage: React.FC = () => {
                 /* Edit Mode: Exit button */
                 <button
                   onClick={() => navigate(`/dashboard/${id}`)}
-                  className="p-2 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-[#a0a0b0] hover:text-[#f0f0f5] hover:border-[#00f5d4] transition-colors"
+                  className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"
                   title="Exit Edit Mode"
                 >
                   <X size={20} />
@@ -1254,11 +1254,11 @@ export const DashboardViewPage: React.FC = () => {
           ) : (
             /* Empty State */
             <div className="flex flex-col items-center justify-center py-24">
-              <LayoutDashboard size={64} className="mb-6 text-[#404050]" />
-              <h3 className="text-lg font-medium text-[#a0a0b0] mb-2">
+              <LayoutDashboard size={64} className="mb-6 text-text-muted" />
+              <h3 className="text-lg font-medium text-text-secondary mb-2">
                 There are no charts added to this dashboard
               </h3>
-              <p className="text-sm text-[#606070] mb-6">
+              <p className="text-sm text-text-muted mb-6">
                 {isEditMode 
                   ? 'You can create a new chart or use existing ones from the panel on the right'
                   : 'Go to the edit mode to configure the dashboard and add charts'
@@ -1285,14 +1285,15 @@ export const DashboardViewPage: React.FC = () => {
         </div>
 
         {/* Right Sidebar Panel - Only in Edit Mode */}
+        {/* Right Sidebar Panel - Only in Edit Mode */}
         {isEditMode && (
-          <div className="fixed right-0 top-[73px] bottom-0 w-80 bg-[#12121a] border-l border-[#2a2a3a] flex flex-col z-40">
+          <div className="fixed right-0 top-[73px] bottom-0 w-80 bg-bg-secondary border-l border-border flex flex-col z-40">
             {/* Sidebar Header with Close Button */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a3a]">
-              <span className="text-sm font-medium text-[#f0f0f5]">Edit Mode</span>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <span className="text-sm font-medium text-text-primary">Edit Mode</span>
               <button
                 onClick={() => navigate(`/dashboard/${id}`)}
-                className="p-1.5 rounded-md text-[#606070] hover:text-[#f0f0f5] hover:bg-[#2a2a3a] transition-colors"
+                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors"
                 title="Exit Edit Mode"
               >
                 <X size={18} />
@@ -1300,13 +1301,13 @@ export const DashboardViewPage: React.FC = () => {
             </div>
 
             {/* Tabs Header */}
-            <div className="flex border-b border-[#2a2a3a]">
+            <div className="flex border-b border-border">
               <button
                 onClick={() => setDrawerTab('charts')}
                 className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${
                   drawerTab === 'charts'
-                    ? 'text-[#00f5d4] border-[#00f5d4]'
-                    : 'text-[#606070] border-transparent hover:text-[#a0a0b0]'
+                    ? 'text-accent-primary border-accent-primary'
+                    : 'text-text-muted border-transparent hover:text-text-secondary'
                 }`}
               >
                 Charts
@@ -1315,8 +1316,8 @@ export const DashboardViewPage: React.FC = () => {
                 onClick={() => setDrawerTab('components')}
                 className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${
                   drawerTab === 'components'
-                    ? 'text-[#7b2cbf] border-[#7b2cbf]'
-                    : 'text-[#606070] border-transparent hover:text-[#a0a0b0]'
+                    ? 'text-accent-secondary border-accent-secondary'
+                    : 'text-text-muted border-transparent hover:text-text-secondary'
                 }`}
               >
                 Components
@@ -1324,10 +1325,10 @@ export const DashboardViewPage: React.FC = () => {
             </div>
 
             {/* Create New Link */}
-            <div className="px-4 py-3 border-b border-[#2a2a3a]">
+            <div className="px-4 py-3 border-b border-border">
               <button
                 onClick={() => navigate(drawerTab === 'charts' ? '/charts' : '/components')}
-                className="flex items-center gap-2 text-sm text-[#00f5d4] hover:text-[#00d4b8] transition-colors"
+                className="flex items-center gap-2 text-sm text-accent-primary hover:text-accent-primary/80 transition-colors"
               >
                 <Plus size={16} />
                 Create new {drawerTab === 'charts' ? 'chart' : 'component'}
@@ -1335,15 +1336,15 @@ export const DashboardViewPage: React.FC = () => {
             </div>
 
             {/* Search */}
-            <div className="px-4 py-3 border-b border-[#2a2a3a]">
+            <div className="px-4 py-3 border-b border-border">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#606070]" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   placeholder={`Filter your ${drawerTab}...`}
                   value={drawerSearch}
                   onChange={(e) => setDrawerSearch(e.target.value)}
-                  className="w-full pl-8 pr-4 py-2 bg-[#1a1a25] border border-[#2a2a3a] rounded text-[#f0f0f5] text-sm placeholder-[#606070] focus:outline-none focus:border-[#00f5d4] transition-colors"
+                  className="w-full pl-8 pr-4 py-2 bg-bg-tertiary border border-border rounded text-text-primary text-sm placeholder-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                 />
               </div>
             </div>
@@ -1352,19 +1353,19 @@ export const DashboardViewPage: React.FC = () => {
             <div className="flex-1 overflow-y-auto">
               {drawerTab === 'charts' ? (
                 filteredCharts.length === 0 ? (
-                  <p className="text-sm text-[#606070] text-center py-8">
+                  <p className="text-sm text-text-muted text-center py-8">
                     {drawerSearch ? 'No charts match your search' : 'No charts available'}
                   </p>
                 ) : (
-                  <div className="divide-y divide-[#2a2a3a]">
+                  <div className="divide-y divide-border">
                     {filteredCharts.map((chart) => (
                       <button
                         key={chart.id}
                         onClick={() => handleAddChart(chart.id)}
-                        className="w-full px-4 py-3 hover:bg-[#1a1a25] transition-colors text-left"
+                        className="w-full px-4 py-3 hover:bg-bg-tertiary transition-colors text-left"
                       >
-                        <h5 className="font-medium text-[#f0f0f5] text-sm">{chart.name}</h5>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-[#606070]">
+                        <h5 className="font-medium text-text-primary text-sm">{chart.name}</h5>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
                           <span>Viz type: {chart.chart_type}</span>
                         </div>
                       </button>
@@ -1373,19 +1374,19 @@ export const DashboardViewPage: React.FC = () => {
                 )
               ) : (
                 filteredComponents.length === 0 ? (
-                  <p className="text-sm text-[#606070] text-center py-8">
+                  <p className="text-sm text-text-muted text-center py-8">
                     {drawerSearch ? 'No components match your search' : 'No components available'}
                   </p>
                 ) : (
-                  <div className="divide-y divide-[#2a2a3a]">
+                  <div className="divide-y divide-border">
                     {filteredComponents.map((comp) => (
                       <button
                         key={comp.id}
                         onClick={() => handleAddComponent(comp.id)}
-                        className="w-full px-4 py-3 hover:bg-[#1a1a25] transition-colors text-left"
+                        className="w-full px-4 py-3 hover:bg-bg-tertiary transition-colors text-left"
                       >
-                        <h5 className="font-medium text-[#f0f0f5] text-sm">{comp.name}</h5>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-[#606070]">
+                        <h5 className="font-medium text-text-primary text-sm">{comp.name}</h5>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
                           <span>Custom Component</span>
                         </div>
                       </button>
@@ -1411,7 +1412,7 @@ export const DashboardViewPage: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#f0f0f5] mb-2">Width (Columns: 3-12)</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">Width (Columns: 3-12)</label>
             <Input
               type="number"
               min={3}
@@ -1428,7 +1429,7 @@ export const DashboardViewPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#f0f0f5] mb-2">Height (Rows: 3-12)</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">Height (Rows: 3-12)</label>
             <Input
               type="number"
               min={3}
@@ -1444,8 +1445,8 @@ export const DashboardViewPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
-            <p className="text-sm text-[#606070]">
+          <div className="p-4 rounded-lg bg-bg-tertiary border border-border">
+            <p className="text-sm text-text-muted">
               💡 Tip: You can also resize charts by dragging the bottom-right corner or drag charts to rearrange them.
             </p>
           </div>

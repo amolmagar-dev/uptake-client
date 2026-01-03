@@ -68,16 +68,16 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         className={`
           relative w-full ${sizes[size]} mx-4
-          bg-[#16161f] border border-[#2a2a3a] rounded-xl
+          bg-bg-card border border-border rounded-xl
           shadow-2xl animate-slide-up
           max-h-[90vh] overflow-hidden flex flex-col
         `}
       >
         {/* Header */}
         {(title || showClose) && (
-          <div className="flex items-center justify-between p-5 border-b border-[#2a2a3a]">
+          <div className="flex items-center justify-between p-5 border-b border-border">
             {title && (
-              <h2 className="text-xl font-semibold text-[#f0f0f5]">{title}</h2>
+              <h2 className="text-xl font-semibold text-text-primary">{title}</h2>
             )}
             {showClose && (
               <Button
@@ -130,9 +130,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <div
           className={`
             w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center
-            ${variant === 'danger' ? 'bg-[#ff4757]/20 text-[#ff4757]' : ''}
-            ${variant === 'warning' ? 'bg-[#ffa502]/20 text-[#ffa502]' : ''}
-            ${variant === 'info' ? 'bg-[#4cc9f0]/20 text-[#4cc9f0]' : ''}
+            ${variant === 'danger' ? 'bg-status-error/20 text-status-error' : ''}
+            ${variant === 'warning' ? 'bg-status-warning/20 text-status-warning' : ''}
+            ${variant === 'info' ? 'bg-accent-info/20 text-accent-info' : ''}
           `}
         >
           {variant === 'danger' && (
@@ -141,8 +141,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             </svg>
           )}
         </div>
-        <h3 className="text-xl font-semibold text-[#f0f0f5] mb-2">{title}</h3>
-        <p className="text-[#a0a0b0] mb-6">{message}</p>
+        <h3 className="text-xl font-semibold text-text-primary mb-2">{title}</h3>
+        <p className="text-text-secondary mb-6">{message}</p>
         <div className="flex gap-3 justify-center">
           <Button variant="secondary" onClick={onClose} disabled={isLoading}>
             {cancelText}

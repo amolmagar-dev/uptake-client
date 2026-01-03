@@ -12,20 +12,20 @@ import { ComponentBuilderPage } from "./pages/ComponentBuilder";
 import { ComponentEditorPage } from "./pages/ComponentEditor";
 import { SettingsPage } from "./pages/Settings";
 import { useAuthStore } from "./store/authStore";
-import { useAppStore, applyTheme } from "./store/appStore";
+import { useThemeStore } from "./store/themeStore";
 
 function App() {
   const { checkAuth } = useAuthStore();
-  const { theme } = useAppStore();
+  const { currentThemeId, setTheme } = useThemeStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   useEffect(() => {
-    // Apply theme on mount and whenever it changes
-    applyTheme(theme);
-  }, [theme]);
+    // Initialize theme
+    setTheme(currentThemeId);
+  }, [currentThemeId, setTheme]);
 
   return (
     <Routes>

@@ -111,11 +111,11 @@ export const ChartsPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
         <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#f0f0f5]">Charts</h1>
-            <p className="text-[#a0a0b0] mt-1">Create and manage data visualizations</p>
+            <h1 className="text-2xl font-bold text-text-primary">Charts</h1>
+            <p className="text-text-secondary mt-1">Create and manage data visualizations</p>
           </div>
           <Button
             leftIcon={<Plus size={18} />}
@@ -131,9 +131,9 @@ export const ChartsPage: React.FC = () => {
 
       {charts.length === 0 ? (
         <Card className="text-center py-12">
-          <BarChart3 size={48} className="mx-auto mb-4 text-[#606070]" />
-          <h3 className="text-lg font-medium text-[#f0f0f5] mb-2">No charts yet</h3>
-          <p className="text-[#a0a0b0] mb-4">Create your first chart to visualize your data</p>
+          <BarChart3 size={48} className="mx-auto mb-4 text-text-muted" />
+          <h3 className="text-lg font-medium text-text-primary mb-2">No charts yet</h3>
+          <p className="text-text-secondary mb-4">Create your first chart to visualize your data</p>
           <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
             Create Chart
           </Button>
@@ -146,22 +146,22 @@ export const ChartsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{getChartIcon(chart.chart_type)}</span>
                   <div>
-                    <h3 className="font-semibold text-[#f0f0f5]">{chart.name}</h3>
-                    <p className="text-xs text-[#606070]">{chart.chart_type}</p>
+                    <h3 className="font-semibold text-text-primary">{chart.name}</h3>
+                    <p className="text-xs text-text-muted">{chart.chart_type}</p>
                   </div>
                 </div>
               </div>
               
               {chart.description && (
-                <p className="text-sm text-[#a0a0b0] mb-4 line-clamp-2">{chart.description}</p>
+                <p className="text-sm text-text-secondary mb-4 line-clamp-2">{chart.description}</p>
               )}
               
-              <p className="text-xs text-[#606070] mb-4 flex items-center gap-1">
+              <p className="text-xs text-text-muted mb-4 flex items-center gap-1">
                 <Layers size={12} />
                 {chart.dataset_name || chart.connection_name || 'No data source'}
               </p>
 
-              <div className="mt-auto flex gap-2 pt-4 border-t border-[#2a2a3a]">
+              <div className="mt-auto flex gap-2 pt-4 border-t border-border">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -185,7 +185,7 @@ export const ChartsPage: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setDeleteConfirm(chart.id)}
-                  className="text-[#ff4757] hover:text-[#ff4757]"
+                  className="text-status-error hover:text-status-error/80"
                   leftIcon={<Trash2 size={14} />}
                 >
                   Delete
@@ -243,7 +243,7 @@ export const ChartsPage: React.FC = () => {
             height={400}
           />
         ) : (
-          <p className="text-center text-[#606070] py-12">No data available</p>
+          <p className="text-center text-text-muted py-12">No data available</p>
         )}
       </Modal>
     </div>
@@ -429,15 +429,15 @@ const ChartModal: React.FC<ChartModalProps> = ({
         />
 
         {datasets.length === 0 && (
-          <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm">
+          <div className="p-4 rounded-lg bg-accent-warning/10 border border-accent-warning/20 text-accent-warning text-sm">
             <p>No datasets available. Please <a href="/datasets" className="underline">create a dataset</a> first.</p>
           </div>
         )}
 
         {selectedDataset && (
-          <div className="p-3 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-sm">
-            <p className="text-[#a0a0b0]">
-              <span className="font-medium text-[#f0f0f5]">{selectedDataset.name}</span>
+          <div className="p-3 rounded-lg bg-bg-tertiary border border-border text-sm">
+            <p className="text-text-secondary">
+              <span className="font-medium text-text-primary">{selectedDataset.name}</span>
               {' — '}
               {selectedDataset.dataset_type === 'physical' 
                 ? `${selectedDataset.table_schema}.${selectedDataset.table_name}`
@@ -448,8 +448,8 @@ const ChartModal: React.FC<ChartModalProps> = ({
         )}
 
         {columns.length > 0 && (
-          <div className="p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
-            <p className="text-sm text-[#a0a0b0] mb-3">
+          <div className="p-4 rounded-lg bg-bg-tertiary border border-border">
+            <p className="text-sm text-text-secondary mb-3">
               {columnsLoading ? 'Loading columns...' : `Available columns: ${columns.map(c => c.column_name).join(', ')}`}
             </p>
             <div className="grid grid-cols-2 gap-4">
@@ -480,18 +480,18 @@ const ChartModal: React.FC<ChartModalProps> = ({
               type="checkbox"
               checked={formData.showLegend}
               onChange={(e) => setFormData(prev => ({ ...prev, showLegend: e.target.checked }))}
-              className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
+              className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
             />
-            <span className="text-sm text-[#a0a0b0]">Show Legend</span>
+            <span className="text-sm text-text-secondary">Show Legend</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
               checked={formData.showGrid}
               onChange={(e) => setFormData(prev => ({ ...prev, showGrid: e.target.checked }))}
-              className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
+              className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
             />
-            <span className="text-sm text-[#a0a0b0]">Show Grid</span>
+            <span className="text-sm text-text-secondary">Show Grid</span>
           </label>
         </div>
 

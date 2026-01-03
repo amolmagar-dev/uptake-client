@@ -53,8 +53,8 @@ export const Sidebar: React.FC = () => {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00f5d4] to-[#7b2cbf] flex items-center justify-center">
-            <Zap size={22} className="text-[#0a0a0f]" />
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
+            <Zap size={22} className="text-bg-primary" />
           </div>
           {sidebarOpen && (
             <span className="text-xl font-bold text-gradient">Uptake</span>
@@ -90,8 +90,8 @@ export const Sidebar: React.FC = () => {
                   flex items-center gap-3 px-3 py-2.5 rounded-lg
                   transition-all duration-200
                   ${isActive
-                    ? 'bg-gradient-to-r from-[#00f5d4]/10 to-[#7b2cbf]/10 text-[#00f5d4] border border-[#00f5d4]/20'
-                    : 'text-[#a0a0b0] hover:text-[#f0f0f5]'
+                    ? 'bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 text-accent-primary border border-accent-primary/20'
+                    : 'text-text-secondary hover:text-text-primary'
                   }
                 `}
                 style={isActive => !isActive ? {
@@ -127,7 +127,7 @@ export const Sidebar: React.FC = () => {
           `}
           style={{ backgroundColor: 'var(--color-bg-tertiary)' }}
         >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7b2cbf] to-[#ff6b6b] flex items-center justify-center text-sm font-bold text-white">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent-secondary to-accent-tertiary flex items-center justify-center text-sm font-bold text-white">
             {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
           {sidebarOpen && (

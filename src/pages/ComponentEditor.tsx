@@ -82,7 +82,7 @@ const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = ({
         width: '100%',
         height: typeof height === 'number' ? `${height}px` : height,
         border: 'none',
-        background: '#0d0d15',
+        background: 'var(--color-bg-secondary)',
       }}
       title="Component Preview"
     />
@@ -232,7 +232,7 @@ export const ComponentEditorPage: React.FC = () => {
   return (
     <div className="h-[calc(100vh-7rem)] flex flex-col">
       {/* Page Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-[#0a0a0f] z-10 pb-4 -mx-6 px-6">
+      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center gap-4">
             <Button
@@ -244,10 +244,10 @@ export const ComponentEditorPage: React.FC = () => {
               Back
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-[#f0f0f5]">
+              <h1 className="text-2xl font-bold text-text-primary">
                 {isEditing ? 'Edit Component' : 'Create Custom Component'}
               </h1>
-              <p className="text-[#a0a0b0] mt-1">Build with HTML, CSS & JavaScript</p>
+              <p className="text-text-secondary mt-1">Build with HTML, CSS & JavaScript</p>
             </div>
           </div>
           <Button
@@ -282,9 +282,9 @@ export const ComponentEditorPage: React.FC = () => {
         {/* Main Editor Area */}
         <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
           {/* Code Editor Panel */}
-          <div className="flex flex-col border border-[#2a2a3a] rounded-lg overflow-hidden">
+          <div className="flex flex-col border border-border rounded-lg overflow-hidden">
             {/* Tabs */}
-            <div className="flex bg-[#1a1a25] border-b border-[#2a2a3a]">
+            <div className="flex bg-bg-tertiary border-b border-border">
               {(['html', 'css', 'js'] as const).map((tab) => (
                 <button
                   key={tab}
@@ -292,8 +292,8 @@ export const ComponentEditorPage: React.FC = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
                     activeTab === tab
-                      ? 'bg-[#2a2a3a] text-[#00f5d4] border-b-2 border-[#00f5d4]'
-                      : 'text-[#a0a0b0] hover:text-[#f0f0f5] hover:bg-[#252535]'
+                      ? 'bg-border text-accent-primary border-b-2 border-accent-primary'
+                      : 'text-text-muted hover:text-text-primary hover:bg-bg-elevated'
                   }`}
                 >
                   {tab.toUpperCase()}
@@ -323,16 +323,16 @@ export const ComponentEditorPage: React.FC = () => {
           </div>
 
           {/* Preview Panel */}
-          <div className="flex flex-col border border-[#2a2a3a] rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a25] border-b border-[#2a2a3a]">
-              <span className="text-sm font-medium text-[#a0a0b0]">Live Preview</span>
+          <div className="flex flex-col border border-border rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 bg-bg-tertiary border-b border-border">
+              <span className="text-sm font-medium text-text-muted">Live Preview</span>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
                 <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
               </div>
             </div>
-            <div className="flex-1 bg-[#0d0d15]">
+            <div className="flex-1 bg-bg-secondary">
               <CustomComponentRenderer
                 htmlContent={formData.html_content}
                 cssContent={formData.css_content}
@@ -345,8 +345,8 @@ export const ComponentEditorPage: React.FC = () => {
         </div>
 
         {/* Data Source Section */}
-        <div className="mt-4 p-4 rounded-lg bg-[#1a1a25] border border-[#2a2a3a]">
-          <h4 className="text-sm font-medium text-[#f0f0f5] mb-3 flex items-center gap-2">
+        <div className="mt-4 p-4 rounded-lg bg-bg-tertiary border border-border">
+          <h4 className="text-sm font-medium text-text-primary mb-3 flex items-center gap-2">
             <Layers size={16} />
             Data Source (Optional)
           </h4>
@@ -367,10 +367,10 @@ export const ComponentEditorPage: React.FC = () => {
 
             <div className="col-span-2">
               {selectedDataset ? (
-                <div className="p-3 rounded-lg bg-[#16161f] border border-[#2a2a3a] h-full flex items-center">
+                <div className="p-3 rounded-lg bg-bg-secondary border border-border h-full flex items-center">
                   <div className="text-sm">
-                    <p className="text-[#f0f0f5] font-medium">{selectedDataset.name}</p>
-                    <p className="text-[#a0a0b0] text-xs mt-1">
+                    <p className="text-text-primary font-medium">{selectedDataset.name}</p>
+                    <p className="text-text-muted text-xs mt-1">
                       {selectedDataset.dataset_type === 'physical' 
                         ? `${selectedDataset.table_schema}.${selectedDataset.table_name}`
                         : 'Virtual dataset (SQL query)'
@@ -381,16 +381,16 @@ export const ComponentEditorPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-lg bg-[#16161f] border border-[#2a2a3a] h-full flex items-center">
-                  <p className="text-sm text-[#606070]">
-                    Select a dataset to provide data to your component via <code className="text-[#00f5d4]">window.componentData</code>
+                <div className="p-3 rounded-lg bg-bg-secondary border border-border h-full flex items-center">
+                  <p className="text-sm text-text-muted">
+                    Select a dataset to provide data to your component via <code className="text-accent-primary">window.componentData</code>
                   </p>
                 </div>
               )}
             </div>
           </div>
           {datasets.length === 0 && (
-            <p className="mt-3 text-sm text-yellow-400">
+            <p className="mt-3 text-sm text-accent-warning">
               No datasets available. <a href="/datasets" className="underline">Create a dataset</a> to use data in your component.
             </p>
           )}

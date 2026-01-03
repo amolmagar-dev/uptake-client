@@ -78,11 +78,11 @@ export function DatasetsPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-[var(--bg-primary)] -mx-6 px-6 py-4 -mt-6 border-b border-[var(--border-primary)]">
+      <div className="sticky top-0 z-10 bg-bg-primary -mx-6 px-6 py-4 -mt-6 border-b border-border">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Datasets</h1>
-            <p className="text-[var(--text-tertiary)] mt-1">
+            <h1 className="text-2xl font-bold text-text-primary">Datasets</h1>
+            <p className="text-text-tertiary mt-1">
               Create and manage reusable data sources for your charts
             </p>
           </div>
@@ -99,13 +99,13 @@ export function DatasetsPage() {
       {/* Datasets Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <RefreshCw className="h-8 w-8 animate-spin text-[var(--accent-primary)]" />
+          <RefreshCw className="h-8 w-8 animate-spin text-accent-primary" />
         </div>
       ) : datasets.length === 0 ? (
         <Card className="p-12 text-center">
-          <Database className="h-16 w-16 mx-auto text-[var(--text-tertiary)] mb-4" />
-          <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">No Datasets Yet</h3>
-          <p className="text-[var(--text-tertiary)] mb-6">
+          <Database className="h-16 w-16 mx-auto text-text-tertiary mb-4" />
+          <h3 className="text-xl font-semibold text-text-primary mb-2">No Datasets Yet</h3>
+          <p className="text-text-tertiary mb-6">
             Create your first dataset to start building charts
           </p>
           <Button variant="primary" onClick={() => navigate('/datasets/new')}>
@@ -116,15 +116,15 @@ export function DatasetsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {datasets.map((dataset) => (
-            <Card key={dataset.id} className="p-4 hover:border-[var(--accent-primary)] transition-colors">
+            <Card key={dataset.id} className="p-4 hover:border-accent-primary transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]">
+                  <div className="p-2 rounded-lg bg-accent-primary/10 text-accent-primary">
                     {getSourceIcon(dataset.source_type)}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--text-primary)]">{dataset.name}</h3>
-                    <p className="text-sm text-[var(--text-tertiary)]">
+                    <h3 className="font-semibold text-text-primary">{dataset.name}</h3>
+                    <p className="text-sm text-text-tertiary">
                       {dataset.connection_name || 'External Source'}
                     </p>
                   </div>
@@ -132,8 +132,8 @@ export function DatasetsPage() {
                 <div className="flex items-center gap-1">
                   <span className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 ${
                     dataset.dataset_type === 'physical' 
-                      ? 'bg-green-500/10 text-green-400' 
-                      : 'bg-purple-500/10 text-purple-400'
+                      ? 'bg-status-success/10 text-status-success' 
+                      : 'bg-accent-secondary/10 text-accent-secondary'
                   }`}>
                     {getTypeIcon(dataset.dataset_type)}
                     {dataset.dataset_type}
@@ -142,12 +142,12 @@ export function DatasetsPage() {
               </div>
 
               {dataset.description && (
-                <p className="text-sm text-[var(--text-secondary)] mb-3 line-clamp-2">
+                <p className="text-sm text-text-secondary mb-3 line-clamp-2">
                   {dataset.description}
                 </p>
               )}
 
-              <div className="text-xs text-[var(--text-tertiary)] mb-3 space-y-1">
+              <div className="text-xs text-text-tertiary mb-3 space-y-1">
                 {dataset.dataset_type === 'physical' && dataset.table_name && (
                   <p className="flex items-center gap-1">
                     <Table className="h-3 w-3" />
@@ -159,7 +159,7 @@ export function DatasetsPage() {
                 )}
               </div>
 
-              <div className="flex gap-2 pt-3 border-t border-[var(--border-primary)]">
+              <div className="flex gap-2 pt-3 border-t border-border">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -180,7 +180,7 @@ export function DatasetsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setDeleteDataset(dataset)}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-status-error hover:text-status-error/80"
                   title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -213,20 +213,20 @@ export function DatasetsPage() {
       >
         {previewLoading ? (
           <div className="flex items-center justify-center py-12">
-            <RefreshCw className="h-8 w-8 animate-spin text-[var(--accent-primary)]" />
+            <RefreshCw className="h-8 w-8 animate-spin text-accent-primary" />
           </div>
         ) : previewData ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-between text-sm text-[var(--text-tertiary)]">
+            <div className="flex items-center justify-between text-sm text-text-tertiary">
               <span>{previewData.rowCount} rows</span>
               <span>Execution time: {previewData.executionTime}ms</span>
             </div>
             <div className="overflow-auto max-h-96">
               <table className="w-full text-sm">
-                <thead className="bg-[var(--bg-tertiary)] sticky top-0">
+                <thead className="bg-bg-tertiary sticky top-0">
                   <tr>
                     {previewData.fields?.map((field: any, i: number) => (
-                      <th key={i} className="px-3 py-2 text-left font-medium text-[var(--text-secondary)]">
+                      <th key={i} className="px-3 py-2 text-left font-medium text-text-secondary">
                         {field.name}
                       </th>
                     ))}
@@ -234,9 +234,9 @@ export function DatasetsPage() {
                 </thead>
                 <tbody>
                   {previewData.data?.map((row: any, i: number) => (
-                    <tr key={i} className="border-t border-[var(--border-primary)]">
+                    <tr key={i} className="border-t border-border">
                       {previewData.fields?.map((field: any, j: number) => (
-                        <td key={j} className="px-3 py-2 text-[var(--text-primary)]">
+                        <td key={j} className="px-3 py-2 text-text-primary">
                           {row[field.name]?.toString() ?? 'null'}
                         </td>
                       ))}
@@ -247,7 +247,7 @@ export function DatasetsPage() {
             </div>
           </div>
         ) : (
-          <p className="text-[var(--text-tertiary)] text-center py-8">No data available</p>
+          <p className="text-text-tertiary text-center py-8">No data available</p>
         )}
       </Modal>
     </div>

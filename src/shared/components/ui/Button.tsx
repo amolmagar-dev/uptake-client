@@ -22,35 +22,35 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyles = `
     inline-flex items-center justify-center gap-2
     font-medium rounded-lg transition-all duration-200
-    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0a0f]
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg-primary
     disabled:opacity-50 disabled:cursor-not-allowed
     transform active:scale-[0.98]
   `;
 
   const variants = {
     primary: `
-      bg-gradient-to-r from-[#00f5d4] to-[#7b2cbf]
-      text-[#0a0a0f] font-semibold
-      hover:shadow-[0_0_20px_rgba(0,245,212,0.3)]
-      focus:ring-[#00f5d4]
+      bg-gradient-to-r from-accent-primary to-accent-secondary
+      text-bg-primary font-semibold
+      hover:shadow-[0_0_20px_var(--color-accent-primary)]
+      focus:ring-accent-primary
     `,
     secondary: `
-      bg-[#1e1e2a] border border-[#2a2a3a]
-      text-[#f0f0f5]
-      hover:bg-[#2a2a3a] hover:border-[#3a3a4a]
-      focus:ring-[#7b2cbf]
+      bg-bg-elevated border border-border
+      text-text-primary
+      hover:bg-border hover:border-border-hover
+      focus:ring-accent-secondary
     `,
     ghost: `
       bg-transparent
-      text-[#a0a0b0]
-      hover:bg-[#1e1e2a] hover:text-[#f0f0f5]
-      focus:ring-[#2a2a3a]
+      text-text-secondary
+      hover:bg-bg-elevated hover:text-text-primary
+      focus:ring-border
     `,
     danger: `
-      bg-[#ff4757] bg-opacity-20 border border-[#ff4757]
-      text-[#ff4757]
+      bg-status-error bg-opacity-20 border border-status-error
+      text-status-error
       hover:bg-opacity-30
-      focus:ring-[#ff4757]
+      focus:ring-status-error
     `,
   };
 

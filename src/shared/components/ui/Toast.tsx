@@ -8,13 +8,13 @@ export const ToastContainer: React.FC = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={20} className="text-[#00f5a0]" />;
+        return <CheckCircle size={20} className="text-status-success" />;
       case 'error':
-        return <AlertCircle size={20} className="text-[#ff4757]" />;
+        return <AlertCircle size={20} className="text-status-error" />;
       case 'warning':
-        return <AlertTriangle size={20} className="text-[#ffa502]" />;
+        return <AlertTriangle size={20} className="text-status-warning" />;
       case 'info':
-        return <Info size={20} className="text-[#4cc9f0]" />;
+        return <Info size={20} className="text-accent-info" />;
       default:
         return null;
     }
@@ -23,15 +23,15 @@ export const ToastContainer: React.FC = () => {
   const getBorderColor = (type: string) => {
     switch (type) {
       case 'success':
-        return 'border-l-[#00f5a0]';
+        return 'border-l-status-success';
       case 'error':
-        return 'border-l-[#ff4757]';
+        return 'border-l-status-error';
       case 'warning':
-        return 'border-l-[#ffa502]';
+        return 'border-l-status-warning';
       case 'info':
-        return 'border-l-[#4cc9f0]';
+        return 'border-l-accent-info';
       default:
-        return 'border-l-[#2a2a3a]';
+        return 'border-l-border';
     }
   };
 
@@ -42,17 +42,17 @@ export const ToastContainer: React.FC = () => {
           key={toast.id}
           className={`
             flex items-center gap-3 px-4 py-3
-            bg-[#1e1e2a] border border-[#2a2a3a] rounded-lg
+            bg-bg-elevated border border-border rounded-lg
             border-l-4 ${getBorderColor(toast.type)}
             shadow-lg animate-slide-up
             min-w-[300px] max-w-[400px]
           `}
         >
           {getIcon(toast.type)}
-          <p className="flex-1 text-sm text-[#f0f0f5]">{toast.message}</p>
+          <p className="flex-1 text-sm text-text-primary">{toast.message}</p>
           <button
             onClick={() => removeToast(toast.id)}
-            className="text-[#606070] hover:text-[#a0a0b0] transition-colors"
+            className="text-text-muted hover:text-text-secondary transition-colors"
           >
             <X size={16} />
           </button>
