@@ -47,9 +47,8 @@ export const Button: React.FC<ButtonProps> = ({
       focus:ring-border
     `,
     danger: `
-      bg-status-error bg-opacity-20 border border-status-error
-      text-status-error
-      hover:bg-opacity-30
+      bg-status-error text-white border border-status-error
+      hover:opacity-90
       focus:ring-status-error
     `,
   };
