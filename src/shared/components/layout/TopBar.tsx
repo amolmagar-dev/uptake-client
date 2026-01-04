@@ -115,8 +115,8 @@ export const TopBar: React.FC = () => {
             className="btn btn-ghost gap-2 normal-case font-medium hover:bg-base-300 px-2"
           >
             <div className="avatar placeholder">
-              <div className="w-8 h-8 rounded-full bg-secondary text-secondary-content">
-                <span className="text-xs font-bold">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
+              <div className="w-8 h-8 rounded-full bg-secondary text-secondary-content flex items-center justify-center">
+                <span className="text-xs font-bold leading-none">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
               </div>
             </div>
             <span className="text-sm hidden sm:inline-block">{user?.name || "User"}</span>

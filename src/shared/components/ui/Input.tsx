@@ -73,6 +73,38 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, helperText, cl
   );
 };
 
+interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  description?: string;
+  error?: string;
+}
+
+export const Checkbox: React.FC<CheckboxProps> = ({ label, description, error, className = "", id, ...props }) => {
+  const inputId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <label className={`flex items-start gap-3 cursor-pointer group ${className}`}>
+        <div className="relative flex items-center mt-0.5">
+          <input
+            id={inputId}
+            type="checkbox"
+            className="checkbox checkbox-primary checkbox-sm border-base-300"
+            {...props}
+          />
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-medium text-base-content group-hover:text-primary transition-colors">
+            {label}
+          </span>
+          {description && <p className="text-xs text-base-content/50">{description}</p>}
+        </div>
+      </label>
+      {error && <p className="text-xs text-error mt-1">{error}</p>}
+    </div>
+  );
+};
+
 // Option type for react-select
 export interface SelectOption {
   value: string;

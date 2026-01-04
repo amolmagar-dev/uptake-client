@@ -94,8 +94,8 @@ export const Sidebar: React.FC = () => {
           `}
         >
           <div className="avatar placeholder">
-            <div className="w-9 h-9 rounded-full bg-secondary text-secondary-content">
-              <span className="text-sm font-bold">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
+            <div className="w-9 h-9 rounded-full bg-secondary text-secondary-content flex items-center justify-center">
+              <span className="text-sm font-bold leading-none">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
             </div>
           </div>
           {sidebarOpen && (

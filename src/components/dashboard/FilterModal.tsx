@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Modal } from '../../shared/components/ui/Modal';
 import { Button } from '../../shared/components/ui/Button';
-import { Input, Select } from '../../shared/components/ui/Input';
+import { Input, Select, Checkbox } from '../../shared/components/ui/Input';
 import { datasetsApi, type Dataset } from '../../lib/api';
 import type { DashboardFilter } from './FiltersSidebar';
 
@@ -142,7 +142,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       <div className="flex h-[550px]">
 
         {/* Left Panel - Filter List */}
-        <div className="w-64 border-r border-[#2a2a3a] flex flex-col">
+        <div className="w-64 border-r border-base-300 flex flex-col">
           <div className="flex-1 overflow-y-auto">
             {filters.map((filter) => (
               <div
@@ -153,19 +153,21 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     fetchColumns(filter.datasetId);
                   }
                 }}
-                className={`flex items-center justify-between px-4 py-3 cursor-pointer border-b border-[#2a2a3a] ${
+                className={`flex items-center justify-between px-4 py-3 cursor-pointer border-b border-base-300 ${
                   selectedFilterId === filter.id
-                    ? 'bg-[#1a1a25] border-l-2 border-l-[#00f5d4]'
-                    : 'hover:bg-[#1a1a25]'
+                    ? 'bg-base-200 border-l-2 border-l-primary'
+                    : 'hover:bg-base-200/50 transition-colors'
                 }`}
               >
-                <span className="text-sm text-[#f0f0f5] truncate">{filter.name || 'Untitled'}</span>
+                <span className={`text-sm truncate ${selectedFilterId === filter.id ? 'font-semibold text-primary' : 'text-base-content'}`}>
+                  {filter.name || 'Untitled'}
+                </span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveFilter(filter.id);
                   }}
-                  className="p-1 text-[#606070] hover:text-[#ff4757] transition-colors"
+                  className="p-1 text-base-content/40 hover:text-error transition-colors"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -173,10 +175,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             ))}
           </div>
           
-          <div className="p-3 border-t border-[#2a2a3a] space-y-2">
+          <div className="p-3 border-t border-base-300">
             <button
               onClick={handleAddFilter}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[#00f5d4] hover:bg-[#1a1a25] rounded transition-colors"
+              className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-all border border-dashed border-primary/30 hover:border-primary"
             >
               <Plus size={16} />
               Add Filter
@@ -185,111 +187,98 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         </div>
 
         {/* Right Panel - Filter Settings */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-base-100/30">
           {selectedFilter ? (
-            <div className="p-4 space-y-4">
+            <div className="p-6 space-y-6">
               {/* Filter Type & Name */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Select
-                    label="Filter Type *"
-                    value={selectedFilter.type}
-                    onChange={(value: string | null) => handleFilterChange('type', value || 'value')}
-                    options={FILTER_TYPES}
-                    isClearable={false}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#a0a0b0] mb-1">Filter name *</label>
-                  <Input
-                    value={selectedFilter.name}
-                    onChange={(e) => handleFilterChange('name', e.target.value)}
-                    placeholder="Enter filter name"
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-6">
+                <Select
+                  label="Filter Type *"
+                  value={selectedFilter.type}
+                  onChange={(value: string | null) => handleFilterChange('type', value || 'value')}
+                  options={FILTER_TYPES}
+                  isClearable={false}
+                />
+                <Input
+                  label="Filter name *"
+                  value={selectedFilter.name}
+                  onChange={(e) => handleFilterChange('name', e.target.value)}
+                  placeholder="Enter filter name"
+                  required
+                />
               </div>
 
               {/* Dataset & Column */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Select
-                    label="Dataset *"
-                    value={selectedFilter.datasetId || null}
-                    onChange={(value: string | null) => handleFilterChange('datasetId', value || '')}
-                    options={datasets.map((dataset) => ({
-                      value: dataset.id,
-                      label: dataset.name
-                    }))}
-                    placeholder="Select a dataset"
-                  />
-                </div>
-                <div>
-                  <Select
-                    label="Column *"
-                    value={selectedFilter.column || null}
-                    onChange={(value: string | null) => handleFilterChange('column', value || '')}
-                    options={columns.map((col) => ({
-                      value: col.column_name,
-                      label: `${col.column_name} (${col.data_type})`
-                    }))}
-                    placeholder="Select a column"
-                    isDisabled={!selectedFilter.datasetId}
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-6">
+                <Select
+                  label="Dataset *"
+                  value={selectedFilter.datasetId || null}
+                  onChange={(value: string | null) => handleFilterChange('datasetId', value || '')}
+                  options={datasets.map((dataset) => ({
+                    value: dataset.id,
+                    label: dataset.name
+                  }))}
+                  placeholder="Select a dataset"
+                />
+                <Select
+                  label="Column *"
+                  value={selectedFilter.column || null}
+                  onChange={(value: string | null) => handleFilterChange('column', value || '')}
+                  options={columns.map((col) => ({
+                    value: col.column_name,
+                    label: `${col.column_name} (${col.data_type})`
+                  }))}
+                  placeholder="Select a column"
+                  isDisabled={!selectedFilter.datasetId}
+                />
               </div>
 
 
               {/* Filter Settings */}
-              <div className="border-t border-[#2a2a3a] pt-4 mt-4">
-                <h4 className="text-sm font-medium text-[#f0f0f5] mb-3">Filter Settings</h4>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilter.config.hasDefault || false}
-                      onChange={(e) => handleConfigChange('hasDefault', e.target.checked)}
-                      className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
-                    />
-                    <span className="text-sm text-[#a0a0b0]">Filter has default value</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilter.config.required || false}
-                      onChange={(e) => handleConfigChange('required', e.target.checked)}
-                      className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
-                    />
-                    <span className="text-sm text-[#a0a0b0]">Filter value is required</span>
-                  </label>
+              <div className="pt-4 border-t border-base-300">
+                <h4 className="text-sm font-bold text-base-content mb-4 uppercase tracking-wider opacity-60">Filter Configuration</h4>
+                <div className="grid grid-cols-1 gap-4">
+                  <Checkbox
+                    label="Has default value"
+                    description="Automatically apply a default selection on load"
+                    checked={selectedFilter.config.hasDefault || false}
+                    onChange={(e) => handleConfigChange('hasDefault', e.target.checked)}
+                  />
+                  <Checkbox
+                    label="Selection required"
+                    description="Prevent users from clearing this filter"
+                    checked={selectedFilter.config.required || false}
+                    onChange={(e) => handleConfigChange('required', e.target.checked)}
+                  />
                   {selectedFilter.type === 'value' && (
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedFilter.config.multiSelect || false}
-                        onChange={(e) => handleConfigChange('multiSelect', e.target.checked)}
-                        className="w-4 h-4 rounded border-[#2a2a3a] bg-[#1a1a25] text-[#00f5d4] focus:ring-[#00f5d4]"
-                      />
-                      <span className="text-sm text-[#a0a0b0]">Can select multiple values</span>
-                    </label>
+                    <Checkbox
+                      label="Multiple selection"
+                      description="Allow users to select multiple items"
+                      checked={selectedFilter.config.multiSelect || false}
+                      onChange={(e) => handleConfigChange('multiSelect', e.target.checked)}
+                    />
                   )}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full text-[#606070]">
-              <p>Select a filter or add a new one</p>
+            <div className="flex flex-col items-center justify-center h-full text-base-content/30 gap-3">
+              <div className="p-4 rounded-full bg-base-200">
+                <Plus size={32} />
+              </div>
+              <p className="font-medium">Select a filter or add a new one to begin</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-3 pt-4 border-t border-[#2a2a3a] mt-4">
-        <Button variant="secondary" onClick={onClose}>
+      <div className="flex justify-end gap-3 pt-6 border-t border-base-300 mt-0">
+        <Button variant="ghost" onClick={onClose}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          Save
+        <Button onClick={handleSave} className="min-w-32">
+          Save Changes
         </Button>
       </div>
     </Modal>

@@ -3,8 +3,7 @@ import { Plus, LayoutDashboard, Trash2, Edit, Grid, List, LayoutGrid, Search, Ch
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { Button } from "../shared/components/ui/Button";
-import { Card } from "../shared/components/ui/Card";
-import { Input, Textarea } from "../shared/components/ui/Input";
+import { Input, Textarea, Checkbox } from "../shared/components/ui/Input";
 import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
 import { DraggableChart } from "../components/charts/DraggableChart";
 import { DraggableComponent } from "../components/charts/DraggableComponent";
@@ -477,18 +476,12 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose, dashbo
           rows={3}
         />
 
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={formData.is_public}
-            onChange={(e) => setFormData((prev) => ({ ...prev, is_public: e.target.checked }))}
-            className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
-          />
-          <div>
-            <span className="text-sm text-text-primary">Make this dashboard public</span>
-            <p className="text-xs text-text-muted">Anyone with the link can view this dashboard</p>
-          </div>
-        </label>
+        <Checkbox
+          label="Make this dashboard public"
+          description="Anyone with the link can view this dashboard"
+          checked={formData.is_public}
+          onChange={(e) => setFormData((prev) => ({ ...prev, is_public: e.target.checked }))}
+        />
 
         <div className="flex gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={onClose}>
@@ -1101,12 +1094,9 @@ export const DashboardViewPage: React.FC = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-visible">
+        <div className="flex-1 flex overflow-visible">
           <div
-            className="transition-all duration-200 p-6"
-            style={{
-              width: isEditMode ? "calc(100% - 320px)" : "100%",
-            }}
+            className="transition-all duration-200 p-6 flex-1"
           >
             {dashboard.charts && dashboard.charts.length > 0 ? (
               <div className="dashboard-grid w-full">
@@ -1183,98 +1173,87 @@ export const DashboardViewPage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Right Sidebar Panel - Only in Edit Mode */}
-        {isEditMode && (
-          <div className="fixed right-0 top-16 bottom-0 w-80 bg-base-200 border-l border-base-300 flex flex-col z-40 animate-in slide-in-from-right duration-300">
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between px-4 py-4 border-b border-base-300">
-              <span className="font-bold">Dashboard Editor</span>
-              <button
-                onClick={() => navigate(`/dashboard/${id}`)}
-                className="btn btn-ghost btn-sm btn-square"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Tabs Header */}
-            <div className="tabs tabs-lifted w-full">
-              <button
-                onClick={() => setDrawerTab('charts')}
-                className={`tab flex-1 ${drawerTab === 'charts' ? 'tab-active' : ''}`}
-              >
-                Charts
-              </button>
-              <button
-                onClick={() => setDrawerTab('components')}
-                className={`tab flex-1 ${drawerTab === 'components' ? 'tab-active' : ''}`}
-              >
-                Components
-              </button>
-            </div>
-
-            <div className="flex-1 flex flex-col min-h-0 bg-base-100">
-              {/* Create New Link */}
-              <div className="p-4 border-b border-base-200">
+          {/* Right Sidebar Panel - Only in Edit Mode */}
+          {isEditMode && (
+            <div className="sticky top-20 self-start w-80 h-[calc(100vh-144px)] bg-base-200 border-l border-base-300 flex flex-col z-40 animate-in slide-in-from-right duration-300">
+              {/* Tabs Header */}
+              <div className="tabs tabs-boxed rounded-none bg-base-300/50 p-1">
                 <button
-                  onClick={() => navigate(drawerTab === 'charts' ? '/charts' : '/components')}
-                  className="btn btn-outline btn-primary btn-sm btn-block gap-2"
+                  onClick={() => setDrawerTab('charts')}
+                  className={`tab flex-1 transition-all ${drawerTab === 'charts' ? 'tab-active bg-primary! text-primary-content!' : 'text-base-content/60'}`}
                 >
-                  <Plus size={16} />
-                  New {drawerTab === 'charts' ? 'Chart' : 'Component'}
+                  Charts
+                </button>
+                <button
+                  onClick={() => setDrawerTab('components')}
+                  className={`tab flex-1 transition-all ${drawerTab === 'components' ? 'tab-active bg-primary! text-primary-content!' : 'text-base-content/60'}`}
+                >
+                  Components
                 </button>
               </div>
 
-              {/* Search */}
-              <div className="p-4 bg-base-200/50">
-                <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
-                  <input
-                    type="text"
-                    placeholder={`Search ${drawerTab}...`}
-                    value={drawerSearch}
-                    onChange={(e) => setDrawerSearch(e.target.value)}
-                    className="input input-bordered input-sm w-full pl-9"
-                  />
+              <div className="flex-1 flex flex-col min-h-0 bg-base-100">
+                {/* Create New Link */}
+                <div className="p-4 border-b border-base-200">
+                  <button
+                    onClick={() => navigate(drawerTab === 'charts' ? '/charts' : '/components')}
+                    className="btn btn-outline btn-primary btn-sm btn-block gap-2"
+                  >
+                    <Plus size={16} />
+                    New {drawerTab === 'charts' ? 'Chart' : 'Component'}
+                  </button>
+                </div>
+
+                {/* Search */}
+                <div className="p-4 bg-base-200/50">
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
+                    <input
+                      type="text"
+                      placeholder={`Search ${drawerTab}...`}
+                      value={drawerSearch}
+                      onChange={(e) => setDrawerSearch(e.target.value)}
+                      className="input input-bordered input-sm w-full pl-9"
+                    />
+                  </div>
+                </div>
+
+                {/* Items List */}
+                <div className="flex-1 overflow-y-auto">
+                  <ul className="menu menu-md p-2">
+                    {drawerTab === 'charts' ? (
+                      filteredCharts.length === 0 ? (
+                        <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
+                      ) : (
+                        filteredCharts.map((chart) => (
+                          <li key={chart.id}>
+                            <button onClick={() => handleAddChart(chart.id)} className="flex flex-col items-start gap-0.5">
+                              <span className="font-medium">{chart.name}</span>
+                              <span className="text-[10px] opacity-50 uppercase tracking-tight">{chart.chart_type}</span>
+                            </button>
+                          </li>
+                        ))
+                      )
+                    ) : (
+                      filteredComponents.length === 0 ? (
+                        <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
+                      ) : (
+                        filteredComponents.map((comp) => (
+                          <li key={comp.id}>
+                            <button onClick={() => handleAddComponent(comp.id)}>
+                              <span className="font-medium">{comp.name}</span>
+                            </button>
+                          </li>
+                        ))
+                      )
+                    )}
+                  </ul>
                 </div>
               </div>
-
-              {/* Items List */}
-              <div className="flex-1 overflow-y-auto">
-                <ul className="menu menu-md p-2">
-                  {drawerTab === 'charts' ? (
-                    filteredCharts.length === 0 ? (
-                      <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
-                    ) : (
-                      filteredCharts.map((chart) => (
-                        <li key={chart.id}>
-                          <button onClick={() => handleAddChart(chart.id)} className="flex flex-col items-start gap-0.5">
-                            <span className="font-medium">{chart.name}</span>
-                            <span className="text-[10px] opacity-50 uppercase tracking-tight">{chart.chart_type}</span>
-                          </button>
-                        </li>
-                      ))
-                    )
-                  ) : (
-                    filteredComponents.length === 0 ? (
-                      <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
-                    ) : (
-                      filteredComponents.map((comp) => (
-                        <li key={comp.id}>
-                          <button onClick={() => handleAddComponent(comp.id)}>
-                            <span className="font-medium">{comp.name}</span>
-                          </button>
-                        </li>
-                      ))
-                    )
-                  )}
-                </ul>
-              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Chart Dimensions Settings Modal */}
