@@ -68,7 +68,7 @@ export const dashboardsApi = {
   updateChart: (dashboardId: string, chartId: string, data: Partial<DashboardChartInput>) =>
     api.put(`/dashboards/${dashboardId}/charts/${chartId}`, data),
   removeChart: (dashboardId: string, chartId: string) => api.delete(`/dashboards/${dashboardId}/charts/${chartId}`),
-  getData: (id: string) => api.get(`/dashboards/${id}/data`),
+  getData: (id: string, filters?: Record<string, any>) => api.get(`/dashboards/${id}/data`, { params: { filters: filters ? JSON.stringify(filters) : undefined } }),
 };
 
 // AI Chat API
@@ -94,7 +94,7 @@ export const datasetsApi = {
   create: (data: DatasetInput) => api.post("/datasets", data),
   update: (id: string, data: Partial<DatasetInput>) => api.put(`/datasets/${id}`, data),
   delete: (id: string) => api.delete(`/datasets/${id}`),
-  preview: (id: string) => api.get(`/datasets/${id}/preview`),
+  preview: (id: string, filters?: Record<string, any>) => api.get(`/datasets/${id}/preview`, { params: { filters: filters ? JSON.stringify(filters) : undefined } }),
   getColumns: (id: string) => api.get(`/datasets/${id}/columns`),
   refreshColumns: (id: string) => api.post(`/datasets/${id}/refresh-columns`),
 };

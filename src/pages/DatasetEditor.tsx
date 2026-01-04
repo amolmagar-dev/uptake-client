@@ -446,6 +446,22 @@ export function DatasetEditorPage() {
             {sourceType === 'sql' && datasetType === 'virtual' && connectionId && (
               <Card className="p-6">
                 <h2 className="text-lg font-semibold text-text-primary mb-4">SQL Query</h2>
+                
+                <div className="mb-4 p-3 bg-accent-primary/10 border border-accent-primary/20 rounded-lg">
+                  <p className="text-sm font-medium text-text-secondary mb-2">
+                    💡 Dynamic Query Templates
+                  </p>
+                  <p className="text-xs text-text-tertiary mb-2">
+                    Use global filters in your query with Nunjucks syntax.
+                  </p>
+                  <div className="text-xs text-text-tertiary space-y-1 font-mono bg-bg-primary/50 p-2 rounded border border-border">
+                    <p><span className="text-accent-primary">Variable:</span> <code>{'{{ filters.column_name }}'}</code></p>
+                    <p><span className="text-accent-primary">Conditional:</span> <code>{'{% if filters.status %}AND status = ...{% endif %}'}</code></p>
+                    <p><span className="text-accent-primary">Safe String:</span> <code>{'{{ filters.name | safe_string }}'}</code></p>
+                    <p><span className="text-accent-primary">Safe List:</span> <code>{'IN ({{ filters.categories | safe_list }})'}</code></p>
+                    <p><span className="text-accent-primary">Safe Date:</span> <code>{'{{ filters.date | safe_date }}'}</code></p>
+                  </div>
+                </div>
                 <Textarea
                   value={sqlQuery}
                   onChange={(e) => setSqlQuery(e.target.value)}

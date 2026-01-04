@@ -773,10 +773,38 @@ export const DashboardViewPage: React.FC = () => {
     });
   }, [chartData, dashboardFilters, filterValues, filtersApplied]);
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = async (filters: Record<string, any> = {}) => {
     if (!id) return;
     try {
-      const [dashboardRes, dataRes] = await Promise.all([dashboardsApi.getOne(id), dashboardsApi.getData(id)]);
+      // Build filter context - map filter ID to value, but backend expects column to value?
+      // The plan said: "filterContext[filter.column] = filterValues[filter.id]"
+      
+      // We need to map filterValues (by ID) to actual filter columns if we want cleaner usage in SQL
+      // But we can also just pass the map we have. 
+      // Let's pass the raw filterValues map (by ID) AND a mapped version if we have dashboard filters loaded?
+      // Actually, let's look at how filterValues is structured: { [filterId]: value }
+      
+      // Best to resolve columns here if possible, but dashboard might not be loaded yet on first run.
+      // However, for handleApplyFilters, dashboard IS loaded.
+      
+      let resolvedFilters = filters;
+      
+      // If we have dashboard definitions, map id -> column for easier SQL usage
+      if (dashboardFilters.length > 0) {
+        resolvedFilters = {};
+        dashboardFilters.forEach(f => {
+          if (filters[f.id] !== undefined) {
+             resolvedFilters[f.column] = filters[f.id];
+             // Also keep ID-based mapping for safety/flexibility?
+             resolvedFilters[f.id] = filters[f.id];
+          }
+        });
+      }
+
+      const [dashboardRes, dataRes] = await Promise.all([
+        dashboardsApi.getOne(id), 
+        dashboardsApi.getData(id, resolvedFilters)
+      ]);
       setDashboard(dashboardRes.data.dashboard);
       setChartData(dataRes.data.chartData);
 
@@ -1026,6 +1054,7 @@ export const DashboardViewPage: React.FC = () => {
   const handleApplyFilters = () => {
     setFiltersApplied(true);
     addToast("success", "Filters applied");
+    fetchDashboard(filterValues);
   };
 
   const handleClearFilters = () => {
