@@ -285,9 +285,11 @@ export const presets: Theme[] = [
 
 interface ThemeState {
   currentThemeId: string;
+  preferredFont: string;
   customTheme: Theme | null;
   activeTheme: Theme;
   setTheme: (id: string) => void;
+  setFont: (font: string) => void;
   updateCustomTheme: (partial: Partial<Theme>) => void;
   resetCustomTheme: () => void;
   saveCustomTheme: () => void;
@@ -298,6 +300,30 @@ const getInitialThemeId = () => {
     return localStorage.getItem("theme_id") || "cyberpunk";
   } catch {
     return "cyberpunk";
+  }
+};
+
+const getInitialFont = () => {
+  try {
+    return localStorage.getItem("theme_font") || "system";
+  } catch {
+    return "system";
+  }
+};
+
+const getFontFamily = (fontId: string) => {
+  switch (fontId) {
+    case "outfit":
+      return "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif";
+    case "inter":
+      return "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+    case "serif":
+      return "Georgia, Cambria, 'Times New Roman', Times, serif";
+    case "mono":
+      return "'JetBrains Mono', 'Fira Code', monospace";
+    case "system":
+    default:
+      return "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
   }
 };
 
@@ -312,6 +338,7 @@ const getInitialCustomTheme = () => {
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
   currentThemeId: getInitialThemeId(),
+  preferredFont: getInitialFont(),
   customTheme: getInitialCustomTheme(),
   activeTheme: defaultTheme, // Will be updated in effects or init
 
@@ -320,9 +347,28 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
                  (id === "custom" ? get().customTheme : null) || 
                  defaultTheme;
     
-    set({ currentThemeId: id, activeTheme: theme });
-    applyTheme(theme);
+    // Apply preferred font
+    const font = get().preferredFont;
+    const themeWithFont = {
+      ...theme,
+      typography: {
+        ...theme.typography,
+        fontFamily: getFontFamily(font),
+      }
+    };
+    
+    set({ currentThemeId: id, activeTheme: themeWithFont });
+    applyTheme(themeWithFont);
     localStorage.setItem("theme_id", id);
+  },
+
+  setFont: (fontId) => {
+    set({ preferredFont: fontId });
+    localStorage.setItem("theme_font", fontId);
+    
+    // Re-apply current theme with new font
+    const { currentThemeId, setTheme } = get();
+    setTheme(currentThemeId);
   },
 
   updateCustomTheme: (partial) => {
