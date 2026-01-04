@@ -206,19 +206,19 @@ export function DatasetsPage() {
           setPreviewData(null);
         }}
         title={`Preview: ${previewDataset?.name}`}
-        size="lg"
+        size="full"
       >
         {previewLoading ? (
           <div className="flex items-center justify-center py-12">
             <RefreshCw className="h-8 w-8 animate-spin text-accent-primary" />
           </div>
         ) : previewData ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-sm text-text-tertiary">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between text-sm text-text-tertiary mb-4">
               <span>{previewData.rowCount} rows</span>
               <span>Execution time: {previewData.executionTime}ms</span>
             </div>
-            <div className="overflow-auto max-h-96">
+            <div className="overflow-auto flex-1">
               <table className="w-full text-sm">
                 <thead className="bg-bg-tertiary sticky top-0">
                   <tr>

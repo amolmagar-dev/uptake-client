@@ -200,16 +200,6 @@ const APISettings: React.FC = () => {
               <div className="text-xs">Set VITE_API_URL env var before building.</div>
             </div>
           </div>
-
-          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-            <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
-              <span>🚀</span> Decoupled Architecture
-            </h3>
-            <p className="text-sm opacity-70">
-              This frontend can connect to any Uptake backend server. Simply point it to your backend URL and you're
-              good to go!
-            </p>
-          </div>
         </div>
       </div>
     </div>

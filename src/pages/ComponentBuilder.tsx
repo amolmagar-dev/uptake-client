@@ -193,7 +193,7 @@ export const ComponentBuilderPage: React.FC = () => {
           setPreviewData(null);
         }}
         title={previewComponent?.name || "Component Preview"}
-        size="xl"
+        size="full"
       >
         {previewLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -205,7 +205,7 @@ export const ComponentBuilderPage: React.FC = () => {
             cssContent={previewComponent.css_content}
             jsContent={previewComponent.js_content}
             data={previewData}
-            height={400}
+            height="100%"
           />
         ) : (
           <p className="text-center text-text-muted py-12">No component to preview</p>

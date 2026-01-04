@@ -233,7 +233,7 @@ export const ChartsPage: React.FC = () => {
           setPreviewData(null);
         }}
         title={previewChart?.name || "Chart Preview"}
-        size="xl"
+        size="full"
       >
         {previewLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -244,7 +244,7 @@ export const ChartsPage: React.FC = () => {
             type={previewChart?.chart_type as any}
             data={previewData}
             config={previewChart?.config || {}}
-            height={400}
+            height={600}
           />
         ) : (
           <p className="text-center text-text-muted py-12">No data available</p>

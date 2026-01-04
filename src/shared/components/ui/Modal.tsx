@@ -46,17 +46,29 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     md: "max-w-lg",
     lg: "max-w-2xl",
     xl: "max-w-4xl",
-    full: "max-w-[95vw] max-h-[95vh]",
+    full: "",
   };
+
+  const isFullscreen = size === "full";
+
+  const fullscreenStyles = isFullscreen ? {
+    width: '100vw',
+    height: '100vh',
+    maxWidth: '100vw',
+    maxHeight: '100vh',
+    borderRadius: 0,
+  } : {};
 
   return (
     <dialog className="modal modal-open">
       <div
         className={`
           modal-box relative w-full ${sizes[size]} p-0
-          bg-base-100 border border-base-300 rounded-xl shadow-2xl
-          max-h-[90vh] flex flex-col
+          bg-base-100 border border-base-300 shadow-2xl
+          flex flex-col
+          ${!isFullscreen ? "rounded-xl max-h-[90vh]" : ""}
         `}
+        style={fullscreenStyles}
       >
         {/* Header */}
         {(title || showClose) && (
@@ -71,7 +83,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         )}
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto flex-1">{children}</div>
+        <div className={`p-5 overflow-y-auto flex-1 ${isFullscreen ? "h-full" : ""}`}>{children}</div>
       </div>
 
       {/* Backdrop */}
