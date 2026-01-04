@@ -21,4 +21,5 @@ export type {
   DatasetInput,
   Dataset,
   ChatMessage,
+  AIContext,
 } from '../shared/types';

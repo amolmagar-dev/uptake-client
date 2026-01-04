@@ -16,8 +16,9 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { aiApi, type ChatMessage } from "../lib/api";
+import { aiApi, type ChatMessage, type AIContext } from "../lib/api";
 import { Card } from "../shared/components/ui/Card";
+import { ContextSelector, type SelectedContext } from "../components/ai/ContextSelector";
 
 interface EnhancedChatMessage extends ChatMessage {
   timestamp: string;
@@ -37,6 +38,8 @@ export const AIWorkspacePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCommands, setShowCommands] = useState(false);
+  const [selectedContexts, setSelectedContexts] = useState<SelectedContext[]>([]);
+  const [showContextSelector, setShowContextSelector] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const promptChips = [
@@ -103,7 +106,19 @@ export const AIWorkspacePage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await aiApi.chat(nextMessages.map(({ role, content }) => ({ role, content })));
+      // Map selected contexts to AIContext format
+      const aiContexts: AIContext[] = selectedContexts.map((ctx) => ({
+        type: ctx.type,
+        id: ctx.id,
+        name: ctx.name,
+        metadata: ctx.metadata,
+        customText: ctx.customText,
+      }));
+
+      const response = await aiApi.chat(
+        nextMessages.map(({ role, content }) => ({ role, content })),
+        aiContexts.length > 0 ? aiContexts : undefined
+      );
       const reply = response.data?.message || "No response received.";
       setMessages([
         ...nextMessages,
@@ -306,8 +321,15 @@ export const AIWorkspacePage: React.FC = () => {
             <div ref={messagesEndRef} className="h-4" />
           </div>
 
-          {/* Sticky bottom input + command popover (keeps input fixed, messages scroll) */}
+          {/* Sticky bottom: Context Selector + Input + Command Popover */}
           <div className="sticky bottom-0 z-30 bg-base-100/80 backdrop-blur-md border-t border-base-300 shrink-0">
+            {/* Context Selector */}
+            <ContextSelector
+              selectedContexts={selectedContexts}
+              onContextChange={setSelectedContexts}
+              isExpanded={showContextSelector}
+              onToggleExpand={() => setShowContextSelector(!showContextSelector)}
+            />
             {/* Command Suggestion Popover */}
             {showCommands && (
               <div className="absolute left-0 right-0 bottom-full px-4 md:px-8 pb-3 z-40">

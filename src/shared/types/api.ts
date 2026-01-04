@@ -135,3 +135,11 @@ export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
 }
+
+export interface AIContext {
+  type: "connection" | "dataset" | "chart" | "dashboard" | "custom";
+  id?: string;
+  name: string;
+  metadata?: Record<string, any>;
+  customText?: string;
+}

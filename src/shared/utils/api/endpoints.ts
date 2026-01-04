@@ -8,6 +8,7 @@ import type {
   CustomComponentInput,
   DatasetInput,
   ChatMessage,
+  AIContext,
 } from "../../types";
 
 // Auth API
@@ -71,7 +72,8 @@ export const dashboardsApi = {
 
 // AI Chat API
 export const aiApi = {
-  chat: (messages: ChatMessage[]) => api.post("/ai/chat", { messages }),
+  chat: (messages: ChatMessage[], contexts?: AIContext[]) =>
+    api.post("/ai/chat", { messages, contexts }),
 };
 
 // Custom Components API
