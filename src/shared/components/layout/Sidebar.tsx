@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  Sparkles,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import { useAppStore } from "../../../store/appStore";
@@ -23,6 +24,7 @@ const navItems = [
   { path: "/sql-editor", icon: FileCode, label: "SQL Editor" },
   { path: "/charts", icon: BarChart3, label: "Charts" },
   { path: "/components", icon: Code2, label: "Components" },
+  { path: "/ai-workspace", icon: Sparkles, label: "AI Workspace", badge: "Alpha" },
   { path: "/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -78,7 +80,12 @@ export const Sidebar: React.FC = () => {
                 `}
               >
                 <item.icon size={20} />
-                {sidebarOpen && <span className="font-medium">{item.label}</span>}
+                {sidebarOpen && (
+                  <span className="font-medium flex items-center gap-2">
+                    {item.label}
+                    {item.badge && <span className="badge badge-primary badge-xs">{item.badge}</span>}
+                  </span>
+                )}
               </NavLink>
             </li>
           ))}

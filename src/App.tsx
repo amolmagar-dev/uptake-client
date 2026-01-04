@@ -11,6 +11,7 @@ import { DatasetEditorPage } from "./pages/DatasetEditor";
 import { ComponentBuilderPage } from "./pages/ComponentBuilder";
 import { ComponentEditorPage } from "./pages/ComponentEditor";
 import { SettingsPage } from "./pages/Settings";
+import { AIWorkspacePage } from "./pages/AIWorkspace";
 import { useAuthStore } from "./store/authStore";
 import { useThemeStore } from "./store/themeStore";
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/components" element={<ComponentBuilderPage />} />
         <Route path="/components/new" element={<ComponentEditorPage />} />
         <Route path="/components/:id/edit" element={<ComponentEditorPage />} />
+        <Route path="/ai-workspace" element={<AIWorkspacePage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 

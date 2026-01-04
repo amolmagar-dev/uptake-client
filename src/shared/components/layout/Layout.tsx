@@ -2,7 +2,6 @@ import React from "react";
 import { Navigate, Outlet, NavLink } from "react-router-dom";
 import { TopBar } from "./TopBar";
 import { ToastContainer } from "../ui/Toast";
-import { ChatWidget } from "../../../components/chat/ChatWidget";
 import { CommandPalette } from "../ui/CommandPalette";
 import { useAuthStore } from "../../../store/authStore";
 import {
@@ -14,6 +13,7 @@ import {
   Code2,
   Settings,
   Zap,
+  Sparkles,
 } from "lucide-react";
 
 const navItems = [
@@ -23,6 +23,7 @@ const navItems = [
   { path: "/sql-editor", icon: FileCode, label: "SQL Editor" },
   { path: "/charts", icon: BarChart3, label: "Charts" },
   { path: "/components", icon: Code2, label: "Components" },
+  { path: "/ai-workspace", icon: Sparkles, label: "AI Workspace", badge: "Alpha" },
   { path: "/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -49,7 +50,6 @@ export const Layout: React.FC = () => {
         </main>
 
         <ToastContainer />
-        <ChatWidget />
         <CommandPalette />
       </div>
 
@@ -75,7 +75,12 @@ export const Layout: React.FC = () => {
                   `}
                 >
                   <item.icon size={20} />
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2">
+                    {item.label}
+                    {item.badge && (
+                      <span className="badge badge-primary badge-xs">{item.badge}</span>
+                    )}
+                  </span>
                 </NavLink>
               </li>
             ))}

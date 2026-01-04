@@ -31,7 +31,7 @@ export const Card: React.FC<CardProps> = ({
         ${className}
       `}
     >
-      <div className={`${paddingStyles[padding]}`}>{children}</div>
+      <div className={`${paddingStyles[padding]} flex flex-col flex-1 min-h-0`}>{children}</div>
     </div>
   );
 };

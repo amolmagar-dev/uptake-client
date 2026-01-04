@@ -13,6 +13,7 @@ import {
   Menu,
   Search,
   Zap,
+  Sparkles,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 
@@ -23,6 +24,7 @@ const navItems = [
   { path: "/sql-editor", icon: FileCode, label: "SQL Editor" },
   { path: "/charts", icon: BarChart3, label: "Charts" },
   { path: "/components", icon: Code2, label: "Components" },
+  { path: "/ai-workspace", icon: Sparkles, label: "AI Workspace", badge: "Alpha" },
   { path: "/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -50,7 +52,12 @@ export const TopBar: React.FC = () => {
       pageTitle =
         pathnames[pathnames.length - 2]?.charAt(0).toUpperCase() + pathnames[pathnames.length - 2]?.slice(1) || "View";
     } else {
-      pageTitle = lastPath.charAt(0).toUpperCase() + lastPath.slice(1);
+      // Handle special cases like ai-workspace
+      if (lastPath === "ai-workspace") {
+        pageTitle = "AI Workspace";
+      } else {
+        pageTitle = lastPath.charAt(0).toUpperCase() + lastPath.slice(1);
+      }
     }
   }
 
@@ -93,7 +100,10 @@ export const TopBar: React.FC = () => {
               `}
             >
               <item.icon size={16} />
-              <span>{item.label}</span>
+              <span className="flex items-center gap-1.5">
+                {item.label}
+                {item.badge && <span className="badge badge-primary badge-xs">{item.badge}</span>}
+              </span>
             </NavLink>
           ))}
         </div>
