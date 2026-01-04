@@ -34,11 +34,11 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen flex">
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#7b2cbf] via-[#0a0a0f] to-[#00f5d4] opacity-50" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#7b2cbf] via-[#0a0a0f] to-[#00f5d4] opacity-50" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAzMHYySDI0di0yaDEyek0zNiAyNnYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00f5d4] to-[#7b2cbf] flex items-center justify-center shadow-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#00f5d4] to-[#7b2cbf] flex items-center justify-center shadow-2xl">
               <Zap size={36} className="text-[#0a0a0f]" />
             </div>
             <h1 className="text-4xl font-bold">Uptake</h1>
@@ -69,10 +69,10 @@ export const LoginPage: React.FC = () => {
       <div className="flex-1 flex items-center justify-center p-8 bg-bg-primary">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
               <Zap size={26} className="text-bg-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent-primary to-accent-secondary">Uptake</h1>
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-accent-primary to-accent-secondary">Uptake</h1>
           </div>
 
           <div className="text-center mb-8">
@@ -181,10 +181,10 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center p-8 bg-bg-primary">
       <div className="w-full max-w-md">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-linear-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
             <Zap size={26} className="text-bg-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent-primary to-accent-secondary">Uptake</h1>
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-accent-primary to-accent-secondary">Uptake</h1>
         </div>
 
         <div className="text-center mb-8">

@@ -77,7 +77,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
           <Select
             options={connectionOptions}
             value={selectedConnectionId}
-            onChange={(e) => setSelectedConnectionId(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedConnectionId(e.target.value)}
           />
         </div>
         

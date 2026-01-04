@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Code2, Trash2, Edit, Eye } from 'lucide-react';
-import { Button } from '../shared/components/ui/Button';
-import { Card } from '../shared/components/ui/Card';
-import { Modal, ConfirmModal } from '../shared/components/ui/Modal';
-import { customComponentsApi, connectionsApi } from '../lib/api';
-import { useAppStore } from '../store/appStore';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Code2, Trash2, Edit, Eye } from "lucide-react";
+import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
+import { customComponentsApi, connectionsApi } from "../lib/api";
+import { useAppStore } from "../store/appStore";
 
 interface CustomComponent {
   id: string;
@@ -35,7 +33,7 @@ export const ComponentBuilderPage: React.FC = () => {
       const response = await customComponentsApi.getAll();
       setComponents(response.data.components);
     } catch (error) {
-      addToast('error', 'Failed to fetch components');
+      addToast("error", "Failed to fetch components");
     } finally {
       setIsLoading(false);
     }
@@ -46,7 +44,7 @@ export const ComponentBuilderPage: React.FC = () => {
       const response = await connectionsApi.getAll();
       setConnections(response.data.connections);
     } catch (error) {
-      console.error('Failed to fetch connections');
+      console.error("Failed to fetch connections");
     }
   };
 
@@ -58,10 +56,10 @@ export const ComponentBuilderPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await customComponentsApi.delete(id);
-      addToast('success', 'Component deleted');
+      addToast("success", "Component deleted");
       fetchComponents();
     } catch (error) {
-      addToast('error', 'Failed to delete component');
+      addToast("error", "Failed to delete component");
     } finally {
       setDeleteConfirm(null);
     }
@@ -74,7 +72,7 @@ export const ComponentBuilderPage: React.FC = () => {
       const response = await customComponentsApi.getData(component.id);
       setPreviewData(response.data.data);
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to load component data');
+      addToast("error", error.response?.data?.error || "Failed to load component data");
       setPreviewData(null);
     } finally {
       setPreviewLoading(false);
@@ -97,10 +95,7 @@ export const ComponentBuilderPage: React.FC = () => {
           <h1 className="text-3xl font-bold">Component Builder</h1>
           <p className="text-base-content/60 mt-1 text-sm">Create custom HTML/CSS/JS components</p>
         </div>
-        <button
-          className="btn btn-primary btn-sm md:btn-md"
-          onClick={() => navigate('/components/new')}
-        >
+        <button className="btn btn-primary btn-sm md:btn-md" onClick={() => navigate("/components/new")}>
           <Plus size={18} />
           <span>Create Component</span>
         </button>
@@ -114,7 +109,7 @@ export const ComponentBuilderPage: React.FC = () => {
             <p className="text-base-content/60 max-w-sm mb-6">
               Build your own custom visualizations and UI elements using standard web technologies.
             </p>
-            <button className="btn btn-primary" onClick={() => navigate('/components/new')}>
+            <button className="btn btn-primary" onClick={() => navigate("/components/new")}>
               <Plus size={18} />
               Create Component
             </button>
@@ -123,7 +118,10 @@ export const ComponentBuilderPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {components.map((component) => (
-            <div key={component.id} className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm">
+            <div
+              key={component.id}
+              className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm"
+            >
               <div className="card-body p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -134,11 +132,11 @@ export const ComponentBuilderPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {component.description && (
                   <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">{component.description}</p>
                 )}
-                
+
                 {component.connection_name && (
                   <div className="flex items-center gap-1 text-xs opacity-50 mb-6">
                     <Code2 size={14} />
@@ -194,7 +192,7 @@ export const ComponentBuilderPage: React.FC = () => {
           setPreviewComponent(null);
           setPreviewData(null);
         }}
-        title={previewComponent?.name || 'Component Preview'}
+        title={previewComponent?.name || "Component Preview"}
         size="xl"
       >
         {previewLoading ? (
@@ -238,8 +236,8 @@ export const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = (
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    const dataScript = data ? `window.componentData = ${JSON.stringify(data)};` : 'window.componentData = null;';
-    
+    const dataScript = data ? `window.componentData = ${JSON.stringify(data)};` : "window.componentData = null;";
+
     const iframeContent = `
       <!DOCTYPE html>
       <html>
@@ -257,7 +255,7 @@ export const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = (
               color: #f0f0f5;
               padding: 16px;
             }
-            ${cssContent || ''}
+            ${cssContent || ""}
           </style>
         </head>
         <body>
@@ -265,7 +263,7 @@ export const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = (
           <script>
             ${dataScript}
             try {
-              ${jsContent || ''}
+              ${jsContent || ""}
             } catch(e) {
               console.error('Component JS Error:', e);
             }
@@ -274,9 +272,9 @@ export const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = (
       </html>
     `;
 
-    const blob = new Blob([iframeContent], { type: 'text/html' });
+    const blob = new Blob([iframeContent], { type: "text/html" });
     const url = URL.createObjectURL(blob);
-    
+
     iframeRef.current.src = url;
 
     return () => {
@@ -289,10 +287,10 @@ export const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = (
       ref={iframeRef}
       sandbox="allow-scripts"
       style={{
-        width: '100%',
-        height: typeof height === 'number' ? `${height}px` : height,
-        border: 'none',
-        background: 'var(--color-bg-secondary)',
+        width: "100%",
+        height: typeof height === "number" ? `${height}px` : height,
+        border: "none",
+        background: "var(--color-bg-secondary)",
       }}
       title="Component Preview"
     />

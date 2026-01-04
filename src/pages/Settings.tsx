@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { User, Lock, Server, Palette, Moon, Sun } from "lucide-react";
-import { Button } from "../shared/components/ui/Button";
-import { Card } from "../shared/components/ui/Card";
+import { User, Lock, Server, Palette } from "lucide-react";
 import { Input } from "../shared/components/ui/Input";
 import { useAuthStore } from "../store/authStore";
 import { useAppStore } from "../store/appStore";
@@ -9,8 +7,6 @@ import { authApi } from "../lib/api";
 import { ThemeSettings } from "./Settings/ThemeSettings";
 
 export const SettingsPage: React.FC = () => {
-  const { user } = useAuthStore();
-  const { addToast } = useAppStore();
   const [activeTab, setActiveTab] = useState("profile");
 
   const tabs = [
@@ -40,11 +36,7 @@ export const SettingsPage: React.FC = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`
                         flex items-center gap-3 px-4 py-3 rounded-xl
-                        ${
-                          activeTab === tab.id
-                            ? "active bg-primary text-primary-content"
-                            : "hover:bg-base-200"
-                        }
+                        ${activeTab === tab.id ? "active bg-primary text-primary-content" : "hover:bg-base-200"}
                       `}
                     >
                       <tab.icon size={18} />
@@ -100,7 +92,7 @@ const ProfileSettings: React.FC = () => {
           <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
           <Input label="Role" value={user?.role || ""} disabled />
           <div className="pt-4">
-            <button className={`btn btn-primary ${isLoading ? 'loading' : ''}`} type="submit" disabled={isLoading}>
+            <button className={`btn btn-primary ${isLoading ? "loading" : ""}`} type="submit" disabled={isLoading}>
               Save Changes
             </button>
           </div>
@@ -174,7 +166,7 @@ const SecuritySettings: React.FC = () => {
             required
           />
           <div className="pt-4">
-            <button className={`btn btn-primary ${isLoading ? 'loading' : ''}`} type="submit" disabled={isLoading}>
+            <button className={`btn btn-primary ${isLoading ? "loading" : ""}`} type="submit" disabled={isLoading}>
               Update Password
             </button>
           </div>
@@ -195,7 +187,9 @@ const APISettings: React.FC = () => {
           <div>
             <label className="block text-sm font-medium opacity-60 mb-2">Current API URL</label>
             <div className="mockup-code bg-base-300 text-base-content before:hidden">
-              <pre><code>{currentApiUrl}</code></pre>
+              <pre>
+                <code>{currentApiUrl}</code>
+              </pre>
             </div>
           </div>
 
@@ -212,8 +206,8 @@ const APISettings: React.FC = () => {
               <span>🚀</span> Decoupled Architecture
             </h3>
             <p className="text-sm opacity-70">
-              This frontend can connect to any Uptake backend server. Simply point it to your backend URL and you're good
-              to go!
+              This frontend can connect to any Uptake backend server. Simply point it to your backend URL and you're
+              good to go!
             </p>
           </div>
         </div>

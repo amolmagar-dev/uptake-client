@@ -99,15 +99,11 @@ export const ChatWidget: React.FC = () => {
               <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[85%] px-3 py-2 rounded-lg ${
-                    msg.role === "user"
-                      ? "bg-gradient-to-r from-[#00f5d4]/20 to-[#7b2cbf]/20"
-                      : "bg-[var(--color-bg-tertiary)]"
+                    msg.role === "user" ? "bg-linear-to-r from-[#00f5d4]/20 to-[#7b2cbf]/20" : "bg-bg-tertiary"
                   }`}
                   style={{ border: "1px solid var(--color-border)" }}
                 >
-                  <p className="text-xs mb-1 text-[var(--color-text-muted)]">
-                    {msg.role === "user" ? "You" : "Assistant"}
-                  </p>
+                  <p className="text-xs mb-1 text-text-muted">{msg.role === "user" ? "You" : "Assistant"}</p>
                   <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
@@ -115,11 +111,11 @@ export const ChatWidget: React.FC = () => {
             {loading && (
               <div className="flex justify-start">
                 <div
-                  className="max-w-[85%] px-3 py-2 rounded-lg bg-[var(--color-bg-tertiary)]"
+                  className="max-w-[85%] px-3 py-2 rounded-lg bg-bg-tertiary"
                   style={{ border: "1px solid var(--color-border)" }}
                 >
-                  <p className="text-xs mb-1 text-[var(--color-text-muted)]">Assistant</p>
-                  <span className="text-[var(--color-text-muted)] italic">Thinking...</span>
+                  <p className="text-xs mb-1 text-text-muted">Assistant</p>
+                  <span className="text-text-muted italic">Thinking...</span>
                 </div>
               </div>
             )}

@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, BarChart3, Trash2, Edit, Eye, Play, Layers } from 'lucide-react';
-import { Button } from '../shared/components/ui/Button';
-import { Card } from '../shared/components/ui/Card';
-import { Input, Select, Textarea } from '../shared/components/ui/Input';
-import { Modal, ConfirmModal } from '../shared/components/ui/Modal';
-import { ChartRenderer } from '../components/charts/ChartRenderer';
-import { chartsApi, datasetsApi, type Dataset } from '../lib/api';
-import { useAppStore } from '../store/appStore';
+import React, { useState, useEffect } from "react";
+import { Plus, BarChart3, Trash2, Edit, Eye, Layers } from "lucide-react";
+import { Button } from "../shared/components/ui/Button";
+import { Input, Select } from "../shared/components/ui/Input";
+import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
+import { ChartRenderer } from "../components/charts/ChartRenderer";
+import { chartsApi, datasetsApi, type Dataset } from "../lib/api";
+import { useAppStore } from "../store/appStore";
 
 interface Chart {
   id: string;
@@ -39,7 +38,7 @@ export const ChartsPage: React.FC = () => {
       const response = await chartsApi.getAll();
       setCharts(response.data.charts);
     } catch (error) {
-      addToast('error', 'Failed to fetch charts');
+      addToast("error", "Failed to fetch charts");
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +49,7 @@ export const ChartsPage: React.FC = () => {
       const response = await datasetsApi.getAll();
       setDatasets(response.data.datasets);
     } catch (error) {
-      console.error('Failed to fetch datasets');
+      console.error("Failed to fetch datasets");
     }
   };
 
@@ -62,10 +61,10 @@ export const ChartsPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await chartsApi.delete(id);
-      addToast('success', 'Chart deleted');
+      addToast("success", "Chart deleted");
       fetchCharts();
     } catch (error) {
-      addToast('error', 'Failed to delete chart');
+      addToast("error", "Failed to delete chart");
     } finally {
       setDeleteConfirm(null);
     }
@@ -78,7 +77,7 @@ export const ChartsPage: React.FC = () => {
       const response = await chartsApi.getData(chart.id);
       setPreviewData(response.data.data);
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to load chart data');
+      addToast("error", error.response?.data?.error || "Failed to load chart data");
       setPreviewData(null);
     } finally {
       setPreviewLoading(false);
@@ -87,17 +86,17 @@ export const ChartsPage: React.FC = () => {
 
   const getChartIcon = (type: string) => {
     const icons: Record<string, string> = {
-      bar: '📊',
-      line: '📈',
-      pie: '🥧',
-      doughnut: '🍩',
-      area: '📉',
-      scatter: '⚡',
-      table: '📋',
-      kpi: '🔢',
-      gauge: '🎯',
+      bar: "📊",
+      line: "📈",
+      pie: "🥧",
+      doughnut: "🍩",
+      area: "📉",
+      scatter: "⚡",
+      table: "📋",
+      kpi: "🔢",
+      gauge: "🎯",
     };
-    return icons[type] || '📊';
+    return icons[type] || "📊";
   };
 
   if (isLoading) {
@@ -145,7 +144,10 @@ export const ChartsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {charts.map((chart) => (
-            <div key={chart.id} className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm">
+            <div
+              key={chart.id}
+              className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm"
+            >
               <div className="card-body p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -156,14 +158,12 @@ export const ChartsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
-                {chart.description && (
-                  <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">{chart.description}</p>
-                )}
-                
+
+                {chart.description && <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">{chart.description}</p>}
+
                 <div className="flex items-center gap-1 text-xs opacity-50 mb-6">
                   <Layers size={14} />
-                  <span className="truncate">{chart.dataset_name || chart.connection_name || 'No data source'}</span>
+                  <span className="truncate">{chart.dataset_name || chart.connection_name || "No data source"}</span>
                 </div>
 
                 <div className="card-actions justify-end mt-auto pt-4 border-t border-base-200">
@@ -232,7 +232,7 @@ export const ChartsPage: React.FC = () => {
           setPreviewChart(null);
           setPreviewData(null);
         }}
-        title={previewChart?.name || 'Chart Preview'}
+        title={previewChart?.name || "Chart Preview"}
         size="xl"
       >
         {previewLoading ? (
@@ -262,25 +262,19 @@ interface ChartModalProps {
   onSuccess: () => void;
 }
 
-const ChartModal: React.FC<ChartModalProps> = ({
-  isOpen,
-  onClose,
-  chart,
-  datasets,
-  onSuccess,
-}) => {
+const ChartModal: React.FC<ChartModalProps> = ({ isOpen, onClose, chart, datasets, onSuccess }) => {
   const { addToast } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
   const [columns, setColumns] = useState<Array<{ column_name: string; data_type: string }>>([]);
   const [columnsLoading, setColumnsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    chart_type: 'bar',
-    dataset_id: '',
-    labelColumn: '',
-    dataColumns: '',
+    name: "",
+    description: "",
+    chart_type: "bar",
+    dataset_id: "",
+    labelColumn: "",
+    dataColumns: "",
     showLegend: true,
     showGrid: true,
   });
@@ -289,11 +283,11 @@ const ChartModal: React.FC<ChartModalProps> = ({
     if (chart) {
       setFormData({
         name: chart.name,
-        description: chart.description || '',
+        description: chart.description || "",
         chart_type: chart.chart_type,
-        dataset_id: chart.dataset_id || '',
-        labelColumn: chart.config?.labelColumn || '',
-        dataColumns: chart.config?.dataColumns?.join(', ') || '',
+        dataset_id: chart.dataset_id || "",
+        labelColumn: chart.config?.labelColumn || "",
+        dataColumns: chart.config?.dataColumns?.join(", ") || "",
         showLegend: chart.config?.showLegend !== false,
         showGrid: chart.config?.showGrid !== false,
       });
@@ -302,12 +296,12 @@ const ChartModal: React.FC<ChartModalProps> = ({
       }
     } else {
       setFormData({
-        name: '',
-        description: '',
-        chart_type: 'bar',
-        dataset_id: datasets[0]?.id || '',
-        labelColumn: '',
-        dataColumns: '',
+        name: "",
+        description: "",
+        chart_type: "bar",
+        dataset_id: datasets[0]?.id || "",
+        labelColumn: "",
+        dataColumns: "",
         showLegend: true,
         showGrid: true,
       });
@@ -324,7 +318,7 @@ const ChartModal: React.FC<ChartModalProps> = ({
       const response = await datasetsApi.getColumns(datasetId);
       setColumns(response.data.columns || []);
     } catch (error) {
-      console.error('Failed to fetch columns:', error);
+      console.error("Failed to fetch columns:", error);
       setColumns([]);
     } finally {
       setColumnsLoading(false);
@@ -332,15 +326,15 @@ const ChartModal: React.FC<ChartModalProps> = ({
   };
 
   const handleDatasetChange = (datasetId: string) => {
-    setFormData(prev => ({ ...prev, dataset_id: datasetId, labelColumn: '', dataColumns: '' }));
+    setFormData((prev) => ({ ...prev, dataset_id: datasetId, labelColumn: "", dataColumns: "" }));
     fetchColumns(datasetId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.dataset_id) {
-      addToast('error', 'Please select a dataset');
+      addToast("error", "Please select a dataset");
       return;
     }
 
@@ -353,7 +347,7 @@ const ChartModal: React.FC<ChartModalProps> = ({
       dataset_id: formData.dataset_id,
       config: {
         labelColumn: formData.labelColumn || undefined,
-        dataColumns: formData.dataColumns ? formData.dataColumns.split(',').map(s => s.trim()) : undefined,
+        dataColumns: formData.dataColumns ? formData.dataColumns.split(",").map((s) => s.trim()) : undefined,
         showLegend: formData.showLegend,
         showGrid: formData.showGrid,
       },
@@ -362,54 +356,49 @@ const ChartModal: React.FC<ChartModalProps> = ({
     try {
       if (chart) {
         await chartsApi.update(chart.id, chartData as any);
-        addToast('success', 'Chart updated successfully');
+        addToast("success", "Chart updated successfully");
       } else {
         await chartsApi.create(chartData as any);
-        addToast('success', 'Chart created successfully');
+        addToast("success", "Chart created successfully");
       }
       onSuccess();
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to save chart');
+      addToast("error", error.response?.data?.error || "Failed to save chart");
     } finally {
       setIsLoading(false);
     }
   };
 
   const chartTypes = [
-    { value: 'bar', label: '📊 Bar Chart' },
-    { value: 'line', label: '📈 Line Chart' },
-    { value: 'area', label: '📉 Area Chart' },
-    { value: 'pie', label: '🥧 Pie Chart' },
-    { value: 'doughnut', label: '🍩 Doughnut Chart' },
-    { value: 'scatter', label: '⚡ Scatter Plot' },
-    { value: 'table', label: '📋 Data Table' },
-    { value: 'kpi', label: '🔢 KPI Card' },
-    { value: 'gauge', label: '🎯 Gauge Chart' },
+    { value: "bar", label: "📊 Bar Chart" },
+    { value: "line", label: "📈 Line Chart" },
+    { value: "area", label: "📉 Area Chart" },
+    { value: "pie", label: "🥧 Pie Chart" },
+    { value: "doughnut", label: "🍩 Doughnut Chart" },
+    { value: "scatter", label: "⚡ Scatter Plot" },
+    { value: "table", label: "📋 Data Table" },
+    { value: "kpi", label: "🔢 KPI Card" },
+    { value: "gauge", label: "🎯 Gauge Chart" },
   ];
 
-  const selectedDataset = datasets.find(d => d.id === formData.dataset_id);
+  const selectedDataset = datasets.find((d) => d.id === formData.dataset_id);
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={chart ? 'Edit Chart' : 'Create New Chart'}
-      size="xl"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={chart ? "Edit Chart" : "Create New Chart"} size="xl">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Chart Name"
             placeholder="Monthly Sales"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             required
           />
           <Select
             label="Chart Type"
             options={chartTypes}
             value={formData.chart_type}
-            onChange={(val: string | null) => setFormData(prev => ({ ...prev, chart_type: val || 'bar' }))}
+            onChange={(val: string | null) => setFormData((prev) => ({ ...prev, chart_type: val || "bar" }))}
             isClearable={false}
           />
         </div>
@@ -418,23 +407,29 @@ const ChartModal: React.FC<ChartModalProps> = ({
           label="Description (optional)"
           placeholder="A brief description of this chart"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
         />
 
         <Select
           label="Dataset"
           value={formData.dataset_id || null}
-          onChange={(val: string | null) => handleDatasetChange(val || '')}
-          options={datasets.map(d => ({
+          onChange={(val: string | null) => handleDatasetChange(val || "")}
+          options={datasets.map((d) => ({
             value: d.id,
-            label: `${d.name} (${d.dataset_type})`
+            label: `${d.name} (${d.dataset_type})`,
           }))}
           placeholder="Select a dataset..."
         />
 
         {datasets.length === 0 && (
           <div className="p-4 rounded-lg bg-accent-warning/10 border border-accent-warning/20 text-accent-warning text-sm">
-            <p>No datasets available. Please <a href="/datasets" className="underline">create a dataset</a> first.</p>
+            <p>
+              No datasets available. Please{" "}
+              <a href="/datasets" className="underline">
+                create a dataset
+              </a>{" "}
+              first.
+            </p>
           </div>
         )}
 
@@ -442,11 +437,10 @@ const ChartModal: React.FC<ChartModalProps> = ({
           <div className="p-3 rounded-lg bg-bg-tertiary border border-border text-sm">
             <p className="text-text-secondary">
               <span className="font-medium text-text-primary">{selectedDataset.name}</span>
-              {' — '}
-              {selectedDataset.dataset_type === 'physical' 
+              {" — "}
+              {selectedDataset.dataset_type === "physical"
                 ? `${selectedDataset.table_schema}.${selectedDataset.table_name}`
-                : 'Virtual dataset (SQL query)'
-              }
+                : "Virtual dataset (SQL query)"}
             </p>
           </div>
         )}
@@ -454,24 +448,29 @@ const ChartModal: React.FC<ChartModalProps> = ({
         {columns.length > 0 && (
           <div className="p-4 rounded-lg bg-bg-tertiary border border-border">
             <p className="text-sm text-text-secondary mb-3">
-              {columnsLoading ? 'Loading columns...' : `Available columns: ${columns.map(c => c.column_name).join(', ')}`}
+              {columnsLoading
+                ? "Loading columns..."
+                : `Available columns: ${columns.map((c) => c.column_name).join(", ")}`}
             </p>
             <div className="grid grid-cols-2 gap-4">
               <Select
                 label="Label Column"
                 value={formData.labelColumn || null}
-                onChange={(val: string | null) => setFormData(prev => ({ ...prev, labelColumn: val || '' }))}
-                options={columns.map(col => ({
+                onChange={(val: string | null) => setFormData((prev) => ({ ...prev, labelColumn: val || "" }))}
+                options={columns.map((col) => ({
                   value: col.column_name,
-                  label: `${col.column_name} (${col.data_type})`
+                  label: `${col.column_name} (${col.data_type})`,
                 }))}
                 placeholder="Select label column..."
               />
               <Input
                 label="Data Columns"
-                placeholder={columns.slice(1, 3).map(c => c.column_name).join(', ')}
+                placeholder={columns
+                  .slice(1, 3)
+                  .map((c) => c.column_name)
+                  .join(", ")}
                 value={formData.dataColumns}
-                onChange={(e) => setFormData(prev => ({ ...prev, dataColumns: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, dataColumns: e.target.value }))}
                 helperText="Comma-separated column names for values"
               />
             </div>
@@ -483,7 +482,7 @@ const ChartModal: React.FC<ChartModalProps> = ({
             <input
               type="checkbox"
               checked={formData.showLegend}
-              onChange={(e) => setFormData(prev => ({ ...prev, showLegend: e.target.checked }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, showLegend: e.target.checked }))}
               className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
             />
             <span className="text-sm text-text-secondary">Show Legend</span>
@@ -492,7 +491,7 @@ const ChartModal: React.FC<ChartModalProps> = ({
             <input
               type="checkbox"
               checked={formData.showGrid}
-              onChange={(e) => setFormData(prev => ({ ...prev, showGrid: e.target.checked }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, showGrid: e.target.checked }))}
               className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
             />
             <span className="text-sm text-text-secondary">Show Grid</span>
@@ -504,11 +503,10 @@ const ChartModal: React.FC<ChartModalProps> = ({
             Cancel
           </Button>
           <Button type="submit" isLoading={isLoading} disabled={!formData.dataset_id}>
-            {chart ? 'Update' : 'Create'} Chart
+            {chart ? "Update" : "Create"} Chart
           </Button>
         </div>
       </form>
     </Modal>
   );
 };
-

@@ -1,5 +1,23 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, LayoutDashboard, Trash2, Edit, Grid, List, LayoutGrid, Search, ChevronLeft, ChevronRight, X, Star, Copy, RefreshCw, MoreHorizontal, Timer, Check } from "lucide-react";
+import {
+  Plus,
+  LayoutDashboard,
+  Trash2,
+  Edit,
+  Grid,
+  List,
+  LayoutGrid,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Star,
+  Copy,
+  RefreshCw,
+  MoreHorizontal,
+  Timer,
+  Check,
+} from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { Button } from "../shared/components/ui/Button";
@@ -32,7 +50,7 @@ interface DashboardChart {
   id: string;
   chart_id?: string;
   component_id?: string;
-  type?: 'chart' | 'component';
+  type?: "chart" | "component";
   name: string;
   chart_type?: string;
   config: any;
@@ -65,19 +83,17 @@ const FavoriteButton: React.FC<{ dashboard: Dashboard }> = ({ dashboard }) => {
         e.stopPropagation();
         toggleFavorite({
           id: dashboard.id,
-          type: 'dashboard',
+          type: "dashboard",
           name: dashboard.name,
           path: `/dashboard/${dashboard.id}`,
         });
       }}
       className={`p-2 rounded-lg transition-colors ${
-        favorite
-          ? 'text-accent-warning hover:text-accent-warning/80'
-          : 'text-text-muted hover:text-text-secondary'
+        favorite ? "text-accent-warning hover:text-accent-warning/80" : "text-text-muted hover:text-text-secondary"
       }`}
-      title={favorite ? 'Remove from favorites' : 'Add to favorites'}
+      title={favorite ? "Remove from favorites" : "Add to favorites"}
     >
-      <Star size={16} fill={favorite ? 'currentColor' : 'none'} />
+      <Star size={16} fill={favorite ? "currentColor" : "none"} />
     </button>
   );
 };
@@ -92,10 +108,10 @@ const CloneButton: React.FC<{ dashboardId: string; onClone: () => void }> = ({ d
     setIsCloning(true);
     try {
       await dashboardsApi.clone(dashboardId);
-      addToast('success', 'Dashboard cloned successfully');
+      addToast("success", "Dashboard cloned successfully");
       onClone();
     } catch (error) {
-      addToast('error', 'Failed to clone dashboard');
+      addToast("error", "Failed to clone dashboard");
     } finally {
       setIsCloning(false);
     }
@@ -108,7 +124,7 @@ const CloneButton: React.FC<{ dashboardId: string; onClone: () => void }> = ({ d
       className="p-2 rounded-lg text-text-muted hover:text-text-secondary transition-colors disabled:opacity-50"
       title="Clone dashboard"
     >
-      <Copy size={16} className={isCloning ? 'animate-pulse' : ''} />
+      <Copy size={16} className={isCloning ? "animate-pulse" : ""} />
     </button>
   );
 };
@@ -121,8 +137,8 @@ export const DashboardsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingDashboard, setEditingDashboard] = useState<Dashboard | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'vertical' | 'grid'>('vertical');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<"vertical" | "grid">("vertical");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -197,15 +213,15 @@ export const DashboardsPage: React.FC = () => {
           {/* View Toggle */}
           <div className="join bg-base-200 p-1">
             <button
-              onClick={() => setViewMode('vertical')}
-              className={`btn btn-sm join-item ${viewMode === 'vertical' ? 'btn-active btn-primary' : 'btn-ghost'}`}
+              onClick={() => setViewMode("vertical")}
+              className={`btn btn-sm join-item ${viewMode === "vertical" ? "btn-active btn-primary" : "btn-ghost"}`}
               title="List View"
             >
               <List size={18} />
             </button>
             <button
-              onClick={() => setViewMode('grid')}
-              className={`btn btn-sm join-item ${viewMode === 'grid' ? 'btn-active btn-primary' : 'btn-ghost'}`}
+              onClick={() => setViewMode("grid")}
+              className={`btn btn-sm join-item ${viewMode === "grid" ? "btn-active btn-primary" : "btn-ghost"}`}
               title="Grid View"
             >
               <LayoutGrid size={18} />
@@ -226,7 +242,10 @@ export const DashboardsPage: React.FC = () => {
 
       {/* Search Bar */}
       <div className="max-w-2xl relative group">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors" />
+        <Search
+          size={18}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors"
+        />
         <input
           type="text"
           placeholder="Search dashboards by name, description, or creator..."
@@ -240,14 +259,11 @@ export const DashboardsPage: React.FC = () => {
         <div className="card bg-base-200 border border-base-300 text-center py-16">
           <div className="card-body items-center">
             <LayoutDashboard size={48} className="mb-4 opacity-20" />
-            <h3 className="text-xl font-bold">
-              {searchQuery ? 'No dashboards found' : 'No dashboards yet'}
-            </h3>
+            <h3 className="text-xl font-bold">{searchQuery ? "No dashboards found" : "No dashboards yet"}</h3>
             <p className="text-base-content/60 max-w-sm mb-6">
               {searchQuery
                 ? `We couldn't find any dashboards matching "${searchQuery}"`
-                : 'Get started by creating your first dashboard to organize and visualize your data.'
-              }
+                : "Get started by creating your first dashboard to organize and visualize your data."}
             </p>
             {!searchQuery && (
               <button className="btn btn-primary" onClick={() => setShowModal(true)}>
@@ -259,26 +275,29 @@ export const DashboardsPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className={viewMode === 'vertical' 
-            ? 'grid gap-4' 
-            : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-          }>
+          <div
+            className={
+              viewMode === "vertical"
+                ? "grid gap-4"
+                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            }
+          >
             {paginatedDashboards.map((dashboard) => (
-              <div 
-                key={dashboard.id} 
+              <div
+                key={dashboard.id}
                 className={`card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm hover:shadow-md ${
-                  viewMode === 'vertical' ? 'card-side' : ''
+                  viewMode === "vertical" ? "card-side" : ""
                 }`}
               >
-                <div className={`card-body ${viewMode === 'vertical' ? 'flex-row items-center gap-6 py-4' : 'p-6'}`}>
+                <div className={`card-body ${viewMode === "vertical" ? "flex-row items-center gap-6 py-4" : "p-6"}`}>
                   {/* Icon & Title */}
-                  <div className={`flex items-center gap-4 ${viewMode === 'vertical' ? 'flex-1 min-w-0' : 'mb-4'}`}>
+                  <div className={`flex items-center gap-4 ${viewMode === "vertical" ? "flex-1 min-w-0" : "mb-4"}`}>
                     <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       <Grid size={24} />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 
+                        <h3
                           className="card-title text-base hover:text-primary cursor-pointer truncate"
                           onClick={() => navigate(`/dashboard/${dashboard.id}`)}
                         >
@@ -297,12 +316,16 @@ export const DashboardsPage: React.FC = () => {
                   </div>
 
                   {/* Description - only in grid view */}
-                  {viewMode === 'grid' && dashboard.description && (
+                  {viewMode === "grid" && dashboard.description && (
                     <p className="text-sm opacity-70 line-clamp-2 mb-6 h-10">{dashboard.description}</p>
                   )}
 
                   {/* Actions */}
-                  <div className={`card-actions justify-end ${viewMode === 'vertical' ? '' : 'mt-auto pt-4 border-t border-base-200'}`}>
+                  <div
+                    className={`card-actions justify-end ${
+                      viewMode === "vertical" ? "" : "mt-auto pt-4 border-t border-base-200"
+                    }`}
+                  >
                     <div className="flex items-center gap-1">
                       <FavoriteButton dashboard={dashboard} />
                       <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
@@ -310,9 +333,17 @@ export const DashboardsPage: React.FC = () => {
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
                           <MoreHorizontal size={18} />
                         </div>
-                        <ul tabIndex={0} className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300">
+                        <ul
+                          tabIndex={0}
+                          className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300"
+                        >
                           <li>
-                            <button onClick={() => { setEditingDashboard(dashboard); setShowModal(true); }}>
+                            <button
+                              onClick={() => {
+                                setEditingDashboard(dashboard);
+                                setShowModal(true);
+                              }}
+                            >
                               <Edit size={14} /> Edit
                             </button>
                           </li>
@@ -334,7 +365,9 @@ export const DashboardsPage: React.FC = () => {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-base-300">
               <p className="text-sm opacity-60">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDashboards.length)} of {filteredDashboards.length} dashboards
+                Showing {(currentPage - 1) * itemsPerPage + 1} -{" "}
+                {Math.min(currentPage * itemsPerPage, filteredDashboards.length)} of {filteredDashboards.length}{" "}
+                dashboards
               </p>
               <div className="join shadow-sm">
                 <button
@@ -353,11 +386,13 @@ export const DashboardsPage: React.FC = () => {
                   .map((page, idx, arr) => (
                     <React.Fragment key={page}>
                       {idx > 0 && arr[idx - 1] !== page - 1 && (
-                        <button disabled className="join-item btn btn-sm btn-disabled">...</button>
+                        <button disabled className="join-item btn btn-sm btn-disabled">
+                          ...
+                        </button>
                       )}
                       <button
                         onClick={() => setCurrentPage(page)}
-                        className={`join-item btn btn-sm ${currentPage === page ? 'btn-primary' : 'bg-base-200'}`}
+                        className={`join-item btn btn-sm ${currentPage === page ? "btn-primary" : "bg-base-200"}`}
                       >
                         {page}
                       </button>
@@ -529,16 +564,16 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const intervalOptions = [
-    { value: 0, label: 'Off' },
-    { value: 10, label: '10 seconds' },
-    { value: 30, label: '30 seconds' },
-    { value: 60, label: '1 minute' },
-    { value: 300, label: '5 minutes' },
+    { value: 0, label: "Off" },
+    { value: 10, label: "10 seconds" },
+    { value: 30, label: "30 seconds" },
+    { value: 60, label: "1 minute" },
+    { value: 300, label: "5 minutes" },
   ];
 
   const handleIntervalSelect = (value: number) => {
@@ -555,11 +590,7 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Last refresh indicator */}
-      {lastRefresh && (
-        <span className="text-xs text-[#606070] mr-2">
-          Updated {lastRefresh.toLocaleTimeString()}
-        </span>
-      )}
+      {lastRefresh && <span className="text-xs text-[#606070] mr-2">Updated {lastRefresh.toLocaleTimeString()}</span>}
 
       {/* More Options Button */}
       <button
@@ -582,7 +613,7 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
             disabled={isRefreshing}
             className="w-full flex items-center gap-3 px-4 py-3 text-left text-text-primary hover:bg-bg-tertiary transition-colors disabled:opacity-50"
           >
-            <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-accent-primary' : ''} />
+            <RefreshCw size={16} className={isRefreshing ? "animate-spin text-accent-primary" : ""} />
             <span>Refresh dashboard</span>
           </button>
 
@@ -597,7 +628,7 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
                 <span>Set auto-refresh interval</span>
               </div>
               <span className="text-xs text-text-muted">
-                {autoRefresh ? intervalOptions.find(o => o.value === refreshInterval)?.label : 'Off'}
+                {autoRefresh ? intervalOptions.find((o) => o.value === refreshInterval)?.label : "Off"}
               </span>
             </button>
 
@@ -627,7 +658,7 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
           {autoRefresh && (
             <div className="px-4 py-2 text-xs text-text-muted flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
-              Auto-refreshing every {intervalOptions.find(o => o.value === refreshInterval)?.label}
+              Auto-refreshing every {intervalOptions.find((o) => o.value === refreshInterval)?.label}
             </div>
           )}
         </div>
@@ -641,7 +672,7 @@ export const DashboardViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const isEditMode = location.pathname.endsWith('/edit');
+  const isEditMode = location.pathname.endsWith("/edit");
   const { addToast } = useAppStore();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [chartData, setChartData] = useState<ChartData[]>([]);
@@ -653,15 +684,14 @@ export const DashboardViewPage: React.FC = () => {
   const [selectedChart, setSelectedChart] = useState<DashboardChart | null>(null);
   const [showChartSettings, setShowChartSettings] = useState(false);
   const [chartDimensions, setChartDimensions] = useState({ width: 6, height: 4 });
-  const [drawerTab, setDrawerTab] = useState<'charts' | 'components'>('charts');
-  const [drawerSearch, setDrawerSearch] = useState('');
+  const [drawerTab, setDrawerTab] = useState<"charts" | "components">("charts");
+  const [drawerSearch, setDrawerSearch] = useState("");
 
   // Filters state
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilter[]>([]);
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
-  const [editingFilter, setEditingFilter] = useState<DashboardFilter | null>(null);
 
   // Auto-refresh state
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -701,13 +731,13 @@ export const DashboardViewPage: React.FC = () => {
 
       dashboardFilters.forEach((filter) => {
         const filterValue = filterValues[filter.id];
-        if (filterValue === undefined || filterValue === null || filterValue === '') {
+        if (filterValue === undefined || filterValue === null || filterValue === "") {
           return; // Skip empty filter values
         }
 
         const column = filter.column;
 
-        if (filter.type === 'value') {
+        if (filter.type === "value") {
           // Filter by exact value match
           filteredData = filteredData.filter((row: any) => {
             const rowValue = row[column];
@@ -716,7 +746,7 @@ export const DashboardViewPage: React.FC = () => {
             }
             return rowValue === filterValue || String(rowValue) === String(filterValue);
           });
-        } else if (filter.type === 'time_range') {
+        } else if (filter.type === "time_range") {
           // Filter by date range
           if (filterValue.start || filterValue.end) {
             filteredData = filteredData.filter((row: any) => {
@@ -726,12 +756,14 @@ export const DashboardViewPage: React.FC = () => {
               return true;
             });
           }
-        } else if (filter.type === 'numerical_range') {
+        } else if (filter.type === "numerical_range") {
           // Filter by number range
           filteredData = filteredData.filter((row: any) => {
             const rowValue = Number(row[column]);
-            if (filterValue.min !== undefined && filterValue.min !== '' && rowValue < Number(filterValue.min)) return false;
-            if (filterValue.max !== undefined && filterValue.max !== '' && rowValue > Number(filterValue.max)) return false;
+            if (filterValue.min !== undefined && filterValue.min !== "" && rowValue < Number(filterValue.min))
+              return false;
+            if (filterValue.max !== undefined && filterValue.max !== "" && rowValue > Number(filterValue.max))
+              return false;
             return true;
           });
         }
@@ -803,7 +835,7 @@ export const DashboardViewPage: React.FC = () => {
   useEffect(() => {
     // Small delay to let DOM update first
     const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(new Event("resize"));
     }, 100);
     return () => clearTimeout(timer);
   }, [isEditMode, filtersOpen]);
@@ -819,7 +851,7 @@ export const DashboardViewPage: React.FC = () => {
         setChartData(dataRes.data.chartData);
         setLastRefresh(new Date());
       } catch (error) {
-        console.error('Auto-refresh failed:', error);
+        console.error("Auto-refresh failed:", error);
       } finally {
         setIsRefreshing(false);
       }
@@ -837,15 +869,13 @@ export const DashboardViewPage: React.FC = () => {
       const dataRes = await dashboardsApi.getData(id);
       setChartData(dataRes.data.chartData);
       setLastRefresh(new Date());
-      addToast('success', 'Dashboard refreshed');
+      addToast("success", "Dashboard refreshed");
     } catch (error) {
-      addToast('error', 'Failed to refresh dashboard');
+      addToast("error", "Failed to refresh dashboard");
     } finally {
       setIsRefreshing(false);
     }
   };
-
-
 
   const handleLayoutChange = useCallback(
     async (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
@@ -963,24 +993,22 @@ export const DashboardViewPage: React.FC = () => {
     setShowFilterModal(true);
   };
 
-  const handleEditFilter = (filter: DashboardFilter) => {
-    setEditingFilter(filter);
+  const handleEditFilter = (_filter: DashboardFilter) => {
     setShowFilterModal(true);
   };
 
   const handleRemoveFilter = (filterId: string) => {
-    setDashboardFilters(dashboardFilters.filter(f => f.id !== filterId));
+    setDashboardFilters(dashboardFilters.filter((f) => f.id !== filterId));
     const newFilterValues = { ...filterValues };
     delete newFilterValues[filterId];
     setFilterValues(newFilterValues);
   };
 
   const handleSaveFilters = async (filters: DashboardFilter[]) => {
-    console.log('Saving filters:', filters);
+    console.log("Saving filters:", filters);
     setDashboardFilters(filters);
     setShowFilterModal(false);
-    setEditingFilter(null);
-    
+
     // Persist filters to backend
     if (id) {
       try {
@@ -989,7 +1017,7 @@ export const DashboardViewPage: React.FC = () => {
           addToast("success", `${filters.length} filter(s) saved`);
         }
       } catch (error) {
-        console.error('Failed to save filters:', error);
+        console.error("Failed to save filters:", error);
         addToast("error", "Failed to save filters");
       }
     }
@@ -1043,7 +1071,11 @@ export const DashboardViewPage: React.FC = () => {
       />
 
       {/* Main wrapper with left margin for sidebar */}
-      <div className={`flex-1 flex flex-col ${filtersOpen ? "ml-72" : "ml-10"} transition-all duration-200 h-full overflow-visible`}>
+      <div
+        className={`flex-1 flex flex-col ${
+          filtersOpen ? "ml-72" : "ml-10"
+        } transition-all duration-200 h-full overflow-visible`}
+      >
         {/* Fixed Header */}
         <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300 min-h-20">
           <div className="flex-1 flex items-center gap-4">
@@ -1059,7 +1091,7 @@ export const DashboardViewPage: React.FC = () => {
               )}
             </div>
           </div>
-          
+
           <div className="flex-none flex items-center gap-3">
             {!isEditMode && (
               <MoreOptionsDropdown
@@ -1074,18 +1106,12 @@ export const DashboardViewPage: React.FC = () => {
             )}
 
             {isEditMode ? (
-              <button
-                className="btn btn-secondary btn-sm gap-2"
-                onClick={() => navigate(`/dashboard/${id}`)}
-              >
+              <button className="btn btn-secondary btn-sm gap-2" onClick={() => navigate(`/dashboard/${id}`)}>
                 <X size={16} />
                 <span className="hidden sm:inline">Exit Edit Mode</span>
               </button>
             ) : (
-              <button 
-                className="btn btn-primary btn-sm gap-2" 
-                onClick={() => navigate(`/dashboard/${id}/edit`)}
-              >
+              <button className="btn btn-primary btn-sm gap-2" onClick={() => navigate(`/dashboard/${id}/edit`)}>
                 <Edit size={16} />
                 <span className="hidden sm:inline">Edit dashboard</span>
               </button>
@@ -1095,9 +1121,7 @@ export const DashboardViewPage: React.FC = () => {
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-visible">
-          <div
-            className="transition-all duration-200 p-6 flex-1"
-          >
+          <div className="transition-all duration-200 p-6 flex-1">
             {dashboard.charts && dashboard.charts.length > 0 ? (
               <div className="dashboard-grid w-full">
                 <ResponsiveGridLayout
@@ -1180,14 +1204,18 @@ export const DashboardViewPage: React.FC = () => {
               {/* Tabs Header */}
               <div className="tabs tabs-boxed rounded-none bg-base-300/50 p-1">
                 <button
-                  onClick={() => setDrawerTab('charts')}
-                  className={`tab flex-1 transition-all ${drawerTab === 'charts' ? 'tab-active bg-primary! text-primary-content!' : 'text-base-content/60'}`}
+                  onClick={() => setDrawerTab("charts")}
+                  className={`tab flex-1 transition-all ${
+                    drawerTab === "charts" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
+                  }`}
                 >
                   Charts
                 </button>
                 <button
-                  onClick={() => setDrawerTab('components')}
-                  className={`tab flex-1 transition-all ${drawerTab === 'components' ? 'tab-active bg-primary! text-primary-content!' : 'text-base-content/60'}`}
+                  onClick={() => setDrawerTab("components")}
+                  className={`tab flex-1 transition-all ${
+                    drawerTab === "components" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
+                  }`}
                 >
                   Components
                 </button>
@@ -1197,11 +1225,11 @@ export const DashboardViewPage: React.FC = () => {
                 {/* Create New Link */}
                 <div className="p-4 border-b border-base-200">
                   <button
-                    onClick={() => navigate(drawerTab === 'charts' ? '/charts' : '/components')}
+                    onClick={() => navigate(drawerTab === "charts" ? "/charts" : "/components")}
                     className="btn btn-outline btn-primary btn-sm btn-block gap-2"
                   >
                     <Plus size={16} />
-                    New {drawerTab === 'charts' ? 'Chart' : 'Component'}
+                    New {drawerTab === "charts" ? "Chart" : "Component"}
                   </button>
                 </div>
 
@@ -1222,31 +1250,34 @@ export const DashboardViewPage: React.FC = () => {
                 {/* Items List */}
                 <div className="flex-1 overflow-y-auto">
                   <ul className="menu menu-md p-2">
-                    {drawerTab === 'charts' ? (
+                    {drawerTab === "charts" ? (
                       filteredCharts.length === 0 ? (
                         <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
                       ) : (
                         filteredCharts.map((chart) => (
                           <li key={chart.id}>
-                            <button onClick={() => handleAddChart(chart.id)} className="flex flex-col items-start gap-0.5">
+                            <button
+                              onClick={() => handleAddChart(chart.id)}
+                              className="flex flex-col items-start gap-0.5"
+                            >
                               <span className="font-medium">{chart.name}</span>
-                              <span className="text-[10px] opacity-50 uppercase tracking-tight">{chart.chart_type}</span>
+                              <span className="text-[10px] opacity-50 uppercase tracking-tight">
+                                {chart.chart_type}
+                              </span>
                             </button>
                           </li>
                         ))
                       )
+                    ) : filteredComponents.length === 0 ? (
+                      <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
                     ) : (
-                      filteredComponents.length === 0 ? (
-                        <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
-                      ) : (
-                        filteredComponents.map((comp) => (
-                          <li key={comp.id}>
-                            <button onClick={() => handleAddComponent(comp.id)}>
-                              <span className="font-medium">{comp.name}</span>
-                            </button>
-                          </li>
-                        ))
-                      )
+                      filteredComponents.map((comp) => (
+                        <li key={comp.id}>
+                          <button onClick={() => handleAddComponent(comp.id)}>
+                            <span className="font-medium">{comp.name}</span>
+                          </button>
+                        </li>
+                      ))
                     )}
                   </ul>
                 </div>
@@ -1321,7 +1352,6 @@ export const DashboardViewPage: React.FC = () => {
         isOpen={showFilterModal}
         onClose={() => {
           setShowFilterModal(false);
-          setEditingFilter(null);
         }}
         filters={dashboardFilters}
         onSave={handleSaveFilters}

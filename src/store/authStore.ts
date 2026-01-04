@@ -1,12 +1,12 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { authApi } from '../lib/api';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { authApi } from "../lib/api";
 
 interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'editor' | 'viewer';
+  role: "admin" | "editor" | "viewer";
 }
 
 interface AuthState {
@@ -14,7 +14,7 @@ interface AuthState {
   token: string | null;
   isLoading: boolean;
   error: string | null;
-  
+
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name?: string) => Promise<boolean>;
   logout: () => void;
@@ -24,7 +24,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       token: null,
       isLoading: false,
@@ -35,12 +35,12 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await authApi.login(email, password);
           const { token, user } = response.data;
-          
-          localStorage.setItem('uptake_token', token);
+
+          localStorage.setItem("uptake_token", token);
           set({ user, token, isLoading: false });
           return true;
         } catch (error: any) {
-          const message = error.response?.data?.error || 'Login failed';
+          const message = error.response?.data?.error || "Login failed";
           set({ error: message, isLoading: false });
           return false;
         }
@@ -51,24 +51,24 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await authApi.register(email, password, name);
           const { token, user } = response.data;
-          
-          localStorage.setItem('uptake_token', token);
+
+          localStorage.setItem("uptake_token", token);
           set({ user, token, isLoading: false });
           return true;
         } catch (error: any) {
-          const message = error.response?.data?.error || 'Registration failed';
+          const message = error.response?.data?.error || "Registration failed";
           set({ error: message, isLoading: false });
           return false;
         }
       },
 
       logout: () => {
-        localStorage.removeItem('uptake_token');
+        localStorage.removeItem("uptake_token");
         set({ user: null, token: null, error: null });
       },
 
       checkAuth: async () => {
-        const token = localStorage.getItem('uptake_token');
+        const token = localStorage.getItem("uptake_token");
         if (!token) {
           set({ user: null, token: null });
           return;
@@ -78,7 +78,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await authApi.me();
           set({ user: response.data.user, token });
         } catch {
-          localStorage.removeItem('uptake_token');
+          localStorage.removeItem("uptake_token");
           set({ user: null, token: null });
         }
       },
@@ -86,9 +86,8 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'uptake-auth',
+      name: "uptake-auth",
       partialize: (state) => ({ user: state.user, token: state.token }),
     }
   )
 );
-

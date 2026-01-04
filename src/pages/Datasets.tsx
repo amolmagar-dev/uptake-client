@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Database, Trash2, Edit, Eye, RefreshCw, Table, Code, FileSpreadsheet, Globe } from 'lucide-react';
-import { Button } from '../shared/components/ui/Button';
-import { Card } from '../shared/components/ui/Card';
-import { ConfirmModal, Modal } from '../shared/components/ui/Modal';
-import { datasetsApi, type Dataset } from '../lib/api';
-import { useAppStore } from '../store/appStore';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Database, Trash2, Edit, Eye, RefreshCw, Table, Code, FileSpreadsheet, Globe } from "lucide-react";
+import { ConfirmModal, Modal } from "../shared/components/ui/Modal";
+import { datasetsApi, type Dataset } from "../lib/api";
+import { useAppStore } from "../store/appStore";
 
 export function DatasetsPage() {
   const navigate = useNavigate();
@@ -27,7 +25,7 @@ export function DatasetsPage() {
       const response = await datasetsApi.getAll();
       setDatasets(response.data.datasets);
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to fetch datasets');
+      addToast("error", error.response?.data?.error || "Failed to fetch datasets");
     } finally {
       setLoading(false);
     }
@@ -36,11 +34,11 @@ export function DatasetsPage() {
   const handleDelete = async (id: string) => {
     try {
       await datasetsApi.delete(id);
-      addToast('success', 'Dataset deleted successfully');
+      addToast("success", "Dataset deleted successfully");
       setDeleteDataset(null);
       fetchDatasets();
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to delete dataset');
+      addToast("error", error.response?.data?.error || "Failed to delete dataset");
     }
   };
 
@@ -52,7 +50,7 @@ export function DatasetsPage() {
       const response = await datasetsApi.preview(dataset.id);
       setPreviewData(response.data);
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to preview dataset');
+      addToast("error", error.response?.data?.error || "Failed to preview dataset");
     } finally {
       setPreviewLoading(false);
     }
@@ -60,11 +58,11 @@ export function DatasetsPage() {
 
   const getSourceIcon = (sourceType: string) => {
     switch (sourceType) {
-      case 'sql':
+      case "sql":
         return <Database className="h-5 w-5" />;
-      case 'googlesheet':
+      case "googlesheet":
         return <FileSpreadsheet className="h-5 w-5" />;
-      case 'api':
+      case "api":
         return <Globe className="h-5 w-5" />;
       default:
         return <Database className="h-5 w-5" />;
@@ -72,7 +70,7 @@ export function DatasetsPage() {
   };
 
   const getTypeIcon = (datasetType: string) => {
-    return datasetType === 'physical' ? <Table className="h-4 w-4" /> : <Code className="h-4 w-4" />;
+    return datasetType === "physical" ? <Table className="h-4 w-4" /> : <Code className="h-4 w-4" />;
   };
 
   return (
@@ -81,14 +79,9 @@ export function DatasetsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Datasets</h1>
-          <p className="text-base-content/60 mt-1 text-sm">
-            Create and manage reusable data sources for your charts
-          </p>
+          <p className="text-base-content/60 mt-1 text-sm">Create and manage reusable data sources for your charts</p>
         </div>
-        <button
-          className="btn btn-primary btn-sm md:btn-md"
-          onClick={() => navigate('/datasets/new')}
-        >
+        <button className="btn btn-primary btn-sm md:btn-md" onClick={() => navigate("/datasets/new")}>
           <Plus size={18} />
           <span>Create Dataset</span>
         </button>
@@ -107,7 +100,7 @@ export function DatasetsPage() {
             <p className="text-base-content/60 max-w-sm mb-6">
               Datasets connect your charts to your data sources. Create your first one to get started.
             </p>
-            <button className="btn btn-primary" onClick={() => navigate('/datasets/new')}>
+            <button className="btn btn-primary" onClick={() => navigate("/datasets/new")}>
               <Plus size={18} />
               Create Dataset
             </button>
@@ -116,7 +109,10 @@ export function DatasetsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {datasets.map((dataset) => (
-            <div key={dataset.id} className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm">
+            <div
+              key={dataset.id}
+              className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm"
+            >
               <div className="card-body p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -125,32 +121,32 @@ export function DatasetsPage() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="card-title text-base truncate">{dataset.name}</h3>
-                      <p className="text-xs opacity-60 truncate">
-                        {dataset.connection_name || 'External Source'}
-                      </p>
+                      <p className="text-xs opacity-60 truncate">{dataset.connection_name || "External Source"}</p>
                     </div>
                   </div>
-                  <span className={`badge badge-sm gap-1 ${
-                    dataset.dataset_type === 'physical' 
-                      ? 'badge-success badge-outline' 
-                      : 'badge-secondary badge-outline'
-                  }`}>
+                  <span
+                    className={`badge badge-sm gap-1 ${
+                      dataset.dataset_type === "physical"
+                        ? "badge-success badge-outline"
+                        : "badge-secondary badge-outline"
+                    }`}
+                  >
                     {getTypeIcon(dataset.dataset_type)}
                     {dataset.dataset_type}
                   </span>
                 </div>
 
                 {dataset.description && (
-                  <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">
-                    {dataset.description}
-                  </p>
+                  <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">{dataset.description}</p>
                 )}
 
                 <div className="text-xs opacity-50 space-y-1 mb-6">
-                  {dataset.dataset_type === 'physical' && dataset.table_name && (
+                  {dataset.dataset_type === "physical" && dataset.table_name && (
                     <div className="flex items-center gap-1">
                       <Table size={12} />
-                      <span className="truncate">{dataset.table_schema}.{dataset.table_name}</span>
+                      <span className="truncate">
+                        {dataset.table_schema}.{dataset.table_name}
+                      </span>
                     </div>
                   )}
                   {dataset.columns && (
@@ -238,7 +234,7 @@ export function DatasetsPage() {
                     <tr key={i} className="border-t border-border">
                       {previewData.fields?.map((field: any, j: number) => (
                         <td key={j} className="px-3 py-2 text-text-primary">
-                          {row[field.name]?.toString() ?? 'null'}
+                          {row[field.name]?.toString() ?? "null"}
                         </td>
                       ))}
                     </tr>
