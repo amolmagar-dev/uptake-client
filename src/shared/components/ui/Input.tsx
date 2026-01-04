@@ -86,7 +86,7 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
     backgroundColor: "var(--color-base-100)",
     borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-base-300)",
     borderRadius: "var(--radius-field)",
-    padding: "0.25rem 0",
+    padding: "0",
     boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary)" : "none",
     transition: "all 200ms",
     "&:hover": {
@@ -95,6 +95,18 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
     cursor: "pointer",
     minHeight: "42px",
     color: "var(--color-base-content)",
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: "0 12px",
+    display: "flex",
+    alignItems: "center",
+  }),
+  indicatorsContainer: (base) => ({
+    ...base,
+    height: "40px",
+    display: "flex",
+    alignItems: "center",
   }),
   menuPortal: (base) => ({ ...base, zIndex: 99999 }),
   menu: (base) => ({
@@ -118,14 +130,40 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
     padding: "8px 12px",
     cursor: "pointer",
   }),
-  singleValue: (base) => ({ ...base, color: "var(--color-base-content)" }),
-  placeholder: (base) => ({ ...base, color: "var(--color-base-content)", opacity: 0.5 }),
-  input: (base) => ({ ...base, color: "var(--color-base-content)" }),
+  singleValue: (base) => ({
+    ...base,
+    color: "var(--color-base-content)",
+    margin: "0",
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: "var(--color-base-content)",
+    opacity: 0.5,
+    margin: "0",
+  }),
+  input: (base) => ({
+    ...base,
+    color: "var(--color-base-content)",
+    margin: "0",
+    padding: "0",
+  }),
   indicatorSeparator: () => ({ display: "none" }),
   dropdownIndicator: (base, state) => ({
     ...base,
     color: state.isFocused ? "var(--color-primary)" : "var(--color-base-content)",
+    padding: "0 8px",
     "&:hover": { color: "var(--color-primary)" },
+  }),
+  clearIndicator: (base) => ({
+    ...base,
+    color: "var(--color-base-content)",
+    opacity: 0.5,
+    padding: "0 8px",
+    cursor: "pointer",
+    "&:hover": {
+      color: "var(--color-error)",
+      opacity: 1,
+    },
   }),
 };
 

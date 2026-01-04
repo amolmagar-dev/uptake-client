@@ -103,25 +103,25 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   return (
     <div className="fixed left-0 top-16 bottom-0 w-72 bg-bg-secondary border-r border-border flex flex-col z-40">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border min-h-[57px]">
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-accent-primary" />
           <span className="text-sm font-medium text-text-primary">Filters</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={onAddFilter}
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-primary hover:bg-bg-tertiary transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-text-muted hover:text-accent-primary hover:bg-bg-tertiary transition-colors"
             title="Add Filter"
           >
-            <Settings size={16} />
+            <Settings size={18} />
           </button>
           <button
             onClick={onToggle}
-            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors"
             title="Collapse Filters"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={20} />
           </button>
         </div>
       </div>
@@ -154,19 +154,19 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                 key={filter.id}
                 className="bg-bg-tertiary rounded-lg border border-border p-3"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-text-primary">{filter.name}</span>
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-sm font-semibold text-text-primary">{filter.name}</span>
+                  <div className="flex items-center gap-0.5">
                     <button
                       onClick={() => onEditFilter(filter)}
-                      className="p-1 rounded text-text-muted hover:text-accent-primary transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:text-accent-primary hover:bg-bg-primary/50 transition-colors"
                       title="Edit Filter"
                     >
                       <Settings size={14} />
                     </button>
                     <button
                       onClick={() => onRemoveFilter(filter.id)}
-                      className="p-1 rounded text-text-muted hover:text-status-error transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:text-status-error hover:bg-bg-primary/50 transition-colors"
                       title="Remove Filter"
                     >
                       <Trash2 size={14} />

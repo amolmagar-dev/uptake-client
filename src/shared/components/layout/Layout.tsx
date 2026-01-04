@@ -41,10 +41,10 @@ export const Layout: React.FC = () => {
   return (
     <div className="drawer">
       <input id="main-drawer" type="checkbox" className="drawer-toggle" />
-      <div className="drawer-content flex flex-col min-h-screen bg-base-100 text-base-content overflow-hidden">
+      <div className="drawer-content flex flex-col h-screen bg-base-100 text-base-content overflow-hidden">
         <TopBar />
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative">
           <Outlet />
         </main>
 

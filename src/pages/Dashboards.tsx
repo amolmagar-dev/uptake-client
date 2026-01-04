@@ -1034,7 +1034,7 @@ export const DashboardViewPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col relative bg-base-100 overflow-hidden">
+    <div className="h-full flex flex-col relative bg-base-100 overflow-visible">
       {/* Filters Sidebar - at root level, fixed position */}
       <FiltersSidebar
         isOpen={filtersOpen}
@@ -1050,24 +1050,24 @@ export const DashboardViewPage: React.FC = () => {
       />
 
       {/* Main wrapper with left margin for sidebar */}
-      <div className={`flex-1 flex flex-col ${filtersOpen ? "ml-72" : "ml-10"} transition-all duration-200 h-full overflow-hidden`}>
+      <div className={`flex-1 flex flex-col ${filtersOpen ? "ml-72" : "ml-10"} transition-all duration-200 h-full overflow-visible`}>
         {/* Fixed Header */}
-        <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300">
-          <div className="flex-1 gap-4">
-            <div className="p-2 rounded-xl bg-primary/10 text-primary">
-              <LayoutDashboard size={20} />
+        <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300 min-h-20">
+          <div className="flex-1 flex items-center gap-4">
+            <div className="p-2.5 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <LayoutDashboard size={22} />
             </div>
-            <div>
-              <h1 className="text-lg font-bold leading-tight">{dashboard.name}</h1>
+            <div className="flex flex-col justify-center">
+              <h1 className="text-xl font-bold leading-tight text-base-content">{dashboard.name}</h1>
               {dashboard.description && (
-                <p className="opacity-50 text-[10px] uppercase tracking-wider font-bold truncate max-w-md">
+                <p className="opacity-50 text-[10px] uppercase tracking-wider font-bold truncate max-w-md mt-0.5">
                   {dashboard.description}
                 </p>
               )}
             </div>
           </div>
           
-          <div className="flex-none gap-2">
+          <div className="flex-none flex items-center gap-3">
             {!isEditMode && (
               <MoreOptionsDropdown
                 onRefresh={handleManualRefresh}
@@ -1082,7 +1082,7 @@ export const DashboardViewPage: React.FC = () => {
 
             {isEditMode ? (
               <button
-                className="btn btn-secondary btn-sm"
+                className="btn btn-secondary btn-sm gap-2"
                 onClick={() => navigate(`/dashboard/${id}`)}
               >
                 <X size={16} />
@@ -1090,7 +1090,7 @@ export const DashboardViewPage: React.FC = () => {
               </button>
             ) : (
               <button 
-                className="btn btn-primary btn-sm" 
+                className="btn btn-primary btn-sm gap-2" 
                 onClick={() => navigate(`/dashboard/${id}/edit`)}
               >
                 <Edit size={16} />
@@ -1100,8 +1100,8 @@ export const DashboardViewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content Area - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-visible">
           <div
             className="transition-all duration-200 p-6"
             style={{
