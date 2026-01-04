@@ -15,12 +15,14 @@ import {
   Globe,
   FileSpreadsheet,
   Sparkles,
+  Code,
 } from "lucide-react";
 import {
   connectionsApi,
   datasetsApi,
   chartsApi,
   dashboardsApi,
+  customComponentsApi,
   type Dataset,
 } from "../../lib/api";
 
@@ -35,7 +37,7 @@ export interface ContextMetadata {
 }
 
 export interface SelectedContext {
-  type: "connection" | "dataset" | "chart" | "dashboard" | "custom";
+  type: "connection" | "dataset" | "chart" | "dashboard" | "component" | "custom";
   id?: string;
   name: string;
   metadata?: ContextMetadata;
@@ -43,7 +45,7 @@ export interface SelectedContext {
 }
 
 export interface AIContext {
-  type: "connection" | "dataset" | "chart" | "dashboard" | "custom";
+  type: "connection" | "dataset" | "chart" | "dashboard" | "component" | "custom";
   id?: string;
   name: string;
   metadata?: Record<string, any>;
@@ -57,7 +59,7 @@ interface ContextSelectorProps {
   onToggleExpand: () => void;
 }
 
-type ContextTab = "connections" | "datasets" | "charts" | "dashboards" | "custom";
+type ContextTab = "connections" | "datasets" | "charts" | "dashboards" | "components" | "custom";
 
 interface Connection {
   id: string;
@@ -85,11 +87,22 @@ interface Dashboard {
   chart_count: number;
 }
 
+interface CustomComponent {
+  id: string;
+  name: string;
+  description?: string;
+  dataset_name?: string;
+  hasHtml: boolean;
+  hasCss: boolean;
+  hasJs: boolean;
+}
+
 const tabConfig = [
   { id: "connections" as ContextTab, label: "Connections", icon: Database },
   { id: "datasets" as ContextTab, label: "Datasets", icon: Layers },
   { id: "charts" as ContextTab, label: "Charts", icon: BarChart3 },
   { id: "dashboards" as ContextTab, label: "Dashboards", icon: LayoutDashboard },
+  { id: "components" as ContextTab, label: "Components", icon: Code },
   { id: "custom" as ContextTab, label: "Custom", icon: FileText },
 ];
 
@@ -108,6 +121,7 @@ export const ContextSelector: React.FC<ContextSelectorProps> = ({
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [charts, setCharts] = useState<Chart[]>([]);
   const [dashboards, setDashboards] = useState<Dashboard[]>([]);
+  const [components, setComponents] = useState<CustomComponent[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Connection table expansion
@@ -121,6 +135,7 @@ export const ContextSelector: React.FC<ContextSelectorProps> = ({
     fetchDatasets();
     fetchCharts();
     fetchDashboards();
+    fetchComponents();
   }, []);
 
   const fetchConnections = async () => {
@@ -165,6 +180,17 @@ export const ContextSelector: React.FC<ContextSelectorProps> = ({
     } catch (error) {
       console.error("Failed to fetch dashboards:", error);
       setDashboards([]);
+    }
+  };
+
+  const fetchComponents = async () => {
+    try {
+      const response = await customComponentsApi.getAll();
+      const data = response.data;
+      setComponents(Array.isArray(data) ? data : (data?.data || data?.components || []));
+    } catch (error) {
+      console.error("Failed to fetch components:", error);
+      setComponents([]);
     }
   };
 
@@ -334,6 +360,13 @@ export const ContextSelector: React.FC<ContextSelectorProps> = ({
     );
   }, [dashboards, searchQuery]);
 
+  const filteredComponents = useMemo(() => {
+    if (!searchQuery) return components;
+    return components.filter((c) =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [components, searchQuery]);
+
   return (
     <div className="border-b border-base-300 bg-base-200/30 animate-in fade-in duration-300">
       {/* Selected Context Chips */}
@@ -352,6 +385,7 @@ export const ContextSelector: React.FC<ContextSelectorProps> = ({
               {ctx.type === "dataset" && <Layers size={10} />}
               {ctx.type === "chart" && <BarChart3 size={10} />}
               {ctx.type === "dashboard" && <LayoutDashboard size={10} />}
+              {ctx.type === "component" && <Code size={10} />}
               {ctx.type === "custom" && <FileText size={10} />}
               <span className="max-w-[120px] truncate">{ctx.name}</span>
               {ctx.metadata?.tables && (
@@ -607,6 +641,59 @@ export const ContextSelector: React.FC<ContextSelectorProps> = ({
                           <span className="badge badge-ghost badge-xs opacity-50">
                             {dashboard.chart_count} charts
                           </span>
+                        </div>
+                        {isSelected && <Check size={14} className="text-primary" />}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* Components Tab */}
+            {activeTab === "components" && (
+              <div className="divide-y divide-base-200">
+                {filteredComponents.length === 0 ? (
+                  <div className="p-4 text-center text-sm opacity-50">No components found</div>
+                ) : (
+                  filteredComponents.map((component) => {
+                    const isSelected = isContextSelected("component", component.id);
+                    return (
+                      <div
+                        key={component.id}
+                        onClick={() =>
+                          toggleContext({
+                            type: "component",
+                            id: component.id,
+                            name: component.name,
+                            metadata: {
+                              datasetType: component.dataset_name ? "linked" : "standalone",
+                            },
+                          })
+                        }
+                        className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
+                          isSelected ? "bg-primary/10" : "hover:bg-base-200/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Code size={14} className="text-pink-500" />
+                          <span className="font-medium text-sm">{component.name}</span>
+                          {component.dataset_name && (
+                            <span className="badge badge-ghost badge-xs opacity-50">
+                              {component.dataset_name}
+                            </span>
+                          )}
+                          <div className="flex gap-0.5">
+                            {component.hasHtml && (
+                              <span className="badge badge-xs badge-outline text-[8px]">HTML</span>
+                            )}
+                            {component.hasCss && (
+                              <span className="badge badge-xs badge-outline text-[8px]">CSS</span>
+                            )}
+                            {component.hasJs && (
+                              <span className="badge badge-xs badge-outline text-[8px]">JS</span>
+                            )}
+                          </div>
                         </div>
                         {isSelected && <Check size={14} className="text-primary" />}
                       </div>

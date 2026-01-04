@@ -137,7 +137,7 @@ export interface ChatMessage {
 }
 
 export interface AIContext {
-  type: "connection" | "dataset" | "chart" | "dashboard" | "custom";
+  type: "connection" | "dataset" | "chart" | "dashboard" | "component" | "custom";
   id?: string;
   name: string;
   metadata?: Record<string, any>;

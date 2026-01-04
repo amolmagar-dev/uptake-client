@@ -75,6 +75,17 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes soundWave {
+  0%, 100% { 
+    height: 4px; 
+    opacity: 0.5;
+  }
+  50% { 
+    height: 16px; 
+    opacity: 1;
+  }
+}
+
 /* Global Styles */
 body {
   font-family: var(--font-primary);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Send,
   Sparkles,
@@ -14,6 +14,8 @@ import {
   Command,
   ChevronRight,
   ExternalLink,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { aiApi, type ChatMessage, type AIContext } from "../lib/api";
@@ -41,6 +43,11 @@ export const AIWorkspacePage: React.FC = () => {
   const [selectedContexts, setSelectedContexts] = useState<SelectedContext[]>([]);
   const [showContextSelector, setShowContextSelector] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Voice recognition states
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   const promptChips = [
     { label: "Explore Datasets", icon: Database, prompt: "Show me all available datasets and their tables." },
@@ -62,6 +69,85 @@ export const AIWorkspacePage: React.FC = () => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, loading]);
+
+  // Track if user wants to keep listening (to handle auto-restart)
+  const shouldKeepListeningRef = useRef(false);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    // Check if browser supports the Web Speech API
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      setSpeechSupported(true);
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join('');
+        
+        setInput(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        // Don't stop on 'no-speech' error, just ignore it
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+          shouldKeepListeningRef.current = false;
+          setIsListening(false);
+        }
+      };
+
+      recognition.onend = () => {
+        // Auto-restart if user didn't manually stop
+        if (shouldKeepListeningRef.current) {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.error('Failed to restart speech recognition:', error);
+            shouldKeepListeningRef.current = false;
+            setIsListening(false);
+          }
+        } else {
+          setIsListening(false);
+        }
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      shouldKeepListeningRef.current = false;
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Toggle voice recording
+  const toggleListening = useCallback(() => {
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      // User manually stopping
+      shouldKeepListeningRef.current = false;
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        shouldKeepListeningRef.current = true;
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        shouldKeepListeningRef.current = false;
+      }
+    }
+  }, [isListening]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -379,7 +465,51 @@ export const AIWorkspacePage: React.FC = () => {
                     disabled={loading}
                     aria-label="Chat input"
                   />
-                  <div className="absolute right-4 inset-y-0 flex items-center">
+                  <div className="absolute right-4 inset-y-0 flex items-center gap-2">
+                    {/* Mic Button with Wave Animation */}
+                    {speechSupported && (
+                      <div className="relative">
+                        {/* Sound Wave Animation */}
+                        {isListening && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="flex items-center gap-[2px]">
+                              {[0, 1, 2, 3].map((i) => (
+                                <span
+                                  key={i}
+                                  className="w-[3px] bg-error rounded-full"
+                                  style={{
+                                    height: '16px',
+                                    animation: 'soundWave 0.5s ease-in-out infinite',
+                                    animationDelay: `${i * 0.1}s`,
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <button
+                          onClick={toggleListening}
+                          disabled={loading}
+                          className={`btn btn-circle btn-sm transition-all relative z-10 ${
+                            isListening
+                              ? "btn-error shadow-lg shadow-error/40"
+                              : "btn-ghost hover:btn-secondary hover:scale-110"
+                          }`}
+                          aria-label={isListening ? "Stop listening" : "Start voice input"}
+                          title={isListening ? "Stop listening" : "Click to speak"}
+                        >
+                          {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                        </button>
+                        {/* Ripple effect when listening */}
+                        {isListening && (
+                          <>
+                            <span className="absolute inset-0 rounded-full bg-error/30 animate-ping" />
+                            <span className="absolute -inset-1 rounded-full bg-error/10 animate-pulse" />
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {/* Send Button */}
                     <button
                       onClick={() => handleSend()}
                       disabled={loading || !input.trim()}
