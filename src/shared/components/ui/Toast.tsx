@@ -1,6 +1,6 @@
-import React from 'react';
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
-import { useAppStore } from '../../../store/appStore';
+import React from "react";
+import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { useAppStore } from "../../../store/appStore";
 
 export const ToastContainer: React.FC = () => {
   const { toasts, removeToast } = useAppStore();
@@ -36,15 +36,12 @@ export const ToastContainer: React.FC = () => {
   };
 
   return (
-    <div className="toast toast-end toast-bottom z-[9999]">
+    <div className="toast toast-end toast-bottom z-9999">
       {toasts.map((toast) => (
         <div key={toast.id} className={`alert shadow-lg ${getAlertClass(toast.type)} animate-slide-up`}>
           {getIcon(toast.type)}
           <span className="flex-1 text-sm">{toast.message}</span>
-          <button
-            onClick={() => removeToast(toast.id)}
-            className="btn btn-ghost btn-xs btn-circle"
-          >
+          <button onClick={() => removeToast(toast.id)} className="btn btn-ghost btn-xs btn-circle">
             <X size={16} />
           </button>
         </div>
@@ -52,4 +49,3 @@ export const ToastContainer: React.FC = () => {
     </div>
   );
 };
-
