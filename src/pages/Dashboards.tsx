@@ -1025,11 +1025,30 @@ export const DashboardViewPage: React.FC = () => {
     setShowFilterModal(true);
   };
 
-  const handleRemoveFilter = (filterId: string) => {
-    setDashboardFilters(dashboardFilters.filter((f) => f.id !== filterId));
+  const handleRemoveFilter = async (filterId: string) => {
+    // 1. Optimistic update
+    const oldFilters = [...dashboardFilters];
+    const newFilters = dashboardFilters.filter((f) => f.id !== filterId);
+    
+    setDashboardFilters(newFilters);
     const newFilterValues = { ...filterValues };
     delete newFilterValues[filterId];
     setFilterValues(newFilterValues);
+
+    // 2. API Call
+    if (id) {
+      try {
+        await dashboardsApi.update(id, { filters: newFilters });
+        addToast("success", "Filter deleted");
+      } catch (error) {
+        // 3. Revert on error
+        console.error("Failed to delete filter:", error);
+        addToast("error", "Failed to delete filter");
+        setDashboardFilters(oldFilters); 
+        // Note: We don't necessarily need to revert filterValues since the filter is back, 
+        // but the value might be lost. That's acceptable for a revert scenario.
+      }
+    }
   };
 
   const handleSaveFilters = async (filters: DashboardFilter[]) => {
