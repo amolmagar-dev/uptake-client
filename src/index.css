@@ -1,2 +1,116 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@theme {
+  /* Dynamic Theme Variables */
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-tertiary: var(--color-bg-tertiary);
+  --color-bg-card: var(--color-bg-card);
+  --color-bg-elevated: var(--color-bg-elevated);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-secondary: var(--color-accent-secondary);
+  --color-accent-tertiary: var(--color-accent-tertiary);
+  --color-accent-warning: var(--color-accent-warning);
+  --color-accent-info: var(--color-accent-info);
+
+  --color-border: var(--color-border);
+  --color-border-hover: var(--color-border-hover);
+
+  --color-status-success: var(--color-success);
+  --color-status-error: var(--color-error);
+  --color-status-warning: var(--color-warning);
+
+  /* Map DaisyUI v5 variables to project variables */
+  --color-primary: var(--color-accent-primary);
+  --color-secondary: var(--color-accent-secondary);
+  --color-accent: var(--color-accent-tertiary);
+  --color-neutral: var(--color-bg-tertiary);
+  --color-base-100: var(--color-bg-primary);
+  --color-base-200: var(--color-bg-secondary);
+  --color-base-300: var(--color-bg-tertiary);
+  --color-info: var(--color-accent-info);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+
+  /* Fonts */
+  --font-primary: var(--font-primary);
+  --font-mono: var(--font-mono);
+
+  /* Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  /* Animations */
+  @keyframes slide-up {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  --animate-slide-up: slide-up 0.3s ease-out;
+}
+
+/* DaisyUI Configuration */
+/* DaisyUI v5 is automatically integrated with Tailwind v4 via @plugin */
+
+:root {
+  /* Default values to prevent unstyled flash */
+  --color-bg-primary: #0a0a0f;
+  --color-bg-secondary: #12121a;
+  --color-bg-tertiary: #1a1a25;
+  --color-bg-card: #16161f;
+  --color-bg-elevated: #1e1e2a;
+
+  --color-text-primary: #f0f0f5;
+  --color-text-secondary: #a0a0b0;
+  --color-text-muted: #606070;
+
+  --color-accent-primary: #00f5d4;
+  --color-accent-secondary: #7b2cbf;
+  --color-accent-tertiary: #ff6b6b;
+  --color-accent-warning: #ffd93d;
+  --color-accent-info: #4cc9f0;
+
+  --color-border: #2a2a3a;
+  --color-border-hover: #3a3a4a;
+
+  --color-success: #00f5a0;
+  --color-error: #ff4757;
+  --color-warning: #ffa502;
+
+  --font-primary: 'Outfit', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+/* Custom Utilities */
+@utility text-gradient {
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@utility spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-bg-tertiary);
+  border-top-color: var(--color-accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

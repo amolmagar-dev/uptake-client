@@ -397,11 +397,9 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
 export const applyTheme = (theme: Theme) => {
   const root = document.documentElement;
   
-  // Clean up any "data-theme" attribute as we're moving to direct property injection
-  // or keep it for backward compatibility if needed, but "light"/"dark" distinction is now fuzzy.
-  // We'll set it to 'light' if background is light-ish, 'dark' otherwise for general browser UI if needed.
-  const isLight = theme.colors.bg.primary === "#ffffff" || theme.colors.bg.primary.startsWith("#f");
-  root.setAttribute("data-theme", isLight ? "light" : "dark");
+  // Set data-theme for DaisyUI and other theme-aware components
+  // We use the theme ID directly, which allows DaisyUI built-in themes to work
+  root.setAttribute("data-theme", theme.id);
 
   const setProp = (name: string, value: string) => {
     root.style.setProperty(name, value);
