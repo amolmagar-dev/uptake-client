@@ -20,7 +20,6 @@ import {
   X,
   Sparkles,
 } from 'lucide-react';
-import { Button } from '../shared/components/ui/Button';
 import { Card } from '../shared/components/ui/Card';
 import { Input, Select } from '../shared/components/ui/Input';
 import { ChartRenderer } from '../components/charts/ChartRenderer';
