@@ -187,243 +187,166 @@ export const DashboardsPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
-        <div className="flex items-center justify-between py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Dashboards</h1>
-            <p className="text-text-secondary mt-1">Create and manage your data dashboards</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* View Toggle */}
-            <div className="flex items-center bg-bg-tertiary rounded-lg p-1 border border-border">
-              <button
-                onClick={() => setViewMode('vertical')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'vertical'
-                    ? 'bg-border text-accent-primary'
-                    : 'text-text-muted hover:text-text-secondary'
-                }`}
-                title="List View"
-              >
-                <List size={18} />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'grid'
-                    ? 'bg-border text-accent-primary'
-                    : 'text-text-muted hover:text-text-secondary'
-                }`}
-                title="Grid View"
-              >
-                <LayoutGrid size={18} />
-              </button>
-            </div>
-            <Button
-              leftIcon={<Plus size={18} />}
-              onClick={() => {
-                setEditingDashboard(null);
-                setShowModal(true);
-              }}
-            >
-              Create Dashboard
-            </Button>
-          </div>
+    <div className="p-6 lg:p-10 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboards</h1>
+          <p className="text-base-content/60 mt-1 text-sm">Create and manage your data dashboards</p>
         </div>
-
-        {/* Search Bar - part of sticky header */}
-        <div className="mt-4">
-          <div className="relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="text"
-              placeholder="Search dashboards by name, description, or creator..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-bg-tertiary border border-border rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-primary transition-colors"
-            />
+        <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="join bg-base-200 p-1">
+            <button
+              onClick={() => setViewMode('vertical')}
+              className={`btn btn-sm join-item ${viewMode === 'vertical' ? 'btn-active btn-primary' : 'btn-ghost'}`}
+              title="List View"
+            >
+              <List size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`btn btn-sm join-item ${viewMode === 'grid' ? 'btn-active btn-primary' : 'btn-ghost'}`}
+              title="Grid View"
+            >
+              <LayoutGrid size={18} />
+            </button>
           </div>
-          {searchQuery && (
-            <p className="text-xs text-text-muted mt-2">
-              Found {filteredDashboards.length} dashboard{filteredDashboards.length !== 1 ? 's' : ''}
-            </p>
-          )}
+          <button
+            className="btn btn-primary btn-sm md:btn-md"
+            onClick={() => {
+              setEditingDashboard(null);
+              setShowModal(true);
+            }}
+          >
+            <Plus size={18} />
+            <span className="hidden sm:inline">Create Dashboard</span>
+          </button>
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="max-w-2xl relative group">
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors" />
+        <input
+          type="text"
+          placeholder="Search dashboards by name, description, or creator..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="input input-bordered w-full pl-12 bg-base-100"
+        />
+      </div>
+
       {filteredDashboards.length === 0 ? (
-        <Card className="text-center py-12">
-          <LayoutDashboard size={48} className="mx-auto mb-4 text-text-muted" />
-          <h3 className="text-lg font-medium text-text-primary mb-2">
-            {searchQuery ? 'No dashboards found' : 'No dashboards yet'}
-          </h3>
-          <p className="text-text-secondary mb-4">
-            {searchQuery
-              ? `No dashboards match "${searchQuery}"`
-              : 'Create your first dashboard to organize your charts'
-            }
-          </p>
-          {!searchQuery && (
-            <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
-              Create Dashboard
-            </Button>
-          )}
-        </Card>
-      ) : (
-        <>
-        <div className={viewMode === 'vertical' 
-          ? 'flex flex-col gap-3' 
-          : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-        }>
-          {paginatedDashboards.map((dashboard) => (
-            <Card 
-              key={dashboard.id} 
-              hover 
-              className={viewMode === 'vertical' 
-                ? 'flex flex-row items-center justify-between p-4' 
-                : 'flex flex-col'
+        <div className="card bg-base-200 border border-base-300 text-center py-16">
+          <div className="card-body items-center">
+            <LayoutDashboard size={48} className="mb-4 opacity-20" />
+            <h3 className="text-xl font-bold">
+              {searchQuery ? 'No dashboards found' : 'No dashboards yet'}
+            </h3>
+            <p className="text-base-content/60 max-w-sm mb-6">
+              {searchQuery
+                ? `We couldn't find any dashboards matching "${searchQuery}"`
+                : 'Get started by creating your first dashboard to organize and visualize your data.'
               }
-            >
-              {viewMode === 'vertical' ? (
-                /* Vertical/List Layout */
-                <>
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 flex items-center justify-center flex-shrink-0">
-                      <Grid size={20} className="text-accent-primary" />
+            </p>
+            {!searchQuery && (
+              <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                <Plus size={18} />
+                Create Dashboard
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className={viewMode === 'vertical' 
+            ? 'grid gap-4' 
+            : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+          }>
+            {paginatedDashboards.map((dashboard) => (
+              <div 
+                key={dashboard.id} 
+                className={`card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm hover:shadow-md ${
+                  viewMode === 'vertical' ? 'card-side' : ''
+                }`}
+              >
+                <div className={`card-body ${viewMode === 'vertical' ? 'flex-row items-center gap-6 py-4' : 'p-6'}`}>
+                  {/* Icon & Title */}
+                  <div className={`flex items-center gap-4 ${viewMode === 'vertical' ? 'flex-1 min-w-0' : 'mb-4'}`}>
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Grid size={24} />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 
-                          className="font-semibold text-text-primary truncate cursor-pointer hover:text-accent-primary hover:underline transition-colors"
+                          className="card-title text-base hover:text-primary cursor-pointer truncate"
                           onClick={() => navigate(`/dashboard/${dashboard.id}`)}
                         >
                           {dashboard.name}
                         </h3>
                         {dashboard.is_public === 1 && (
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-accent-primary/10 text-accent-primary border border-accent-primary/20 flex-shrink-0">
-                            Public
-                          </span>
+                          <span className="badge badge-sm badge-outline badge-primary">Public</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-text-muted">
+                      <div className="flex items-center gap-2 text-xs opacity-60">
                         <span>{dashboard.chart_count} charts</span>
                         <span>•</span>
-                        <span>By {dashboard.created_by_name}</span>
-                        {dashboard.description && (
-                          <>
-                            <span>•</span>
-                            <span className="truncate max-w-xs">{dashboard.description}</span>
-                          </>
-                        )}
+                        <span className="truncate">By {dashboard.created_by_name}</span>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <FavoriteButton dashboard={dashboard} />
-                    <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingDashboard(dashboard);
-                        setShowModal(true);
-                      }}
-                      leftIcon={<Edit size={14} />}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteConfirm(dashboard.id)}
-                      className="text-status-error hover:text-status-error/80"
-                      leftIcon={<Trash2 size={14} />}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                /* Grid/Box Layout */
-                <>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 flex items-center justify-center">
-                        <Grid size={20} className="text-accent-primary" />
-                      </div>
-                      <div>
-                        <h3 
-                          className="font-semibold text-text-primary cursor-pointer hover:text-accent-primary hover:underline transition-colors"
-                          onClick={() => navigate(`/dashboard/${dashboard.id}`)}
-                        >
-                          {dashboard.name}
-                        </h3>
-                        <p className="text-xs text-text-muted">{dashboard.chart_count} charts</p>
-                      </div>
-                    </div>
-                    {dashboard.is_public === 1 && (
-                      <span className="px-2 py-0.5 text-xs rounded-full bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
-                        Public
-                      </span>
-                    )}
                   </div>
 
-                  {dashboard.description && (
-                    <p className="text-sm text-text-secondary mb-4 line-clamp-2">{dashboard.description}</p>
+                  {/* Description - only in grid view */}
+                  {viewMode === 'grid' && dashboard.description && (
+                    <p className="text-sm opacity-70 line-clamp-2 mb-6 h-10">{dashboard.description}</p>
                   )}
 
-                  <p className="text-xs text-text-muted mb-4">By {dashboard.created_by_name}</p>
-
-                  <div className="mt-auto flex gap-2 pt-4 border-t border-border">
-                    <FavoriteButton dashboard={dashboard} />
-                    <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingDashboard(dashboard);
-                        setShowModal(true);
-                      }}
-                      leftIcon={<Edit size={14} />}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteConfirm(dashboard.id)}
-                      className="text-status-error hover:text-status-error/80"
-                      leftIcon={<Trash2 size={14} />}
-                    >
-                      Delete
-                    </Button>
+                  {/* Actions */}
+                  <div className={`card-actions justify-end ${viewMode === 'vertical' ? '' : 'mt-auto pt-4 border-t border-base-200'}`}>
+                    <div className="flex items-center gap-1">
+                      <FavoriteButton dashboard={dashboard} />
+                      <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
+                      <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
+                          <MoreHorizontal size={18} />
+                        </div>
+                        <ul tabIndex={0} className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300">
+                          <li>
+                            <button onClick={() => { setEditingDashboard(dashboard); setShowModal(true); }}>
+                              <Edit size={14} /> Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button className="text-error" onClick={() => setDeleteConfirm(dashboard.id)}>
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-                </>
-              )}
-            </Card>
-          ))}
-        </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-            <p className="text-sm text-text-muted">
-              Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDashboards.length)} of {filteredDashboards.length}
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-secondary hover:text-text-primary hover:border-accent-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <div className="flex items-center gap-1">
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-base-300">
+              <p className="text-sm opacity-60">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDashboards.length)} of {filteredDashboards.length} dashboards
+              </p>
+              <div className="join shadow-sm">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="join-item btn btn-sm btn-square bg-base-200"
+                >
+                  <ChevronLeft size={18} />
+                </button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
                   .filter((page) => {
-                    // Show first, last, current, and adjacent pages
                     if (page === 1 || page === totalPages) return true;
                     if (Math.abs(page - currentPage) <= 1) return true;
                     return false;
@@ -431,33 +354,30 @@ export const DashboardsPage: React.FC = () => {
                   .map((page, idx, arr) => (
                     <React.Fragment key={page}>
                       {idx > 0 && arr[idx - 1] !== page - 1 && (
-                        <span className="text-text-muted px-1">...</span>
+                        <button disabled className="join-item btn btn-sm btn-disabled">...</button>
                       )}
                       <button
                         onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === page
-                            ? 'bg-accent-primary text-bg-primary'
-                            : 'bg-bg-tertiary border border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'
-                        }`}
+                        className={`join-item btn btn-sm ${currentPage === page ? 'btn-primary' : 'bg-base-200'}`}
                       >
                         {page}
                       </button>
                     </React.Fragment>
                   ))}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="join-item btn btn-sm btn-square bg-base-200"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-secondary hover:text-text-primary hover:border-accent-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-              <ChevronRight size={18} />
-              </button>
             </div>
-          </div>
-        )}
-      </>
+          )}
+        </div>
       )}
+
+      {/* Modals stay same... */}
 
       <DashboardModal
         isOpen={showModal}
@@ -1114,7 +1034,7 @@ export const DashboardViewPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col relative">
+    <div className="h-full flex flex-col relative bg-base-100 overflow-hidden">
       {/* Filters Sidebar - at root level, fixed position */}
       <FiltersSidebar
         isOpen={filtersOpen}
@@ -1130,99 +1050,112 @@ export const DashboardViewPage: React.FC = () => {
       />
 
       {/* Main wrapper with left margin for sidebar */}
-      <div className={`flex-1 flex flex-col ${filtersOpen ? 'ml-72' : 'ml-10'} transition-all duration-200`}>
+      <div className={`flex-1 flex flex-col ${filtersOpen ? "ml-72" : "ml-10"} transition-all duration-200 h-full overflow-hidden`}>
         {/* Fixed Header */}
-        <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-2 px-6 pt-0 border-b border-border">
-          <div className="flex items-center justify-between py-2">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-text-primary">{dashboard.name}</h1>
-                {dashboard.description && <p className="text-text-secondary mt-1 text-sm">{dashboard.description}</p>}
-              </div>
+        <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300">
+          <div className="flex-1 gap-4">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+              <LayoutDashboard size={20} />
             </div>
-            <div className="flex items-center gap-3">
-              {/* More Options Dropdown */}
-              {!isEditMode && (
-                <MoreOptionsDropdown
-                  onRefresh={handleManualRefresh}
-                  isRefreshing={isRefreshing}
-                  lastRefresh={lastRefresh}
-                  autoRefresh={autoRefresh}
-                  setAutoRefresh={setAutoRefresh}
-                  refreshInterval={refreshInterval}
-                  setRefreshInterval={setRefreshInterval}
-                />
-              )}
-
-              {isEditMode ? (
-                /* Edit Mode: Exit button */
-                <button
-                  onClick={() => navigate(`/dashboard/${id}`)}
-                  className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"
-                  title="Exit Edit Mode"
-                >
-                  <X size={20} />
-                </button>
-              ) : (
-                /* View Mode: Edit dashboard button */
-                <Button
-                  onClick={() => navigate(`/dashboard/${id}/edit`)}
-                  leftIcon={<Edit size={16} />}
-                >
-                  Edit dashboard
-                </Button>
+            <div>
+              <h1 className="text-lg font-bold leading-tight">{dashboard.name}</h1>
+              {dashboard.description && (
+                <p className="opacity-50 text-[10px] uppercase tracking-wider font-bold truncate max-w-md">
+                  {dashboard.description}
+                </p>
               )}
             </div>
           </div>
+          
+          <div className="flex-none gap-2">
+            {!isEditMode && (
+              <MoreOptionsDropdown
+                onRefresh={handleManualRefresh}
+                isRefreshing={isRefreshing}
+                lastRefresh={lastRefresh}
+                autoRefresh={autoRefresh}
+                setAutoRefresh={setAutoRefresh}
+                refreshInterval={refreshInterval}
+                setRefreshInterval={setRefreshInterval}
+              />
+            )}
+
+            {isEditMode ? (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => navigate(`/dashboard/${id}`)}
+              >
+                <X size={16} />
+                <span className="hidden sm:inline">Exit Edit Mode</span>
+              </button>
+            ) : (
+              <button 
+                className="btn btn-primary btn-sm" 
+                onClick={() => navigate(`/dashboard/${id}/edit`)}
+              >
+                <Edit size={16} />
+                <span className="hidden sm:inline">Edit dashboard</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex">
-          {/* Dashboard Content - constrain width properly for edit sidebar */}
-          <div 
-            className="flex-1 transition-all duration-200 px-6"
-            style={{ 
-              width: isEditMode ? 'calc(100% - 320px)' : '100%',
-              maxWidth: isEditMode ? 'calc(100% - 320px)' : '100%'
+        {/* Main Content Area - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div
+            className="transition-all duration-200 p-6"
+            style={{
+              width: isEditMode ? "calc(100% - 320px)" : "100%",
             }}
           >
             {dashboard.charts && dashboard.charts.length > 0 ? (
-            <div className="dashboard-grid py-4" style={{ width: '100%' }}>
+              <div className="dashboard-grid w-full">
+                <ResponsiveGridLayout
+                  key={`grid-${isEditMode ? "edit" : "view"}-${filtersOpen ? "filters" : "nofilters"}`}
+                  className="layout"
+                  layouts={layouts}
+                  breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
+                  cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
+                  rowHeight={100}
+                  onLayoutChange={isEditMode ? handleLayoutChange : undefined}
+                  isDraggable={isEditMode}
+                  isResizable={isEditMode}
+                  useCSSTransforms={true}
+                  compactType="vertical"
+                  preventCollision={false}
+                >
+                  {dashboard.charts.map((item) => {
+                    const itemId = item.component_id || item.chart_id;
+                    const data = filteredChartData.find((d) => d.chartId === itemId);
+                    const itemHeight = (item.height || 4) * 100 - 50;
 
+                    if (item.type === "component" || item.component_id) {
+                      return (
+                        <div key={item.id} className="grid-item">
+                          <DraggableComponent
+                            id={item.id}
+                            name={item.name}
+                            htmlContent={item.html_content || ""}
+                            cssContent={item.css_content}
+                            jsContent={item.js_content}
+                            data={data?.data}
+                            error={data?.error}
+                            onRemove={isEditMode ? handleRemoveChart : undefined}
+                            onSettings={isEditMode ? handleChartSettings : undefined}
+                            height={itemHeight}
+                          />
+                        </div>
+                      );
+                    }
 
-              <ResponsiveGridLayout
-                key={`grid-${isEditMode ? 'edit' : 'view'}-${filtersOpen ? 'filters' : 'nofilters'}`}
-                className="layout"
-                layouts={layouts}
-                breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
-                cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
-                rowHeight={100}
-                onLayoutChange={isEditMode ? handleLayoutChange : undefined}
-                isDraggable={isEditMode}
-                isResizable={isEditMode}
-                useCSSTransforms={true}
-                compactType="vertical"
-                preventCollision={false}
-              >
-
-
-                {dashboard.charts.map((item) => {
-                  // Find data - for components, look up by component_id; for charts, by chart_id
-                  const itemId = item.component_id || item.chart_id;
-                  const data = filteredChartData.find((d) => d.chartId === itemId);
-                  const itemHeight = (item.height || 4) * 100 - 50;
-                  
-                  // Render custom component
-                  if (item.type === 'component' || item.component_id) {
                     return (
                       <div key={item.id} className="grid-item">
-                        <DraggableComponent
+                        <DraggableChart
                           id={item.id}
                           name={item.name}
-                          htmlContent={item.html_content || ''}
-                          cssContent={item.css_content}
-                          jsContent={item.js_content}
+                          chartType={item.chart_type || "bar"}
                           data={data?.data}
+                          config={data?.config || item.config}
                           error={data?.error}
                           onRemove={isEditMode ? handleRemoveChart : undefined}
                           onSettings={isEditMode ? handleChartSettings : undefined}
@@ -1230,175 +1163,119 @@ export const DashboardViewPage: React.FC = () => {
                         />
                       </div>
                     );
-                  }
-                  
-                  // Render chart
-                  return (
-                    <div key={item.id} className="grid-item">
-                      <DraggableChart
-                        id={item.id}
-                        name={item.name}
-                        chartType={item.chart_type || 'bar'}
-                        data={data?.data}
-                        config={data?.config || item.config}
-                        error={data?.error}
-                        onRemove={isEditMode ? handleRemoveChart : undefined}
-                        onSettings={isEditMode ? handleChartSettings : undefined}
-                        height={itemHeight}
-                      />
-                    </div>
-                  );
-                })}
-              </ResponsiveGridLayout>
-            </div>
-          ) : (
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center py-24">
-              <LayoutDashboard size={64} className="mb-6 text-text-muted" />
-              <h3 className="text-lg font-medium text-text-secondary mb-2">
-                There are no charts added to this dashboard
-              </h3>
-              <p className="text-sm text-text-muted mb-6">
-                {isEditMode 
-                  ? 'You can create a new chart or use existing ones from the panel on the right'
-                  : 'Go to the edit mode to configure the dashboard and add charts'
-                }
-              </p>
-              {!isEditMode && (
-                <Button 
-                  onClick={() => navigate(`/dashboard/${id}/edit`)}
-                  leftIcon={<Edit size={16} />}
-                >
-                  Edit the dashboard
-                </Button>
-              )}
-              {isEditMode && (
-                <Button
-                  onClick={() => navigate('/charts')}
-                  leftIcon={<Plus size={16} />}
-                >
-                  Create a new chart
-                </Button>
-              )}
-            </div>
-          )}
+                  })}
+                </ResponsiveGridLayout>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-32 opacity-20">
+                <LayoutDashboard size={80} className="mb-6" />
+                <h3 className="text-2xl font-bold mb-2">Empty Dashboard</h3>
+                <p className="max-w-md text-center mb-8">
+                  {isEditMode
+                    ? "Add charts or components from the right panel to build your dashboard."
+                    : "This dashboard doesn't have any content yet. Click edit to add some."}
+                </p>
+                {!isEditMode && (
+                  <button className="btn btn-primary" onClick={() => navigate(`/dashboard/${id}/edit`)}>
+                    <Edit size={18} /> Edit Dashboard
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Sidebar Panel - Only in Edit Mode */}
-        {/* Right Sidebar Panel - Only in Edit Mode */}
         {isEditMode && (
-          <div className="fixed right-0 top-[73px] bottom-0 w-80 bg-bg-secondary border-l border-border flex flex-col z-40">
-            {/* Sidebar Header with Close Button */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <span className="text-sm font-medium text-text-primary">Edit Mode</span>
+          <div className="fixed right-0 top-16 bottom-0 w-80 bg-base-200 border-l border-base-300 flex flex-col z-40 animate-in slide-in-from-right duration-300">
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between px-4 py-4 border-b border-base-300">
+              <span className="font-bold">Dashboard Editor</span>
               <button
                 onClick={() => navigate(`/dashboard/${id}`)}
-                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors"
-                title="Exit Edit Mode"
+                className="btn btn-ghost btn-sm btn-square"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Tabs Header */}
-            <div className="flex border-b border-border">
+            <div className="tabs tabs-lifted w-full">
               <button
                 onClick={() => setDrawerTab('charts')}
-                className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${
-                  drawerTab === 'charts'
-                    ? 'text-accent-primary border-accent-primary'
-                    : 'text-text-muted border-transparent hover:text-text-secondary'
-                }`}
+                className={`tab flex-1 ${drawerTab === 'charts' ? 'tab-active' : ''}`}
               >
                 Charts
               </button>
               <button
                 onClick={() => setDrawerTab('components')}
-                className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${
-                  drawerTab === 'components'
-                    ? 'text-accent-secondary border-accent-secondary'
-                    : 'text-text-muted border-transparent hover:text-text-secondary'
-                }`}
+                className={`tab flex-1 ${drawerTab === 'components' ? 'tab-active' : ''}`}
               >
                 Components
               </button>
             </div>
 
-            {/* Create New Link */}
-            <div className="px-4 py-3 border-b border-border">
-              <button
-                onClick={() => navigate(drawerTab === 'charts' ? '/charts' : '/components')}
-                className="flex items-center gap-2 text-sm text-accent-primary hover:text-accent-primary/80 transition-colors"
-              >
-                <Plus size={16} />
-                Create new {drawerTab === 'charts' ? 'chart' : 'component'}
-              </button>
-            </div>
-
-            {/* Search */}
-            <div className="px-4 py-3 border-b border-border">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-                <input
-                  type="text"
-                  placeholder={`Filter your ${drawerTab}...`}
-                  value={drawerSearch}
-                  onChange={(e) => setDrawerSearch(e.target.value)}
-                  className="w-full pl-8 pr-4 py-2 bg-bg-tertiary border border-border rounded text-text-primary text-sm placeholder-text-muted focus:outline-none focus:border-accent-primary transition-colors"
-                />
+            <div className="flex-1 flex flex-col min-h-0 bg-base-100">
+              {/* Create New Link */}
+              <div className="p-4 border-b border-base-200">
+                <button
+                  onClick={() => navigate(drawerTab === 'charts' ? '/charts' : '/components')}
+                  className="btn btn-outline btn-primary btn-sm btn-block gap-2"
+                >
+                  <Plus size={16} />
+                  New {drawerTab === 'charts' ? 'Chart' : 'Component'}
+                </button>
               </div>
-            </div>
 
-            {/* Items List */}
-            <div className="flex-1 overflow-y-auto">
-              {drawerTab === 'charts' ? (
-                filteredCharts.length === 0 ? (
-                  <p className="text-sm text-text-muted text-center py-8">
-                    {drawerSearch ? 'No charts match your search' : 'No charts available'}
-                  </p>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {filteredCharts.map((chart) => (
-                      <button
-                        key={chart.id}
-                        onClick={() => handleAddChart(chart.id)}
-                        className="w-full px-4 py-3 hover:bg-bg-tertiary transition-colors text-left"
-                      >
-                        <h5 className="font-medium text-text-primary text-sm">{chart.name}</h5>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
-                          <span>Viz type: {chart.chart_type}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )
-              ) : (
-                filteredComponents.length === 0 ? (
-                  <p className="text-sm text-text-muted text-center py-8">
-                    {drawerSearch ? 'No components match your search' : 'No components available'}
-                  </p>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {filteredComponents.map((comp) => (
-                      <button
-                        key={comp.id}
-                        onClick={() => handleAddComponent(comp.id)}
-                        className="w-full px-4 py-3 hover:bg-bg-tertiary transition-colors text-left"
-                      >
-                        <h5 className="font-medium text-text-primary text-sm">{comp.name}</h5>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
-                          <span>Custom Component</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )
-              )}
+              {/* Search */}
+              <div className="p-4 bg-base-200/50">
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
+                  <input
+                    type="text"
+                    placeholder={`Search ${drawerTab}...`}
+                    value={drawerSearch}
+                    onChange={(e) => setDrawerSearch(e.target.value)}
+                    className="input input-bordered input-sm w-full pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Items List */}
+              <div className="flex-1 overflow-y-auto">
+                <ul className="menu menu-md p-2">
+                  {drawerTab === 'charts' ? (
+                    filteredCharts.length === 0 ? (
+                      <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
+                    ) : (
+                      filteredCharts.map((chart) => (
+                        <li key={chart.id}>
+                          <button onClick={() => handleAddChart(chart.id)} className="flex flex-col items-start gap-0.5">
+                            <span className="font-medium">{chart.name}</span>
+                            <span className="text-[10px] opacity-50 uppercase tracking-tight">{chart.chart_type}</span>
+                          </button>
+                        </li>
+                      ))
+                    )
+                  ) : (
+                    filteredComponents.length === 0 ? (
+                      <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
+                    ) : (
+                      filteredComponents.map((comp) => (
+                        <li key={comp.id}>
+                          <button onClick={() => handleAddComponent(comp.id)}>
+                            <span className="font-medium">{comp.name}</span>
+                          </button>
+                        </li>
+                      ))
+                    )
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
         )}
       </div>
-    </div>
 
       {/* Chart Dimensions Settings Modal */}
       <Modal

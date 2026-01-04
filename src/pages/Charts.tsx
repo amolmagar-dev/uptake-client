@@ -109,89 +109,93 @@ export const ChartsPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
-        <div className="flex items-center justify-between py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Charts</h1>
-            <p className="text-text-secondary mt-1">Create and manage data visualizations</p>
-          </div>
-          <Button
-            leftIcon={<Plus size={18} />}
-            onClick={() => {
-              setEditingChart(null);
-              setShowModal(true);
-            }}
-          >
-            Create Chart
-          </Button>
+    <div className="p-6 lg:p-10 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Charts</h1>
+          <p className="text-base-content/60 mt-1 text-sm">Create and manage data visualizations</p>
         </div>
+        <button
+          className="btn btn-primary btn-sm md:btn-md"
+          onClick={() => {
+            setEditingChart(null);
+            setShowModal(true);
+          }}
+        >
+          <Plus size={18} />
+          <span>Create Chart</span>
+        </button>
       </div>
 
       {charts.length === 0 ? (
-        <Card className="text-center py-12">
-          <BarChart3 size={48} className="mx-auto mb-4 text-text-muted" />
-          <h3 className="text-lg font-medium text-text-primary mb-2">No charts yet</h3>
-          <p className="text-text-secondary mb-4">Create your first chart to visualize your data</p>
-          <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
-            Create Chart
-          </Button>
-        </Card>
+        <div className="card bg-base-200 border border-base-300 text-center py-16">
+          <div className="card-body items-center">
+            <BarChart3 size={48} className="mb-4 opacity-20" />
+            <h3 className="text-xl font-bold">No charts yet</h3>
+            <p className="text-base-content/60 max-w-sm mb-6">
+              Create your first chart to visualize your data and gain insights.
+            </p>
+            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+              <Plus size={18} />
+              Create Chart
+            </button>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {charts.map((chart) => (
-            <Card key={chart.id} hover className="flex flex-col">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{getChartIcon(chart.chart_type)}</span>
-                  <div>
-                    <h3 className="font-semibold text-text-primary">{chart.name}</h3>
-                    <p className="text-xs text-text-muted">{chart.chart_type}</p>
+            <div key={chart.id} className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm">
+              <div className="card-body p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl shrink-0">{getChartIcon(chart.chart_type)}</span>
+                    <div className="min-w-0">
+                      <h3 className="card-title text-base truncate">{chart.name}</h3>
+                      <p className="text-xs opacity-60 uppercase font-bold tracking-tight">{chart.chart_type}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {chart.description && (
+                  <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">{chart.description}</p>
+                )}
+                
+                <div className="flex items-center gap-1 text-xs opacity-50 mb-6">
+                  <Layers size={14} />
+                  <span className="truncate">{chart.dataset_name || chart.connection_name || 'No data source'}</span>
+                </div>
+
+                <div className="card-actions justify-end mt-auto pt-4 border-t border-base-200">
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="btn btn-ghost btn-sm btn-square"
+                      onClick={() => handlePreview(chart)}
+                      title="Preview"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-square"
+                      onClick={() => {
+                        setEditingChart(chart);
+                        setShowModal(true);
+                      }}
+                      title="Edit"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-square text-error"
+                      onClick={() => setDeleteConfirm(chart.id)}
+                      title="Delete"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </div>
               </div>
-              
-              {chart.description && (
-                <p className="text-sm text-text-secondary mb-4 line-clamp-2">{chart.description}</p>
-              )}
-              
-              <p className="text-xs text-text-muted mb-4 flex items-center gap-1">
-                <Layers size={12} />
-                {chart.dataset_name || chart.connection_name || 'No data source'}
-              </p>
-
-              <div className="mt-auto flex gap-2 pt-4 border-t border-border">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handlePreview(chart)}
-                  leftIcon={<Eye size={14} />}
-                >
-                  Preview
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingChart(chart);
-                    setShowModal(true);
-                  }}
-                  leftIcon={<Edit size={14} />}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteConfirm(chart.id)}
-                  className="text-status-error hover:text-status-error/80"
-                  leftIcon={<Trash2 size={14} />}
-                >
-                  Delete
-                </Button>
-              </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}

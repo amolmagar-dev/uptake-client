@@ -25,18 +25,18 @@ export const SQLEditorPage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col">
-      {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
-        <div className="py-4">
-          <h1 className="text-2xl font-bold text-text-primary">SQL Editor</h1>
-          <p className="text-text-secondary mt-1">
-            Write and execute SQL queries • Press <kbd className="px-2 py-0.5 rounded bg-bg-tertiary text-accent-primary text-xs">Ctrl + Enter</kbd> to run
+    <div className="h-full flex flex-col p-6 lg:p-10 space-y-8 overflow-hidden">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+        <div>
+          <h1 className="text-3xl font-bold">SQL Editor</h1>
+          <p className="text-base-content/60 mt-1 text-sm">
+            Write and execute SQL queries • Press <kbd className="kbd kbd-sm font-sans">Ctrl + Enter</kbd> to run
           </p>
         </div>
       </div>
 
-      <div className="bg-bg-secondary border border-border rounded-xl p-6 h-[calc(100%-80px)]">
+      <div className="flex-1 bg-base-200 border border-base-300 rounded-2xl overflow-hidden shadow-inner">
         <SQLEditor onSave={handleSaveQuery} />
       </div>
     </div>

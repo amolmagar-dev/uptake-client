@@ -1,7 +1,5 @@
 import React from "react";
-import { useThemeStore, presets, type Theme } from "../../store/themeStore";
-import { Card } from "../../shared/components/ui/Card";
-import { Button } from "../../shared/components/ui/Button";
+import { useThemeStore, daisyThemes } from "../../store/themeStore";
 import { Type } from "lucide-react";
 
 export const ThemeSettings: React.FC = () => {
@@ -10,27 +8,51 @@ export const ThemeSettings: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-medium text-text-primary mb-4">Theme Presets</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {presets.map((theme) => (
-            <ThemeCard
+        <h3 className="text-lg font-medium text-base-content mb-4">DaisyUI Themes</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {daisyThemes.map((theme) => (
+            <button
               key={theme.id}
-              theme={theme}
-              isActive={currentThemeId === theme.id}
+              data-theme={theme.id}
               onClick={() => setTheme(theme.id)}
-            />
+              className={`
+                group relative flex flex-col gap-2 p-3 rounded-xl border-2 transition-all
+                ${currentThemeId === theme.id 
+                  ? "border-primary bg-primary/10" 
+                  : "border-base-300 bg-base-100 hover:border-primary/50"
+                }
+              `}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider truncate">
+                  {theme.name}
+                </span>
+                {currentThemeId === theme.id && (
+                  <div className="w-2 h-2 rounded-full bg-primary" />
+                )}
+              </div>
+              
+              <div className="flex -space-x-2">
+                <div className="h-6 w-6 rounded-full bg-primary border-2 border-base-100" />
+                <div className="h-6 w-6 rounded-full bg-secondary border-2 border-base-100" />
+                <div className="h-6 w-6 rounded-full bg-accent border-2 border-base-100" />
+                <div className="h-6 w-6 rounded-full bg-neutral border-2 border-base-100" />
+              </div>
+
+              {/* Theme Preview Colors */}
+              <div className="grid grid-cols-4 gap-1 h-2 w-full mt-1 rounded-full overflow-hidden">
+                <div className="bg-primary" />
+                <div className="bg-secondary" />
+                <div className="bg-accent" />
+                <div className="bg-neutral" />
+              </div>
+            </button>
           ))}
         </div>
       </div>
 
-      {currentThemeId === "custom" && (
-        <div className="p-4 rounded-lg bg-bg-elevated border border-border">
-          <p className="text-text-muted">Custom theme editor coming soon...</p>
-        </div>
-      )}
-
       <div>
-        <h3 className="text-lg font-medium text-text-primary mb-4">Typography</h3>
+        <h3 className="text-lg font-medium text-base-content mb-4">Typography</h3>
         <FontSelector />
       </div>
     </div>
@@ -42,7 +64,7 @@ const FontSelector: React.FC = () => {
   
   const fonts = [
     { id: "system", name: "System UI", desc: "Native & Fast" },
-    { id: "outfit", name: "Outfit", desc: "Modern & Geomeric" },
+    { id: "outfit", name: "Outfit", desc: "Modern & Geometric" },
     { id: "inter", name: "Inter", desc: "Clean & Neutral" },
     { id: "serif", name: "Serif", desc: "Elegant" },
     { id: "mono", name: "Monospace", desc: "Technical" },
@@ -87,88 +109,34 @@ const FontCard: React.FC<FontCardProps> = ({ id, name, description, isActive, on
     <button
       onClick={onClick}
       className={`
-        w-full text-left p-4 rounded-xl border transition-all duration-200 group
+        w-full text-left p-4 rounded-xl border-2 transition-all
         ${
           isActive
-            ? "border-accent-primary ring-1 ring-accent-primary bg-bg-elevated"
-            : "border-border hover:border-border-hover bg-bg-card hover:bg-bg-elevated"
+            ? "border-primary bg-primary/5"
+            : "border-base-300 bg-base-100 hover:border-primary/30"
         }
       `}
     >
       <div className="flex items-center justify-between mb-2">
-        <div className="p-2 rounded-lg bg-bg-tertiary text-text-secondary group-hover:text-accent-primary transition-colors">
+        <div className={`p-2 rounded-lg bg-base-200 ${isActive ? "text-primary" : "text-base-content/60"}`}>
           <Type size={16} />
         </div>
         {isActive && (
-          <div className="w-2 h-2 rounded-full bg-accent-primary shadow-[0_0_8px_var(--color-accent-primary)]" />
+          <div className="w-2 h-2 rounded-full bg-primary" />
         )}
       </div>
       
       <div style={{ fontFamily: getPreviewFont(id) }}>
-        <div className={`font-medium mb-0.5 ${isActive ? "text-accent-primary" : "text-text-primary"}`}>
+        <div className={`font-medium mb-0.5 ${isActive ? "text-primary" : "text-base-content"}`}>
           {name}
         </div>
-        <div className="text-xs text-text-muted">
+        <div className="text-xs text-base-content/60">
           {description}
         </div>
       </div>
       
       <div className="mt-3 text-lg opacity-80" style={{ fontFamily: getPreviewFont(id) }}>
         Ag
-      </div>
-    </button>
-  );
-};
-
-interface ThemeCardProps {
-  theme: Theme;
-  isActive: boolean;
-  onClick: () => void;
-}
-
-const ThemeCard: React.FC<ThemeCardProps> = ({ theme, isActive, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        w-full text-left p-4 rounded-xl border transition-all duration-200
-        ${
-          isActive
-            ? "border-accent-primary ring-1 ring-accent-primary bg-bg-elevated"
-            : "border-border hover:border-border-hover bg-bg-card hover:bg-bg-elevated"
-        }
-      `}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <span className={`font-medium ${isActive ? "text-accent-primary" : "text-text-primary"}`}>
-          {theme.name}
-        </span>
-        {isActive && (
-          <div className="w-2 h-2 rounded-full bg-accent-primary shadow-[0_0_8px_var(--color-accent-primary)]" />
-        )}
-      </div>
-
-      <div className="flex gap-2 mb-2">
-        <div
-          className="w-8 h-8 rounded-full border border-border/10"
-          style={{ backgroundColor: theme.colors.bg.primary }}
-          title="Background Primary"
-        />
-        <div
-          className="w-8 h-8 rounded-full border border-border/10"
-          style={{ backgroundColor: theme.colors.bg.secondary }}
-          title="Background Secondary"
-        />
-        <div
-          className="w-8 h-8 rounded-full border border-border/10"
-          style={{ backgroundColor: theme.colors.accent.primary }}
-          title="Accent Primary"
-        />
-        <div
-          className="w-8 h-8 rounded-full border border-border/10"
-          style={{ backgroundColor: theme.colors.text.primary }}
-          title="Text Primary"
-        />
       </div>
     </button>
   );

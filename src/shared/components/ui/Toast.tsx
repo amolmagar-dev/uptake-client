@@ -5,54 +5,45 @@ import { useAppStore } from '../../../store/appStore';
 export const ToastContainer: React.FC = () => {
   const { toasts, removeToast } = useAppStore();
 
+  const getAlertClass = (type: string) => {
+    switch (type) {
+      case "success":
+        return "alert-success";
+      case "error":
+        return "alert-error";
+      case "warning":
+        return "alert-warning";
+      case "info":
+        return "alert-info";
+      default:
+        return "alert-neutral";
+    }
+  };
+
   const getIcon = (type: string) => {
     switch (type) {
-      case 'success':
-        return <CheckCircle size={20} className="text-status-success" />;
-      case 'error':
-        return <AlertCircle size={20} className="text-status-error" />;
-      case 'warning':
-        return <AlertTriangle size={20} className="text-status-warning" />;
-      case 'info':
-        return <Info size={20} className="text-accent-info" />;
+      case "success":
+        return <CheckCircle size={20} />;
+      case "error":
+        return <AlertCircle size={20} />;
+      case "warning":
+        return <AlertTriangle size={20} />;
+      case "info":
+        return <Info size={20} />;
       default:
         return null;
     }
   };
 
-  const getBorderColor = (type: string) => {
-    switch (type) {
-      case 'success':
-        return 'border-l-status-success';
-      case 'error':
-        return 'border-l-status-error';
-      case 'warning':
-        return 'border-l-status-warning';
-      case 'info':
-        return 'border-l-accent-info';
-      default:
-        return 'border-l-border';
-    }
-  };
-
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3">
+    <div className="toast toast-end toast-bottom z-[9999]">
       {toasts.map((toast) => (
-        <div
-          key={toast.id}
-          className={`
-            flex items-center gap-3 px-4 py-3
-            bg-bg-elevated border border-border rounded-lg
-            border-l-4 ${getBorderColor(toast.type)}
-            shadow-lg animate-slide-up
-            min-w-[300px] max-w-[400px]
-          `}
-        >
+        <div key={toast.id} className={`alert shadow-lg ${getAlertClass(toast.type)} animate-slide-up`}>
           {getIcon(toast.type)}
-          <p className="flex-1 text-sm text-text-primary">{toast.message}</p>
+          <span className="flex-1 text-sm">{toast.message}</span>
           <button
             onClick={() => removeToast(toast.id)}
-            className="text-text-muted hover:text-text-secondary transition-colors"
+            className="btn btn-ghost btn-xs btn-circle"
           >
             <X size={16} />
           </button>

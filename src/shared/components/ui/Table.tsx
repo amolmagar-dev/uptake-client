@@ -38,7 +38,7 @@ export function Table<T extends Record<string, any>>({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="spinner" />
+        <span className="loading loading-spinner loading-lg text-primary" />
       </div>
     );
   }

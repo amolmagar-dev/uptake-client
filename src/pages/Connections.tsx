@@ -1,16 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Database, Trash2, Edit, RefreshCw, CheckCircle, XCircle, Table, Globe, FileSpreadsheet } from 'lucide-react';
-import { Button } from '../shared/components/ui/Button';
-import { Card } from '../shared/components/ui/Card';
-import { Input, Select, Textarea } from '../shared/components/ui/Input';
-import { Modal, ConfirmModal } from '../shared/components/ui/Modal';
-import { connectionsApi, type ConnectionInput, type ApiConfig, type GoogleSheetsConfig } from '../lib/api';
-import { useAppStore } from '../store/appStore';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Database,
+  Trash2,
+  Edit,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  Table,
+  Globe,
+  FileSpreadsheet,
+  MoreHorizontal,
+} from "lucide-react";
+import { Button } from "../shared/components/ui/Button";
+import { Card } from "../shared/components/ui/Card";
+import { Input, Select, Textarea } from "../shared/components/ui/Input";
+import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
+import { connectionsApi, type ConnectionInput, type ApiConfig, type GoogleSheetsConfig } from "../lib/api";
+import { useAppStore } from "../store/appStore";
 
 interface Connection {
   id: string;
   name: string;
-  type: ConnectionInput['type'];
+  type: ConnectionInput["type"];
   host?: string;
   port?: number;
   database_name?: string;
@@ -44,7 +56,7 @@ export const ConnectionsPage: React.FC = () => {
       setLocalConnections(response.data.connections);
       setConnections(response.data.connections);
     } catch (error) {
-      addToast('error', 'Failed to fetch connections');
+      addToast("error", "Failed to fetch connections");
     } finally {
       setIsLoading(false);
     }
@@ -58,14 +70,11 @@ export const ConnectionsPage: React.FC = () => {
     setTestingId(id);
     try {
       const response = await connectionsApi.test(id);
-      setTestResults(prev => ({ ...prev, [id]: response.data.success }));
-      addToast(
-        response.data.success ? 'success' : 'error',
-        response.data.message
-      );
+      setTestResults((prev) => ({ ...prev, [id]: response.data.success }));
+      addToast(response.data.success ? "success" : "error", response.data.message);
     } catch (error: any) {
-      setTestResults(prev => ({ ...prev, [id]: false }));
-      addToast('error', 'Connection test failed');
+      setTestResults((prev) => ({ ...prev, [id]: false }));
+      addToast("error", "Connection test failed");
     } finally {
       setTestingId(null);
     }
@@ -74,18 +83,18 @@ export const ConnectionsPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await connectionsApi.delete(id);
-      addToast('success', 'Connection deleted');
+      addToast("success", "Connection deleted");
       fetchConnections();
     } catch (error) {
-      addToast('error', 'Failed to delete connection');
+      addToast("error", "Failed to delete connection");
     } finally {
       setDeleteConfirm(null);
     }
   };
 
   const handleExpand = async (id: string, type: string) => {
-    if (['api', 'googlesheet'].includes(type)) return; // No tables for these types
-    
+    if (["api", "googlesheet"].includes(type)) return; // No tables for these types
+
     if (expandedConnection === id) {
       setExpandedConnection(null);
       setTables([]);
@@ -98,36 +107,36 @@ export const ConnectionsPage: React.FC = () => {
       const response = await connectionsApi.getTables(id);
       setTables(response.data.tables);
     } catch (error) {
-      addToast('error', 'Failed to fetch tables');
+      addToast("error", "Failed to fetch tables");
     } finally {
       setLoadingTables(false);
     }
   };
 
   const getConnectionIcon = (type: string) => {
-    if (type === 'api') return Globe;
-    if (type === 'googlesheet') return FileSpreadsheet;
+    if (type === "api") return Globe;
+    if (type === "googlesheet") return FileSpreadsheet;
     return Database;
   };
 
   const getConnectionColor = (type: string) => {
     const colors: Record<string, string> = {
-      postgresql: '#336791',
-      postgres: '#336791',
-      mysql: '#4479A1',
-      mariadb: '#003545',
-      api: '#00f5d4',
-      googlesheet: '#34a853',
+      postgresql: "#336791",
+      postgres: "#336791",
+      mysql: "#4479A1",
+      mariadb: "#003545",
+      api: "#00f5d4",
+      googlesheet: "#34a853",
     };
-    return colors[type.toLowerCase()] || '#00f5d4';
+    return colors[type.toLowerCase()] || "#00f5d4";
   };
 
   const getConnectionDescription = (conn: Connection) => {
-    if (conn.type === 'api') {
-      return `REST API • ${conn.config?.url || 'No URL'}`;
+    if (conn.type === "api") {
+      return `REST API • ${conn.config?.url || "No URL"}`;
     }
-    if (conn.type === 'googlesheet') {
-      return `Google Sheets • ${conn.config?.spreadsheet_id?.substring(0, 20) || 'No ID'}...`;
+    if (conn.type === "googlesheet") {
+      return `Google Sheets • ${conn.config?.spreadsheet_id?.substring(0, 20) || "No ID"}...`;
     }
     return `${conn.type} • ${conn.host}:${conn.port} • ${conn.database_name}`;
   };
@@ -141,135 +150,149 @@ export const ConnectionsPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
-        <div className="flex items-center justify-between py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Connections</h1>
-            <p className="text-text-secondary mt-1">Manage databases, APIs, and data sources</p>
-          </div>
-          <Button
-            leftIcon={<Plus size={18} />}
-            onClick={() => {
-              setEditingConnection(null);
-              setShowModal(true);
-            }}
-          >
-            Add Connection
-          </Button>
+    <div className="p-6 lg:p-10 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Connections</h1>
+          <p className="text-base-content/60 mt-1 text-sm">Manage databases, APIs, and data sources</p>
         </div>
+        <button
+          className="btn btn-primary btn-sm md:btn-md"
+          onClick={() => {
+            setEditingConnection(null);
+            setShowModal(true);
+          }}
+        >
+          <Plus size={18} />
+          <span>Add Connection</span>
+        </button>
       </div>
 
       {connections.length === 0 ? (
-        <Card className="text-center py-12">
-          <Database size={48} className="mx-auto mb-4 text-text-tertiary" />
-          <h3 className="text-lg font-medium text-text-primary mb-2">No connections yet</h3>
-          <p className="text-text-tertiary mb-4">Add your first connection to get started</p>
-          <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
-            Add Connection
-          </Button>
-        </Card>
+        <div className="card bg-base-200 border border-base-300 text-center py-16">
+          <div className="card-body items-center">
+            <Database size={48} className="mb-4 opacity-20" />
+            <h3 className="text-xl font-bold">No connections yet</h3>
+            <p className="text-base-content/60 max-w-sm mb-6">
+              Connect your first data source to start creating datasets and charts.
+            </p>
+            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+              <Plus size={18} />
+              Add Connection
+            </button>
+          </div>
+        </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {connections.map((connection) => {
             const IconComponent = getConnectionIcon(connection.type);
-            const isSqlType = !['api', 'googlesheet'].includes(connection.type);
-            
+            const isSqlType = !["api", "googlesheet"].includes(connection.type);
+
             return (
-              <Card key={connection.id} hover className="overflow-hidden">
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-12 h-12 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${getConnectionColor(connection.type)}20` }}
-                  >
-                    <IconComponent size={24} style={{ color: getConnectionColor(connection.type) }} />
-                  </div>
-                  
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-text-primary">{connection.name}</h3>
-                    <p className="text-sm text-text-secondary">{getConnectionDescription(connection)}</p>
-                  </div>
+              <div
+                key={connection.id}
+                className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm"
+              >
+                <div className="card-body p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${getConnectionColor(connection.type)}15` }}
+                    >
+                      <IconComponent size={24} style={{ color: getConnectionColor(connection.type) }} />
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    {testResults[connection.id] !== undefined && (
-                      testResults[connection.id] ? (
-                        <CheckCircle size={20} className="text-status-success" />
-                      ) : (
-                        <XCircle size={20} className="text-status-error" />
-                      )
-                    )}
-                    
-                    {isSqlType && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleExpand(connection.id, connection.type)}
-                        leftIcon={<Table size={16} />}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="card-title text-base">{connection.name}</h3>
+                      <p className="text-sm opacity-60 truncate">{getConnectionDescription(connection)}</p>
+                    </div>
+
+                    <div className="flex items-center gap-1 mt-2 sm:mt-0">
+                      {testResults[connection.id] !== undefined && (
+                        <div
+                          className={`badge badge-sm gap-1 ${
+                            testResults[connection.id] ? "badge-success" : "badge-error"
+                          }`}
+                        >
+                          {testResults[connection.id] ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                          {testResults[connection.id] ? "Connected" : "Failed"}
+                        </div>
+                      )}
+
+                      {isSqlType && (
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => handleExpand(connection.id, connection.type)}
+                        >
+                          <Table size={16} />
+                          <span className="hidden lg:inline">Tables</span>
+                        </button>
+                      )}
+
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => handleTest(connection.id)}
+                        disabled={testingId === connection.id}
                       >
-                        Tables
-                      </Button>
-                    )}
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleTest(connection.id)}
-                      isLoading={testingId === connection.id}
-                      leftIcon={<RefreshCw size={16} />}
-                    >
-                      Test
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingConnection(connection);
-                        setShowModal(true);
-                      }}
-                      leftIcon={<Edit size={16} />}
-                    >
-                      Edit
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteConfirm(connection.id)}
-                      className="text-status-error hover:text-status-error"
-                      leftIcon={<Trash2 size={16} />}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
+                        <RefreshCw size={16} className={testingId === connection.id ? "animate-spin" : ""} />
+                        <span className="hidden lg:inline">Test</span>
+                      </button>
 
-                {expandedConnection === connection.id && isSqlType && (
-                  <div className="mt-4 pt-4 border-t border-border">
-                    {loadingTables ? (
-                      <div className="flex items-center justify-center py-4">
-                        <div className="spinner" />
+                      <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
+                          <MoreHorizontal size={18} />
+                        </div>
+                        <ul
+                          tabIndex={0}
+                          className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300"
+                        >
+                          <li>
+                            <button
+                              onClick={() => {
+                                setEditingConnection(connection);
+                                setShowModal(true);
+                              }}
+                            >
+                              <Edit size={14} /> Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button className="text-error" onClick={() => setDeleteConfirm(connection.id)}>
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          </li>
+                        </ul>
                       </div>
-                    ) : tables.length === 0 ? (
-                      <p className="text-text-tertiary text-center py-4">No tables found</p>
-                    ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                        {tables.map((table, i) => (
-                          <div
-                            key={i}
-                            className="px-3 py-2 rounded-lg bg-bg-tertiary text-sm flex items-center gap-2"
-                          >
-                            <Table size={14} className="text-text-tertiary" />
-                            <span className="text-text-secondary">{table.table_schema}.</span>
-                            <span className="text-text-primary">{table.table_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    </div>
                   </div>
-                )}
-              </Card>
+
+                  {expandedConnection === connection.id && isSqlType && (
+                    <div className="mt-6 pt-6 border-t border-base-200 animate-in fade-in slide-in-from-top-2">
+                      {loadingTables ? (
+                        <div className="flex justify-center py-8">
+                          <span className="loading loading-spinner loading-md text-primary"></span>
+                        </div>
+                      ) : tables.length === 0 ? (
+                        <p className="text-center opacity-40 py-8 italic">No tables found in this connection</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                          {tables.map((table, i) => (
+                            <div
+                              key={i}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-200 text-sm hover:bg-base-300 transition-colors"
+                            >
+                              <Table size={14} className="opacity-40" />
+                              <span className="opacity-40">{table.table_schema}.</span>
+                              <span className="font-medium">{table.table_name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -309,55 +332,50 @@ interface ConnectionModalProps {
   onSuccess: () => void;
 }
 
-const ConnectionModal: React.FC<ConnectionModalProps> = ({
-  isOpen,
-  onClose,
-  connection,
-  onSuccess,
-}) => {
+const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClose, connection, onSuccess }) => {
   const { addToast } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [connectionType, setConnectionType] = useState<ConnectionInput['type']>('postgresql');
-  
+  const [connectionType, setConnectionType] = useState<ConnectionInput["type"]>("postgresql");
+
   // SQL form data
   const [sqlForm, setSqlForm] = useState({
-    name: '',
-    host: 'localhost',
+    name: "",
+    host: "localhost",
     port: 5432,
-    database_name: '',
-    username: '',
-    password: '',
+    database_name: "",
+    username: "",
+    password: "",
     ssl: false,
   });
 
   // API form data
   const [apiForm, setApiForm] = useState<ApiConfig & { name: string }>({
-    name: '',
-    url: '',
-    method: 'GET',
-    auth_type: 'none',
-    api_key: '',
-    bearer_token: '',
-    data_path: '',
+    name: "",
+    url: "",
+    method: "GET",
+    auth_type: "none",
+    api_key: "",
+    bearer_token: "",
+    data_path: "",
   });
 
   // Google Sheets form data
   const [sheetsForm, setSheetsForm] = useState<GoogleSheetsConfig & { name: string }>({
-    name: '',
-    spreadsheet_id: '',
-    sheet_name: 'Sheet1',
-    api_key: '',
+    name: "",
+    spreadsheet_id: "",
+    sheet_name: "Sheet1",
+    api_key: "",
   });
 
   useEffect(() => {
     if (connection) {
       setConnectionType(connection.type);
-      if (['api'].includes(connection.type)) {
+      if (["api"].includes(connection.type)) {
         setApiForm({
           name: connection.name,
           ...connection.config,
         });
-      } else if (connection.type === 'googlesheet') {
+      } else if (connection.type === "googlesheet") {
         setSheetsForm({
           name: connection.name,
           ...connection.config,
@@ -365,21 +383,27 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
       } else {
         setSqlForm({
           name: connection.name,
-          host: connection.host || 'localhost',
+          host: connection.host || "localhost",
           port: connection.port || 5432,
-          database_name: connection.database_name || '',
-          username: connection.username || '',
-          password: '',
+          database_name: connection.database_name || "",
+          username: connection.username || "",
+          password: "",
           ssl: connection.ssl === 1,
         });
       }
     } else {
-      setConnectionType('postgresql');
+      setConnectionType("postgresql");
       setSqlForm({
-        name: '', host: 'localhost', port: 5432, database_name: '', username: '', password: '', ssl: false,
+        name: "",
+        host: "localhost",
+        port: 5432,
+        database_name: "",
+        username: "",
+        password: "",
+        ssl: false,
       });
-      setApiForm({ name: '', url: '', method: 'GET', auth_type: 'none', api_key: '', bearer_token: '', data_path: '' });
-      setSheetsForm({ name: '', spreadsheet_id: '', sheet_name: 'Sheet1', api_key: '' });
+      setApiForm({ name: "", url: "", method: "GET", auth_type: "none", api_key: "", bearer_token: "", data_path: "" });
+      setSheetsForm({ name: "", spreadsheet_id: "", sheet_name: "Sheet1", api_key: "" });
     }
   }, [connection, isOpen]);
 
@@ -390,16 +414,16 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
     try {
       let formData: ConnectionInput;
 
-      if (connectionType === 'api') {
+      if (connectionType === "api") {
         const { name, ...config } = apiForm;
-        formData = { name, type: 'api', config };
-      } else if (connectionType === 'googlesheet') {
+        formData = { name, type: "api", config };
+      } else if (connectionType === "googlesheet") {
         const { name, ...config } = sheetsForm;
-        formData = { name, type: 'googlesheet', config };
+        formData = { name, type: "googlesheet", config };
       } else {
         formData = {
           name: sqlForm.name,
-          type: connectionType as 'postgresql' | 'mysql' | 'mariadb',
+          type: connectionType as "postgresql" | "mysql" | "mariadb",
           host: sqlForm.host,
           port: sqlForm.port,
           database_name: sqlForm.database_name,
@@ -411,50 +435,45 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
 
       if (connection) {
         await connectionsApi.update(connection.id, formData);
-        addToast('success', 'Connection updated successfully');
+        addToast("success", "Connection updated successfully");
       } else {
         await connectionsApi.create(formData);
-        addToast('success', 'Connection created successfully');
+        addToast("success", "Connection created successfully");
       }
       onSuccess();
     } catch (error: any) {
-      addToast('error', error.response?.data?.error || 'Failed to save connection');
+      addToast("error", error.response?.data?.error || "Failed to save connection");
     } finally {
       setIsLoading(false);
     }
   };
 
   const connectionTypes = [
-    { value: 'postgresql', label: '🐘 PostgreSQL' },
-    { value: 'mysql', label: '🐬 MySQL' },
-    { value: 'mariadb', label: '🦭 MariaDB' },
-    { value: 'api', label: '🌐 REST API' },
-    { value: 'googlesheet', label: '📊 Google Sheets' },
+    { value: "postgresql", label: "🐘 PostgreSQL" },
+    { value: "mysql", label: "🐬 MySQL" },
+    { value: "mariadb", label: "🦭 MariaDB" },
+    { value: "api", label: "🌐 REST API" },
+    { value: "googlesheet", label: "📊 Google Sheets" },
   ];
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={connection ? 'Edit Connection' : 'New Connection'}
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={connection ? "Edit Connection" : "New Connection"} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Select
           label="Connection Type"
           options={connectionTypes}
           value={connectionType}
-          onChange={(value: string | null) => setConnectionType(value as ConnectionInput['type'])}
+          onChange={(value: string | null) => setConnectionType(value as ConnectionInput["type"])}
         />
 
         {/* SQL Database Form */}
-        {['postgresql', 'mysql', 'mariadb'].includes(connectionType) && (
+        {["postgresql", "mysql", "mariadb"].includes(connectionType) && (
           <>
             <Input
               label="Connection Name"
               placeholder="My Database"
               value={sqlForm.name}
-              onChange={(e) => setSqlForm(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setSqlForm((prev) => ({ ...prev, name: e.target.value }))}
               required
             />
             <div className="grid grid-cols-2 gap-4">
@@ -462,14 +481,14 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                 label="Host"
                 placeholder="localhost"
                 value={sqlForm.host}
-                onChange={(e) => setSqlForm(prev => ({ ...prev, host: e.target.value }))}
+                onChange={(e) => setSqlForm((prev) => ({ ...prev, host: e.target.value }))}
                 required
               />
               <Input
                 label="Port"
                 type="number"
                 value={sqlForm.port}
-                onChange={(e) => setSqlForm(prev => ({ ...prev, port: parseInt(e.target.value) }))}
+                onChange={(e) => setSqlForm((prev) => ({ ...prev, port: parseInt(e.target.value) }))}
                 required
               />
             </div>
@@ -477,7 +496,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
               label="Database Name"
               placeholder="my_database"
               value={sqlForm.database_name}
-              onChange={(e) => setSqlForm(prev => ({ ...prev, database_name: e.target.value }))}
+              onChange={(e) => setSqlForm((prev) => ({ ...prev, database_name: e.target.value }))}
               required
             />
             <div className="grid grid-cols-2 gap-4">
@@ -485,22 +504,22 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                 label="Username"
                 placeholder="postgres"
                 value={sqlForm.username}
-                onChange={(e) => setSqlForm(prev => ({ ...prev, username: e.target.value }))}
+                onChange={(e) => setSqlForm((prev) => ({ ...prev, username: e.target.value }))}
                 required
               />
               <Input
                 label="Password"
                 type="password"
-                placeholder={connection ? '(unchanged)' : '••••••••'}
+                placeholder={connection ? "(unchanged)" : "••••••••"}
                 value={sqlForm.password}
-                onChange={(e) => setSqlForm(prev => ({ ...prev, password: e.target.value }))}
+                onChange={(e) => setSqlForm((prev) => ({ ...prev, password: e.target.value }))}
               />
             </div>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={sqlForm.ssl}
-                onChange={(e) => setSqlForm(prev => ({ ...prev, ssl: e.target.checked }))}
+                onChange={(e) => setSqlForm((prev) => ({ ...prev, ssl: e.target.checked }))}
                 className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
               />
               <span className="text-sm text-text-secondary">Use SSL connection</span>
@@ -509,59 +528,61 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
         )}
 
         {/* API Form */}
-        {connectionType === 'api' && (
+        {connectionType === "api" && (
           <>
             <Input
               label="Connection Name"
               placeholder="My API"
               value={apiForm.name}
-              onChange={(e) => setApiForm(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setApiForm((prev) => ({ ...prev, name: e.target.value }))}
               required
             />
             <Input
               label="API URL"
               placeholder="https://api.example.com/data"
               value={apiForm.url}
-              onChange={(e) => setApiForm(prev => ({ ...prev, url: e.target.value }))}
+              onChange={(e) => setApiForm((prev) => ({ ...prev, url: e.target.value }))}
               required
             />
             <div className="grid grid-cols-2 gap-4">
               <Select
                 label="Method"
                 options={[
-                  { value: 'GET', label: 'GET' },
-                  { value: 'POST', label: 'POST' },
+                  { value: "GET", label: "GET" },
+                  { value: "POST", label: "POST" },
                 ]}
                 value={apiForm.method}
-                onChange={(value: string | null) => setApiForm(prev => ({ ...prev, method: value as 'GET' | 'POST' }))}
+                onChange={(value: string | null) =>
+                  setApiForm((prev) => ({ ...prev, method: value as "GET" | "POST" }))
+                }
               />
               <Select
                 label="Authentication"
                 options={[
-                  { value: 'none', label: 'None' },
-                  { value: 'api_key', label: 'API Key' },
-                  { value: 'bearer', label: 'Bearer Token' },
+                  { value: "none", label: "None" },
+                  { value: "api_key", label: "API Key" },
+                  { value: "bearer", label: "Bearer Token" },
                 ]}
                 value={apiForm.auth_type}
-                onChange={(value: string | null) => setApiForm(prev => ({ ...prev, auth_type: value as any }))}
+                onChange={(value: string | null) => setApiForm((prev) => ({ ...prev, auth_type: value as any }))}
               />
             </div>
-            {apiForm.auth_type === 'api_key' && (
+            {apiForm.auth_type === "api_key" && (
               <Input
                 label="API Key"
                 type="password"
                 placeholder="Your API key"
                 value={apiForm.api_key}
-                onChange={(e) => setApiForm(prev => ({ ...prev, api_key: e.target.value }))}
+                onChange={(e) => setApiForm((prev) => ({ ...prev, api_key: e.target.value }))}
               />
             )}
-            {apiForm.auth_type === 'bearer' && (
+            {apiForm.auth_type === "bearer" && (
               <Input
                 label="Bearer Token"
                 type="password"
                 placeholder="Your bearer token"
                 value={apiForm.bearer_token}
-                onChange={(e) => setApiForm(prev => ({ ...prev, bearer_token: e.target.value }))}
+                onChange={(e) => setApiForm((prev) => ({ ...prev, bearer_token: e.target.value }))}
               />
             )}
             <Input
@@ -569,19 +590,19 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
               placeholder="data.items"
               helperText="JSON path to array in response (e.g., 'data.items')"
               value={apiForm.data_path}
-              onChange={(e) => setApiForm(prev => ({ ...prev, data_path: e.target.value }))}
+              onChange={(e) => setApiForm((prev) => ({ ...prev, data_path: e.target.value }))}
             />
           </>
         )}
 
         {/* Google Sheets Form */}
-        {connectionType === 'googlesheet' && (
+        {connectionType === "googlesheet" && (
           <>
             <Input
               label="Connection Name"
               placeholder="My Spreadsheet"
               value={sheetsForm.name}
-              onChange={(e) => setSheetsForm(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setSheetsForm((prev) => ({ ...prev, name: e.target.value }))}
               required
             />
             <Input
@@ -594,7 +615,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                 // Extract ID from URL if pasted
                 const match = value.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
                 if (match) value = match[1];
-                setSheetsForm(prev => ({ ...prev, spreadsheet_id: value }));
+                setSheetsForm((prev) => ({ ...prev, spreadsheet_id: value }));
               }}
               required
             />
@@ -603,14 +624,14 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
                 label="Sheet Name"
                 placeholder="Sheet1"
                 value={sheetsForm.sheet_name}
-                onChange={(e) => setSheetsForm(prev => ({ ...prev, sheet_name: e.target.value }))}
+                onChange={(e) => setSheetsForm((prev) => ({ ...prev, sheet_name: e.target.value }))}
               />
               <Input
                 label="API Key (optional)"
                 type="password"
                 placeholder="For private sheets"
                 value={sheetsForm.api_key}
-                onChange={(e) => setSheetsForm(prev => ({ ...prev, api_key: e.target.value }))}
+                onChange={(e) => setSheetsForm((prev) => ({ ...prev, api_key: e.target.value }))}
               />
             </div>
             <p className="text-xs text-text-tertiary">
@@ -624,7 +645,7 @@ const ConnectionModal: React.FC<ConnectionModalProps> = ({
             Cancel
           </Button>
           <Button type="submit" isLoading={isLoading}>
-            {connection ? 'Update' : 'Create'} Connection
+            {connection ? "Update" : "Create"} Connection
           </Button>
         </div>
       </form>

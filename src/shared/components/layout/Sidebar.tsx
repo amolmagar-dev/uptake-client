@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Database,
@@ -12,18 +12,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
-} from 'lucide-react';
-import { useAuthStore } from '../../../store/authStore';
-import { useAppStore } from '../../../store/appStore';
+} from "lucide-react";
+import { useAuthStore } from "../../../store/authStore";
+import { useAppStore } from "../../../store/appStore";
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboards' },
-  { path: '/connections', icon: Database, label: 'Connections' },
-  { path: '/datasets', icon: Layers, label: 'Datasets' },
-  { path: '/sql-editor', icon: FileCode, label: 'SQL Editor' },
-  { path: '/charts', icon: BarChart3, label: 'Charts' },
-  { path: '/components', icon: Code2, label: 'Components' },
-  { path: '/settings', icon: Settings, label: 'Settings' },
+  { path: "/", icon: LayoutDashboard, label: "Dashboards" },
+  { path: "/connections", icon: Database, label: "Connections" },
+  { path: "/datasets", icon: Layers, label: "Datasets" },
+  { path: "/sql-editor", icon: FileCode, label: "SQL Editor" },
+  { path: "/charts", icon: BarChart3, label: "Charts" },
+  { path: "/components", icon: Code2, label: "Components" },
+  { path: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -33,7 +33,7 @@ export const Sidebar: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -43,45 +43,26 @@ export const Sidebar: React.FC = () => {
         flex flex-col
         transition-all duration-300 ease-in-out
         z-40
-        ${sidebarOpen ? 'w-64' : 'w-20'}
+        bg-base-200 border-r border-base-300
+        ${sidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full md:translate-x-0"}
       `}
-      style={{
-        backgroundColor: 'var(--color-bg-secondary)',
-        borderRight: '1px solid var(--color-border)',
-      }}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      {/* Logo Section */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-base-300 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
-            <Zap size={22} className="text-bg-primary" />
+          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <Zap size={22} className="text-primary-content" />
           </div>
-          {sidebarOpen && (
-            <span className="text-xl font-bold text-gradient">Uptake</span>
-          )}
+          {sidebarOpen && <span className="text-xl font-bold text-gradient">Uptake</span>}
         </div>
-        <button
-          onClick={toggleSidebar}
-          className="p-1.5 rounded-lg transition-colors"
-          style={{
-            color: 'var(--color-text-muted)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-primary)';
-            e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
-        >
+        <button onClick={toggleSidebar} className="btn btn-ghost btn-xs btn-square hidden md:flex">
           {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
         </button>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation Menu */}
       <nav className="flex-1 py-4 px-3 overflow-y-auto">
-        <ul className="space-y-1">
+        <ul className="menu p-0 gap-1">
           {navItems.map((item) => (
             <li key={item.path}>
               <NavLink
@@ -89,26 +70,12 @@ export const Sidebar: React.FC = () => {
                 className={({ isActive }) => `
                   flex items-center gap-3 px-3 py-2.5 rounded-lg
                   transition-all duration-200
-                  ${isActive
-                    ? 'bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 text-accent-primary border border-accent-primary/20'
-                    : 'text-text-secondary hover:text-text-primary'
+                  ${
+                    isActive
+                      ? "bg-primary/10 text-primary border border-primary/20"
+                      : "text-base-content/70 hover:text-base-content hover:bg-base-300"
                   }
                 `}
-                style={isActive => !isActive ? {
-                  color: 'var(--color-text-secondary)',
-                } : undefined}
-                onMouseEnter={(e) => {
-                  if (!e.currentTarget.classList.contains('active')) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-                    e.currentTarget.style.color = 'var(--color-text-primary)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!e.currentTarget.classList.contains('active')) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = 'var(--color-text-secondary)';
-                  }
-                }}
               >
                 <item.icon size={20} />
                 {sidebarOpen && <span className="font-medium">{item.label}</span>}
@@ -118,45 +85,34 @@ export const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {/* User section */}
-      <div className="p-3" style={{ borderTop: '1px solid var(--color-border)' }}>
+      {/* User & Footer Section */}
+      <div className="p-3 border-t border-base-300 bg-base-200/50">
         <div
           className={`
-            flex items-center gap-3 p-3 rounded-lg mb-2
-            ${sidebarOpen ? '' : 'justify-center'}
+            flex items-center gap-3 p-3 rounded-lg mb-2 bg-base-300/50
+            ${sidebarOpen ? "" : "justify-center"}
           `}
-          style={{ backgroundColor: 'var(--color-bg-tertiary)' }}
         >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent-secondary to-accent-tertiary flex items-center justify-center text-sm font-bold text-white">
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
+          <div className="avatar placeholder">
+            <div className="w-9 h-9 rounded-full bg-secondary text-secondary-content">
+              <span className="text-sm font-bold">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
+            </div>
           </div>
           {sidebarOpen && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-                {user?.name || 'User'}
-              </p>
-              <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>{user?.email}</p>
+              <p className="text-sm font-bold truncate text-base-content">{user?.name || "User"}</p>
+              <p className="text-xs truncate opacity-60 text-base-content">{user?.email}</p>
             </div>
           )}
         </div>
+
         <button
           onClick={handleLogout}
           className={`
-            flex items-center gap-3 w-full px-3 py-2.5 rounded-lg
-            transition-colors duration-200
-            ${sidebarOpen ? '' : 'justify-center'}
+            btn btn-ghost btn-sm w-full gap-3 justify-start px-3
+            text-error hover:bg-error/10
+            ${sidebarOpen ? "" : "justify-center"}
           `}
-          style={{
-            color: 'var(--color-text-secondary)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 71, 87, 0.1)';
-            e.currentTarget.style.color = '#ff4757';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
-          }}
         >
           <LogOut size={20} />
           {sidebarOpen && <span className="font-medium">Logout</span>}
@@ -165,4 +121,3 @@ export const Sidebar: React.FC = () => {
     </aside>
   );
 };
-

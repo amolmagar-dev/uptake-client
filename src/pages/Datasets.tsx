@@ -76,117 +76,118 @@ export function DatasetsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-bg-primary -mx-6 px-6 py-4 -mt-6 border-b border-border">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Datasets</h1>
-            <p className="text-text-tertiary mt-1">
-              Create and manage reusable data sources for your charts
-            </p>
-          </div>
-          <Button
-            variant="primary"
-            onClick={() => navigate('/datasets/new')}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Create Dataset
-          </Button>
+    <div className="p-6 lg:p-10 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Datasets</h1>
+          <p className="text-base-content/60 mt-1 text-sm">
+            Create and manage reusable data sources for your charts
+          </p>
         </div>
+        <button
+          className="btn btn-primary btn-sm md:btn-md"
+          onClick={() => navigate('/datasets/new')}
+        >
+          <Plus size={18} />
+          <span>Create Dataset</span>
+        </button>
       </div>
 
       {/* Datasets Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <RefreshCw className="h-8 w-8 animate-spin text-accent-primary" />
+        <div className="flex justify-center py-20">
+          <span className="loading loading-spinner loading-lg text-primary"></span>
         </div>
       ) : datasets.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Database className="h-16 w-16 mx-auto text-text-tertiary mb-4" />
-          <h3 className="text-xl font-semibold text-text-primary mb-2">No Datasets Yet</h3>
-          <p className="text-text-tertiary mb-6">
-            Create your first dataset to start building charts
-          </p>
-          <Button variant="primary" onClick={() => navigate('/datasets/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Dataset
-          </Button>
-        </Card>
+        <div className="card bg-base-200 border border-base-300 text-center py-16">
+          <div className="card-body items-center">
+            <Database size={48} className="mb-4 opacity-20" />
+            <h3 className="text-xl font-bold">No datasets yet</h3>
+            <p className="text-base-content/60 max-w-sm mb-6">
+              Datasets connect your charts to your data sources. Create your first one to get started.
+            </p>
+            <button className="btn btn-primary" onClick={() => navigate('/datasets/new')}>
+              <Plus size={18} />
+              Create Dataset
+            </button>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {datasets.map((dataset) => (
-            <Card key={dataset.id} className="p-4 hover:border-accent-primary transition-colors">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-accent-primary/10 text-accent-primary">
-                    {getSourceIcon(dataset.source_type)}
+            <div key={dataset.id} className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm">
+              <div className="card-body p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      {getSourceIcon(dataset.source_type)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="card-title text-base truncate">{dataset.name}</h3>
+                      <p className="text-xs opacity-60 truncate">
+                        {dataset.connection_name || 'External Source'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-text-primary">{dataset.name}</h3>
-                    <p className="text-sm text-text-tertiary">
-                      {dataset.connection_name || 'External Source'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 ${
+                  <span className={`badge badge-sm gap-1 ${
                     dataset.dataset_type === 'physical' 
-                      ? 'bg-status-success/10 text-status-success' 
-                      : 'bg-accent-secondary/10 text-accent-secondary'
+                      ? 'badge-success badge-outline' 
+                      : 'badge-secondary badge-outline'
                   }`}>
                     {getTypeIcon(dataset.dataset_type)}
                     {dataset.dataset_type}
                   </span>
                 </div>
-              </div>
 
-              {dataset.description && (
-                <p className="text-sm text-text-secondary mb-3 line-clamp-2">
-                  {dataset.description}
-                </p>
-              )}
-
-              <div className="text-xs text-text-tertiary mb-3 space-y-1">
-                {dataset.dataset_type === 'physical' && dataset.table_name && (
-                  <p className="flex items-center gap-1">
-                    <Table className="h-3 w-3" />
-                    {dataset.table_schema}.{dataset.table_name}
+                {dataset.description && (
+                  <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">
+                    {dataset.description}
                   </p>
                 )}
-                {dataset.columns && (
-                  <p>{dataset.columns.length} columns</p>
-                )}
-              </div>
 
-              <div className="flex gap-2 pt-3 border-t border-border">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handlePreview(dataset)}
-                  title="Preview Data"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/datasets/${dataset.id}/edit`)}
-                  title="Edit"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteDataset(dataset)}
-                  className="text-status-error hover:text-status-error/80"
-                  title="Delete"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="text-xs opacity-50 space-y-1 mb-6">
+                  {dataset.dataset_type === 'physical' && dataset.table_name && (
+                    <div className="flex items-center gap-1">
+                      <Table size={12} />
+                      <span className="truncate">{dataset.table_schema}.{dataset.table_name}</span>
+                    </div>
+                  )}
+                  {dataset.columns && (
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">{dataset.columns.length}</span>
+                      <span>columns</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="card-actions justify-end mt-auto pt-4 border-t border-base-200">
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="btn btn-ghost btn-sm btn-square"
+                      onClick={() => handlePreview(dataset)}
+                      title="Preview Data"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-square"
+                      onClick={() => navigate(`/datasets/${dataset.id}/edit`)}
+                      title="Edit"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-square text-error"
+                      onClick={() => setDeleteDataset(dataset)}
+                      title="Delete"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}

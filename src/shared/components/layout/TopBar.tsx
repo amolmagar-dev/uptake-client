@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Database,
@@ -9,250 +9,143 @@ import {
   Code2,
   Settings,
   LogOut,
-  Zap,
   ChevronDown,
   Menu,
-  X,
-} from 'lucide-react';
-import { useAuthStore } from '../../../store/authStore';
+  Search,
+  Zap,
+} from "lucide-react";
+import { useAuthStore } from "../../../store/authStore";
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboards' },
-  { path: '/connections', icon: Database, label: 'Connections' },
-  { path: '/datasets', icon: Layers, label: 'Datasets' },
-  { path: '/sql-editor', icon: FileCode, label: 'SQL Editor' },
-  { path: '/charts', icon: BarChart3, label: 'Charts' },
-  { path: '/components', icon: Code2, label: 'Components' },
-  { path: '/settings', icon: Settings, label: 'Settings' },
+  { path: "/", icon: LayoutDashboard, label: "Dashboards" },
+  { path: "/connections", icon: Database, label: "Connections" },
+  { path: "/datasets", icon: Layers, label: "Datasets" },
+  { path: "/sql-editor", icon: FileCode, label: "SQL Editor" },
+  { path: "/charts", icon: BarChart3, label: "Charts" },
+  { path: "/components", icon: Code2, label: "Components" },
+  { path: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export const TopBar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuthStore();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
+  // Generate breadcrumbs from location
+  const pathnames = location.pathname.split("/").filter((x) => x);
+  let pageTitle = "Dashboards";
+
+  if (pathnames.length > 0) {
+    const lastPath = pathnames[pathnames.length - 1];
+    // Check if the last path is a UUID (common for dashboards/datasets)
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lastPath);
+
+    if (isUuid) {
+      // If it's a UUID, use the parent category name
+      pageTitle =
+        pathnames[pathnames.length - 2]?.charAt(0).toUpperCase() + pathnames[pathnames.length - 2]?.slice(1) || "View";
+    } else {
+      pageTitle = lastPath.charAt(0).toUpperCase() + lastPath.slice(1);
+    }
+  }
+
   return (
-    <header
-      className="sticky top-0 z-50 w-full"
-      style={{
-        backgroundColor: 'var(--color-bg-secondary)',
-        borderBottom: '1px solid var(--color-border)',
-        backdropFilter: 'blur(12px)',
-      }}
-    >
-      <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 w-full px-4 lg:px-6 h-16">
+      {/* Start Section (Left) */}
+      <div className="navbar-start gap-4">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
-            <Zap size={22} className="text-bg-primary" />
+          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <Zap size={22} className="text-primary-content" />
           </div>
-          <span className="text-xl font-bold text-gradient">Uptake</span>
+          <span className="text-xl font-bold hidden sm:inline-block">Uptake</span>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* Breadcrumbs */}
+        <div className="breadcrumbs text-sm ml-4 border-l border-base-300 pl-6 h-8 hidden xl:block">
+          <ul>
+            <li className="text-base-content/40">Pages</li>
+            <li className="font-semibold text-base-content">{pageTitle.replace(/-/g, " ")}</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Center Section (Navigation) */}
+      <div className="navbar-center hidden lg:flex">
+        <div role="tablist" className="tabs tabs-box bg-base-200/50 p-1">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
+              role="tab"
               className={({ isActive }) => `
-                flex items-center gap-2 px-4 py-2 rounded-lg
-                transition-all duration-200 text-sm font-medium
-                ${isActive
-                  ? 'bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 text-accent-primary border border-accent-primary/20'
-                  : 'text-text-secondary hover:text-text-primary'
+                tab gap-2 transition-all
+                ${
+                  isActive
+                    ? "tab-active bg-primary! text-primary-content! shadow-sm"
+                    : "text-base-content/70 hover:text-base-content"
                 }
               `}
-              style={isActive => !isActive ? {
-                color: 'var(--color-text-secondary)',
-              } : undefined}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.classList.contains('active')) {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!e.currentTarget.classList.contains('active')) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 'var(--color-text-secondary)';
-                }
-              }}
             >
-              <item.icon size={18} />
+              <item.icon size={16} />
               <span>{item.label}</span>
             </NavLink>
           ))}
-        </nav>
-
-        {/* User Menu & Mobile Toggle */}
-        <div className="flex items-center gap-3">
-          {/* User Dropdown - Desktop */}
-          <div className="relative hidden md:block">
-            <button
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors"
-              style={{
-                backgroundColor: userMenuOpen ? 'var(--color-bg-tertiary)' : 'transparent',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-              }}
-              onMouseLeave={(e) => {
-                if (!userMenuOpen) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-secondary to-accent-tertiary flex items-center justify-center text-sm font-bold text-white">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                {user?.name || 'User'}
-              </span>
-              <ChevronDown size={16} style={{ color: 'var(--color-text-muted)' }} />
-            </button>
-
-            {/* Dropdown Menu */}
-            {userMenuOpen && (
-              <div
-                className="absolute right-0 top-full mt-2 w-56 rounded-lg shadow-xl py-2 z-50"
-                style={{
-                  backgroundColor: 'var(--color-bg-secondary)',
-                  border: '1px solid var(--color-border)',
-                }}
-              >
-                <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-                  <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                    {user?.name || 'User'}
-                  </p>
-                  <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                    {user?.email}
-                  </p>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 71, 87, 0.1)';
-                    e.currentTarget.style.color = '#ff4757';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = 'var(--color-text-secondary)';
-                  }}
-                >
-                  <LogOut size={18} />
-                  <span className="text-sm font-medium">Logout</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div
-          className="md:hidden border-t"
-          style={{
-            borderColor: 'var(--color-border)',
-            backgroundColor: 'var(--color-bg-secondary)',
-          }}
-        >
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className={({ isActive }) => `
-                  flex items-center gap-3 px-4 py-3 rounded-lg
-                  transition-all duration-200 text-sm font-medium
-                  ${isActive
-                    ? 'bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 text-accent-primary border border-accent-primary/20'
-                    : 'text-text-secondary'
-                  }
-                `}
-                style={isActive => !isActive ? {
-                  color: 'var(--color-text-secondary)',
-                } : undefined}
-              >
-                <item.icon size={20} />
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
+      {/* Right Section: Search, User & Drawer Toggle */}
+      <div className="navbar-end gap-2">
+        {/* Search */}
+        <label className="input input-sm input-bordered hidden sm:flex items-center gap-2 bg-base-100/50 focus-within:bg-base-100 w-32 focus-within:w-48 transition-all group">
+          <Search size={16} className="text-base-content/30 group-focus-within:text-primary transition-colors" />
+          <input type="text" placeholder="Search..." />
+        </label>
 
-          {/* Mobile User Section */}
-          <div className="p-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
-            <div
-              className="flex items-center gap-3 p-3 rounded-lg mb-3"
-              style={{ backgroundColor: 'var(--color-bg-tertiary)' }}
-            >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent-secondary to-accent-tertiary flex items-center justify-center text-sm font-bold text-white">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-                  {user?.name || 'User'}
-                </p>
-                <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>
-                  {user?.email}
-                </p>
+        {/* User Dropdown */}
+        <div className="dropdown dropdown-end">
+          <div
+            tabIndex={0}
+            role="button"
+            className="btn btn-ghost gap-2 normal-case font-medium hover:bg-base-300 px-2"
+          >
+            <div className="avatar placeholder">
+              <div className="w-8 h-8 rounded-full bg-secondary text-secondary-content">
+                <span className="text-xs font-bold">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors"
-              style={{ color: 'var(--color-text-secondary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 71, 87, 0.1)';
-                e.currentTarget.style.color = '#ff4757';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = 'var(--color-text-secondary)';
-              }}
-            >
-              <LogOut size={20} />
-              <span className="font-medium">Logout</span>
-            </button>
+            <span className="text-sm hidden sm:inline-block">{user?.name || "User"}</span>
+            <ChevronDown size={14} className="opacity-60" />
           </div>
+          <ul
+            tabIndex={0}
+            className="dropdown-content z-100 menu p-2 shadow-2xl bg-base-200 border border-base-300 rounded-box w-52 mt-4"
+          >
+            <li className="menu-title px-4 py-2 text-xs opacity-50 border-b border-base-300 mb-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="font-bold text-base-content">{user?.name}</span>
+                <span className="font-normal">{user?.email}</span>
+              </div>
+            </li>
+            <li>
+              <button onClick={handleLogout} className="flex items-center gap-3 text-error hover:bg-error/10">
+                <LogOut size={18} />
+                <span>Logout</span>
+              </button>
+            </li>
+          </ul>
         </div>
-      )}
 
-      {/* Click outside to close user menu */}
-      {userMenuOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setUserMenuOpen(false)}
-        />
-      )}
+        {/* Mobile Menu Toggle (Triggers main-drawer) */}
+        <label htmlFor="main-drawer" className="btn btn-ghost btn-square lg:hidden">
+          <Menu size={24} />
+        </label>
+      </div>
     </header>
   );
 };

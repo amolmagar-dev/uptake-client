@@ -90,84 +90,89 @@ export const ComponentBuilderPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
-        <div className="flex items-center justify-between py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Component Builder</h1>
-            <p className="text-text-secondary mt-1">Create custom HTML/CSS/JS components</p>
-          </div>
-          <Button
-            leftIcon={<Plus size={18} />}
-            onClick={() => navigate('/components/new')}
-          >
-            Create Component
-          </Button>
+    <div className="p-6 lg:p-10 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Component Builder</h1>
+          <p className="text-base-content/60 mt-1 text-sm">Create custom HTML/CSS/JS components</p>
         </div>
+        <button
+          className="btn btn-primary btn-sm md:btn-md"
+          onClick={() => navigate('/components/new')}
+        >
+          <Plus size={18} />
+          <span>Create Component</span>
+        </button>
       </div>
 
       {components.length === 0 ? (
-        <Card className="text-center py-12">
-          <Code2 size={48} className="mx-auto mb-4 text-text-muted" />
-          <h3 className="text-lg font-medium text-text-primary mb-2">No custom components yet</h3>
-          <p className="text-text-secondary mb-4">Create your first custom HTML/CSS/JS component</p>
-          <Button onClick={() => navigate('/components/new')} leftIcon={<Plus size={16} />}>
-            Create Component
-          </Button>
-        </Card>
+        <div className="card bg-base-200 border border-base-300 text-center py-16">
+          <div className="card-body items-center">
+            <Code2 size={48} className="mb-4 opacity-20" />
+            <h3 className="text-xl font-bold">No custom components yet</h3>
+            <p className="text-base-content/60 max-w-sm mb-6">
+              Build your own custom visualizations and UI elements using standard web technologies.
+            </p>
+            <button className="btn btn-primary" onClick={() => navigate('/components/new')}>
+              <Plus size={18} />
+              Create Component
+            </button>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {components.map((component) => (
-            <Card key={component.id} hover className="flex flex-col">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🧩</span>
-                  <div>
-                    <h3 className="font-semibold text-text-primary">{component.name}</h3>
-                    <p className="text-xs text-text-muted">Custom Component</p>
+            <div key={component.id} className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm">
+              <div className="card-body p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl shrink-0">🧩</span>
+                    <div className="min-w-0">
+                      <h3 className="card-title text-base truncate">{component.name}</h3>
+                      <p className="text-xs opacity-60">Custom Component</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {component.description && (
+                  <p className="text-sm opacity-70 mb-4 line-clamp-2 h-10">{component.description}</p>
+                )}
+                
+                {component.connection_name && (
+                  <div className="flex items-center gap-1 text-xs opacity-50 mb-6">
+                    <Code2 size={14} />
+                    <span className="truncate">{component.connection_name}</span>
+                  </div>
+                )}
+
+                <div className="card-actions justify-end mt-auto pt-4 border-t border-base-200">
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="btn btn-ghost btn-sm btn-square"
+                      onClick={() => handlePreview(component)}
+                      title="Preview"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-square"
+                      onClick={() => navigate(`/components/${component.id}/edit`)}
+                      title="Edit"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-square text-error"
+                      onClick={() => setDeleteConfirm(component.id)}
+                      title="Delete"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </div>
               </div>
-              
-              {component.description && (
-                <p className="text-sm text-text-secondary mb-4 line-clamp-2">{component.description}</p>
-              )}
-              
-              {component.connection_name && (
-                <p className="text-xs text-text-muted mb-4">
-                  Connection: {component.connection_name}
-                </p>
-              )}
-
-              <div className="mt-auto flex gap-2 pt-4 border-t border-border">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handlePreview(component)}
-                  leftIcon={<Eye size={14} />}
-                >
-                  Preview
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/components/${component.id}/edit`)}
-                  leftIcon={<Edit size={14} />}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteConfirm(component.id)}
-                  className="text-status-error hover:text-status-error/80"
-                  leftIcon={<Trash2 size={14} />}
-                >
-                  Delete
-                </Button>
-              </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
