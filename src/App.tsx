@@ -6,6 +6,7 @@ import { DashboardsPage, DashboardViewPage } from "./pages/Dashboards";
 import { ConnectionsPage } from "./pages/Connections";
 import { SQLEditorPage } from "./pages/SQLEditorPage";
 import { ChartsPage } from "./pages/Charts";
+import { ChartEditorPage } from "./pages/ChartEditorPage";
 import { DatasetsPage } from "./pages/Datasets";
 import { DatasetEditorPage } from "./pages/DatasetEditor";
 import { ComponentBuilderPage } from "./pages/ComponentBuilder";
@@ -45,6 +46,8 @@ function App() {
         <Route path="/datasets/:id/edit" element={<DatasetEditorPage />} />
         <Route path="/sql-editor" element={<SQLEditorPage />} />
         <Route path="/charts" element={<ChartsPage />} />
+        <Route path="/charts/new" element={<ChartEditorPage />} />
+        <Route path="/charts/:id/edit" element={<ChartEditorPage />} />
         <Route path="/components" element={<ComponentBuilderPage />} />
         <Route path="/components/new" element={<ComponentEditorPage />} />
         <Route path="/components/:id/edit" element={<ComponentEditorPage />} />

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, BarChart3, Trash2, Edit, Eye, Layers } from "lucide-react";
-import { Button } from "../shared/components/ui/Button";
-import { Input, Select } from "../shared/components/ui/Input";
 import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
 import { ChartRenderer } from "../components/charts/ChartRenderer";
-import { chartsApi, datasetsApi, type Dataset } from "../lib/api";
+import { chartsApi } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 interface Chart {
@@ -23,11 +22,9 @@ interface Chart {
 
 export const ChartsPage: React.FC = () => {
   const { addToast } = useAppStore();
+  const navigate = useNavigate();
   const [charts, setCharts] = useState<Chart[]>([]);
-  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingChart, setEditingChart] = useState<Chart | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [previewChart, setPreviewChart] = useState<Chart | null>(null);
   const [previewData, setPreviewData] = useState<any[] | null>(null);
@@ -44,18 +41,8 @@ export const ChartsPage: React.FC = () => {
     }
   };
 
-  const fetchDatasets = async () => {
-    try {
-      const response = await datasetsApi.getAll();
-      setDatasets(response.data.datasets);
-    } catch (error) {
-      console.error("Failed to fetch datasets");
-    }
-  };
-
   useEffect(() => {
     fetchCharts();
-    fetchDatasets();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -117,10 +104,7 @@ export const ChartsPage: React.FC = () => {
         </div>
         <button
           className="btn btn-primary btn-sm md:btn-md"
-          onClick={() => {
-            setEditingChart(null);
-            setShowModal(true);
-          }}
+          onClick={() => navigate('/charts/new')}
         >
           <Plus size={18} />
           <span>Create Chart</span>
@@ -135,7 +119,7 @@ export const ChartsPage: React.FC = () => {
             <p className="text-base-content/60 max-w-sm mb-6">
               Create your first chart to visualize your data and gain insights.
             </p>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            <button className="btn btn-primary" onClick={() => navigate('/charts/new')}>
               <Plus size={18} />
               Create Chart
             </button>
@@ -177,10 +161,7 @@ export const ChartsPage: React.FC = () => {
                     </button>
                     <button
                       className="btn btn-ghost btn-sm btn-square"
-                      onClick={() => {
-                        setEditingChart(chart);
-                        setShowModal(true);
-                      }}
+                      onClick={() => navigate(`/charts/${chart.id}/edit`)}
                       title="Edit"
                     >
                       <Edit size={18} />
@@ -200,20 +181,7 @@ export const ChartsPage: React.FC = () => {
         </div>
       )}
 
-      <ChartModal
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setEditingChart(null);
-        }}
-        chart={editingChart}
-        datasets={datasets}
-        onSuccess={() => {
-          setShowModal(false);
-          setEditingChart(null);
-          fetchCharts();
-        }}
-      />
+
 
       <ConfirmModal
         isOpen={!!deleteConfirm}
@@ -251,262 +219,5 @@ export const ChartsPage: React.FC = () => {
         )}
       </Modal>
     </div>
-  );
-};
-
-interface ChartModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  chart: Chart | null;
-  datasets: Dataset[];
-  onSuccess: () => void;
-}
-
-const ChartModal: React.FC<ChartModalProps> = ({ isOpen, onClose, chart, datasets, onSuccess }) => {
-  const { addToast } = useAppStore();
-  const [isLoading, setIsLoading] = useState(false);
-  const [columns, setColumns] = useState<Array<{ column_name: string; data_type: string }>>([]);
-  const [columnsLoading, setColumnsLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    chart_type: "bar",
-    dataset_id: "",
-    labelColumn: "",
-    dataColumns: "",
-    showLegend: true,
-    showGrid: true,
-  });
-
-  useEffect(() => {
-    if (chart) {
-      setFormData({
-        name: chart.name,
-        description: chart.description || "",
-        chart_type: chart.chart_type,
-        dataset_id: chart.dataset_id || "",
-        labelColumn: chart.config?.labelColumn || "",
-        dataColumns: chart.config?.dataColumns?.join(", ") || "",
-        showLegend: chart.config?.showLegend !== false,
-        showGrid: chart.config?.showGrid !== false,
-      });
-      if (chart.dataset_id) {
-        fetchColumns(chart.dataset_id);
-      }
-    } else {
-      setFormData({
-        name: "",
-        description: "",
-        chart_type: "bar",
-        dataset_id: datasets[0]?.id || "",
-        labelColumn: "",
-        dataColumns: "",
-        showLegend: true,
-        showGrid: true,
-      });
-      if (datasets[0]?.id) {
-        fetchColumns(datasets[0].id);
-      }
-    }
-  }, [chart, isOpen, datasets]);
-
-  const fetchColumns = async (datasetId: string) => {
-    if (!datasetId) return;
-    setColumnsLoading(true);
-    try {
-      const response = await datasetsApi.getColumns(datasetId);
-      setColumns(response.data.columns || []);
-    } catch (error) {
-      console.error("Failed to fetch columns:", error);
-      setColumns([]);
-    } finally {
-      setColumnsLoading(false);
-    }
-  };
-
-  const handleDatasetChange = (datasetId: string) => {
-    setFormData((prev) => ({ ...prev, dataset_id: datasetId, labelColumn: "", dataColumns: "" }));
-    fetchColumns(datasetId);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.dataset_id) {
-      addToast("error", "Please select a dataset");
-      return;
-    }
-
-    setIsLoading(true);
-
-    const chartData = {
-      name: formData.name,
-      description: formData.description,
-      chart_type: formData.chart_type,
-      dataset_id: formData.dataset_id,
-      config: {
-        labelColumn: formData.labelColumn || undefined,
-        dataColumns: formData.dataColumns ? formData.dataColumns.split(",").map((s) => s.trim()) : undefined,
-        showLegend: formData.showLegend,
-        showGrid: formData.showGrid,
-      },
-    };
-
-    try {
-      if (chart) {
-        await chartsApi.update(chart.id, chartData as any);
-        addToast("success", "Chart updated successfully");
-      } else {
-        await chartsApi.create(chartData as any);
-        addToast("success", "Chart created successfully");
-      }
-      onSuccess();
-    } catch (error: any) {
-      addToast("error", error.response?.data?.error || "Failed to save chart");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const chartTypes = [
-    { value: "bar", label: "📊 Bar Chart" },
-    { value: "line", label: "📈 Line Chart" },
-    { value: "area", label: "📉 Area Chart" },
-    { value: "pie", label: "🥧 Pie Chart" },
-    { value: "doughnut", label: "🍩 Doughnut Chart" },
-    { value: "scatter", label: "⚡ Scatter Plot" },
-    { value: "table", label: "📋 Data Table" },
-    { value: "kpi", label: "🔢 KPI Card" },
-    { value: "gauge", label: "🎯 Gauge Chart" },
-  ];
-
-  const selectedDataset = datasets.find((d) => d.id === formData.dataset_id);
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={chart ? "Edit Chart" : "Create New Chart"} size="xl">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Chart Name"
-            placeholder="Monthly Sales"
-            value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-            required
-          />
-          <Select
-            label="Chart Type"
-            options={chartTypes}
-            value={formData.chart_type}
-            onChange={(val: string | null) => setFormData((prev) => ({ ...prev, chart_type: val || "bar" }))}
-            isClearable={false}
-          />
-        </div>
-
-        <Input
-          label="Description (optional)"
-          placeholder="A brief description of this chart"
-          value={formData.description}
-          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-        />
-
-        <Select
-          label="Dataset"
-          value={formData.dataset_id || null}
-          onChange={(val: string | null) => handleDatasetChange(val || "")}
-          options={datasets.map((d) => ({
-            value: d.id,
-            label: `${d.name} (${d.dataset_type})`,
-          }))}
-          placeholder="Select a dataset..."
-        />
-
-        {datasets.length === 0 && (
-          <div className="p-4 rounded-lg bg-accent-warning/10 border border-accent-warning/20 text-accent-warning text-sm">
-            <p>
-              No datasets available. Please{" "}
-              <a href="/datasets" className="underline">
-                create a dataset
-              </a>{" "}
-              first.
-            </p>
-          </div>
-        )}
-
-        {selectedDataset && (
-          <div className="p-3 rounded-lg bg-bg-tertiary border border-border text-sm">
-            <p className="text-text-secondary">
-              <span className="font-medium text-text-primary">{selectedDataset.name}</span>
-              {" — "}
-              {selectedDataset.dataset_type === "physical"
-                ? `${selectedDataset.table_schema}.${selectedDataset.table_name}`
-                : "Virtual dataset (SQL query)"}
-            </p>
-          </div>
-        )}
-
-        {columns.length > 0 && (
-          <div className="p-4 rounded-lg bg-bg-tertiary border border-border">
-            <p className="text-sm text-text-secondary mb-3">
-              {columnsLoading
-                ? "Loading columns..."
-                : `Available columns: ${columns.map((c) => c.column_name).join(", ")}`}
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Label Column"
-                value={formData.labelColumn || null}
-                onChange={(val: string | null) => setFormData((prev) => ({ ...prev, labelColumn: val || "" }))}
-                options={columns.map((col) => ({
-                  value: col.column_name,
-                  label: `${col.column_name} (${col.data_type})`,
-                }))}
-                placeholder="Select label column..."
-              />
-              <Input
-                label="Data Columns"
-                placeholder={columns
-                  .slice(1, 3)
-                  .map((c) => c.column_name)
-                  .join(", ")}
-                value={formData.dataColumns}
-                onChange={(e) => setFormData((prev) => ({ ...prev, dataColumns: e.target.value }))}
-                helperText="Comma-separated column names for values"
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.showLegend}
-              onChange={(e) => setFormData((prev) => ({ ...prev, showLegend: e.target.checked }))}
-              className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
-            />
-            <span className="text-sm text-text-secondary">Show Legend</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.showGrid}
-              onChange={(e) => setFormData((prev) => ({ ...prev, showGrid: e.target.checked }))}
-              className="w-4 h-4 rounded border-border bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
-            />
-            <span className="text-sm text-text-secondary">Show Grid</span>
-          </label>
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={isLoading} disabled={!formData.dataset_id}>
-            {chart ? "Update" : "Create"} Chart
-          </Button>
-        </div>
-      </form>
-    </Modal>
   );
 };

@@ -138,8 +138,19 @@ export function DatasetEditorPage() {
   };
 
   const fetchColumnsFromConnection = async () => {
-    // For API/Google Sheets, we show placeholder - columns will be fetched after dataset is created
-    setColumns([{ column_name: 'Data from source', data_type: 'Will be fetched when dataset is created' }]);
+    // For API/Google Sheets, fetch preview data to get columns
+    if (!connectionId) return;
+    try {
+      const response = await connectionsApi.preview(connectionId);
+      if (response.data.columns && response.data.columns.length > 0) {
+        setColumns(response.data.columns);
+      } else {
+        setColumns([{ column_name: 'Data from source', data_type: 'Will be fetched when dataset is created' }]);
+      }
+    } catch (error) {
+      console.error('Failed to preview connection:', error);
+      setColumns([{ column_name: 'Data from source', data_type: 'Will be fetched when dataset is created' }]);
+    }
   };
 
   const handlePreviewData = () => {

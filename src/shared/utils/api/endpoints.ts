@@ -31,6 +31,7 @@ export const connectionsApi = {
   getTables: (id: string) => api.get(`/connections/${id}/tables`),
   getTableSchema: (id: string, tableName: string, schema?: string) =>
     api.get(`/connections/${id}/tables/${tableName}/schema`, { params: { schema } }),
+  preview: (id: string) => api.get(`/connections/${id}/preview`),
 };
 
 // Queries API
