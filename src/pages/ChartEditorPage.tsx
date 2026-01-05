@@ -71,6 +71,13 @@ export function ChartEditorPage() {
   const [columnSearch, setColumnSearch] = useState('');
   const [configTab, setConfigTab] = useState<'data' | 'customize'>('data');
   
+  // Drag and drop state
+  const [draggedColumn, setDraggedColumn] = useState<{ name: string; isNumeric: boolean } | null>(null);
+  const [dragOverMetrics, setDragOverMetrics] = useState(false);
+  const [dragOverDimensions, setDragOverDimensions] = useState(false);
+  const [dragOverXAxis, setDragOverXAxis] = useState(false);
+  const [dimensions, setDimensions] = useState<string[]>([]);
+  
   // Customize options
   const [timeGrain, setTimeGrain] = useState('day');
   const [colorScheme, setColorScheme] = useState('default');
@@ -354,6 +361,13 @@ export function ChartEditorPage() {
                       {filteredNumericColumns.map((col) => (
                         <button
                           key={col.column_name}
+                          draggable
+                          onDragStart={(e) => {
+                            setDraggedColumn({ name: col.column_name, isNumeric: true });
+                            e.dataTransfer.setData('text/plain', col.column_name);
+                            e.dataTransfer.effectAllowed = 'copy';
+                          }}
+                          onDragEnd={() => setDraggedColumn(null)}
                           onClick={() => {
                             const current = formData.dataColumns ? formData.dataColumns.split(',').map((s) => s.trim()) : [];
                             if (!current.includes(col.column_name)) {
@@ -363,7 +377,7 @@ export function ChartEditorPage() {
                               }));
                             }
                           }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-accent-primary/10 rounded-md transition-colors group"
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-accent-primary/10 rounded-md transition-colors group cursor-grab active:cursor-grabbing"
                         >
                           <Hash size={12} className="text-accent-primary flex-shrink-0" />
                           <span className="truncate flex-1 text-left">{col.column_name}</span>
@@ -405,23 +419,35 @@ export function ChartEditorPage() {
                     </div>
                   ) : filteredColumns.length > 0 ? (
                     <div className="space-y-0.5 px-2">
-                      {filteredColumns.map((col) => (
-                        <button
-                          key={col.column_name}
-                          onClick={() => setFormData((prev) => ({ ...prev, labelColumn: col.column_name }))}
-                          className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors group ${
-                            formData.labelColumn === col.column_name
-                              ? 'bg-accent-primary/15 text-accent-primary'
-                              : 'text-text-primary hover:bg-bg-tertiary'
-                          }`}
-                        >
-                          <Database size={12} className="flex-shrink-0 text-text-tertiary" />
-                          <span className="truncate flex-1 text-left">{col.column_name}</span>
-                          <span className="text-[10px] text-text-tertiary uppercase">
-                            {col.data_type.split(' ')[0]}
-                          </span>
-                        </button>
-                      ))}
+                      {filteredColumns.map((col) => {
+                        const isNumeric = ['integer', 'bigint', 'numeric', 'decimal', 'real', 'double precision', 'float', 'int', 'smallint'].some((t) =>
+                          col.data_type.toLowerCase().includes(t)
+                        );
+                        return (
+                          <button
+                            key={col.column_name}
+                            draggable
+                            onDragStart={(e) => {
+                              setDraggedColumn({ name: col.column_name, isNumeric });
+                              e.dataTransfer.setData('text/plain', col.column_name);
+                              e.dataTransfer.effectAllowed = 'copy';
+                            }}
+                            onDragEnd={() => setDraggedColumn(null)}
+                            onClick={() => setFormData((prev) => ({ ...prev, labelColumn: col.column_name }))}
+                            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors group cursor-grab active:cursor-grabbing ${
+                              formData.labelColumn === col.column_name
+                                ? 'bg-accent-primary/15 text-accent-primary'
+                                : 'text-text-primary hover:bg-bg-tertiary'
+                            }`}
+                          >
+                            <Database size={12} className="flex-shrink-0 text-text-tertiary" />
+                            <span className="truncate flex-1 text-left">{col.column_name}</span>
+                            <span className="text-[10px] text-text-tertiary uppercase">
+                              {col.data_type.split(' ')[0]}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="px-4 py-3 text-xs text-text-tertiary">
@@ -492,12 +518,49 @@ export function ChartEditorPage() {
                 {/* X-axis */}
                 <div>
                   <label className="block text-xs font-medium text-text-secondary mb-2">X-axis</label>
-                  <Select
-                    value={formData.labelColumn || null}
-                    onChange={(val: string | null) => setFormData((prev) => ({ ...prev, labelColumn: val || '' }))}
-                    options={columns.map((col) => ({ value: col.column_name, label: col.column_name }))}
-                    placeholder="Select column..."
-                  />
+                  <div className="space-y-2">
+                    {formData.labelColumn && (
+                      <div className="flex items-center justify-between px-3 py-2 bg-bg-tertiary rounded-lg border border-border group">
+                        <div className="flex items-center gap-2">
+                          <Database size={12} className="text-text-tertiary" />
+                          <span className="text-sm text-text-primary">{formData.labelColumn}</span>
+                        </div>
+                        <button
+                          onClick={() => setFormData((prev) => ({ ...prev, labelColumn: '' }))}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-error/10 text-text-tertiary hover:text-error transition-all"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                    {!formData.labelColumn && (
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'copy';
+                          setDragOverXAxis(true);
+                        }}
+                        onDragLeave={() => setDragOverXAxis(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverXAxis(false);
+                          if (draggedColumn) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              labelColumn: draggedColumn.name,
+                            }));
+                          }
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs border border-dashed rounded-lg transition-colors cursor-pointer ${
+                          dragOverXAxis
+                            ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                            : 'border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary'
+                        }`}
+                      >
+                        + Drop column here or click
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Time Grain */}
@@ -540,18 +603,80 @@ export function ChartEditorPage() {
                         </button>
                       </div>
                     ))}
-                    <button className="w-full text-left px-3 py-2 text-xs text-text-tertiary border border-dashed border-border rounded-lg hover:border-accent-primary hover:text-accent-primary transition-colors">
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'copy';
+                        setDragOverMetrics(true);
+                      }}
+                      onDragLeave={() => setDragOverMetrics(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOverMetrics(false);
+                        if (draggedColumn) {
+                          const current = formData.dataColumns ? formData.dataColumns.split(',').map((s) => s.trim()).filter(Boolean) : [];
+                          if (!current.includes(draggedColumn.name)) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              dataColumns: [...current, draggedColumn.name].join(', '),
+                            }));
+                          }
+                        }
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs border border-dashed rounded-lg transition-colors cursor-pointer ${
+                        dragOverMetrics
+                          ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                          : 'border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary'
+                      }`}
+                    >
                       + Drop columns/metrics here or click
-                    </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Dimensions */}
                 <div>
                   <label className="block text-xs font-medium text-text-secondary mb-2">Dimensions</label>
-                  <button className="w-full text-left px-3 py-2 text-xs text-text-tertiary border border-dashed border-border rounded-lg hover:border-accent-primary hover:text-accent-primary transition-colors">
-                    + Drop columns here or click
-                  </button>
+                  <div className="space-y-2">
+                    {dimensions.map((dim, i) => (
+                      <div key={i} className="flex items-center justify-between px-3 py-2 bg-bg-tertiary rounded-lg border border-border group">
+                        <div className="flex items-center gap-2">
+                          <Database size={12} className="text-text-tertiary" />
+                          <span className="text-sm text-text-primary">{dim}</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setDimensions((prev) => prev.filter((_, idx) => idx !== i));
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-error/10 text-text-tertiary hover:text-error transition-all"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'copy';
+                        setDragOverDimensions(true);
+                      }}
+                      onDragLeave={() => setDragOverDimensions(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOverDimensions(false);
+                        if (draggedColumn && !dimensions.includes(draggedColumn.name)) {
+                          setDimensions((prev) => [...prev, draggedColumn.name]);
+                        }
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs border border-dashed rounded-lg transition-colors cursor-pointer ${
+                        dragOverDimensions
+                          ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                          : 'border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary'
+                      }`}
+                    >
+                      + Drop columns here or click
+                    </div>
+                  </div>
                 </div>
 
                 {/* Contribution Mode */}
