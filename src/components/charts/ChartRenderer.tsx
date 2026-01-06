@@ -1,89 +1,34 @@
 import React, { useMemo } from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-import { Bar, Line, Pie, Doughnut, Scatter } from 'react-chartjs-2';
-import { DataTable } from '../../shared/components/ui/Table';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { DataTable } from '../../shared/components/ui/Table';
+import EChartsWrapper from './EChartsWrapper';
+import type { EChartsOption } from 'echarts';
+import type { ChartConfig } from '../../types/chart-config';
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
-
-interface ChartConfig {
-  labelColumn?: string;
-  dataColumns?: string[]
-  colors?: string[];
-  showLegend?: boolean;
-  showGrid?: boolean;
-  title?: string;
-  // KPI/Gauge specific
-  valueColumn?: string;
-  prefix?: string;
-  suffix?: string;
-  target?: number;
-  min?: number;
-  max?: number;
-  thresholds?: { value: number; color: string }[];
-  previousValue?: number;
-  trendLabel?: string;
-}
+// Re-export interface for backward compatibility
+export type { ChartConfig };
 
 interface ChartRendererProps {
-  type: 'bar' | 'line' | 'pie' | 'doughnut' | 'area' | 'scatter' | 'table' | 'kpi' | 'gauge';
+  type: string;
   data: Record<string, any>[];
   config: ChartConfig;
   height?: number;
 }
 
 const defaultColors = [
-  '#00f5d4',
-  '#7b2cbf',
-  '#ff6b6b',
-  '#ffd93d',
-  '#4cc9f0',
-  '#f72585',
-  '#4895ef',
-  '#80ed99',
-  '#e63946',
-  '#a8dadc',
+  '#00f5d4', '#7b2cbf', '#ff6b6b', '#ffd93d', '#4cc9f0',
+  '#f72585', '#4895ef', '#80ed99', '#e63946', '#a8dadc',
 ];
 
 // Format number with abbreviations (K, M, B)
 const formatNumber = (num: number, decimals = 1): string => {
-  if (Math.abs(num) >= 1e9) {
-    return (num / 1e9).toFixed(decimals) + 'B';
-  }
-  if (Math.abs(num) >= 1e6) {
-    return (num / 1e6).toFixed(decimals) + 'M';
-  }
-  if (Math.abs(num) >= 1e3) {
-    return (num / 1e3).toFixed(decimals) + 'K';
-  }
+  if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(decimals) + 'B';
+  if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(decimals) + 'M';
+  if (Math.abs(num) >= 1e3) return (num / 1e3).toFixed(decimals) + 'K';
   return num.toLocaleString(undefined, { maximumFractionDigits: decimals });
 };
 
-// KPI Card Component
+// KPI Card Component (Preserved as React Component for best styling)
 const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; height: number }> = ({
   data,
   config,
@@ -91,12 +36,9 @@ const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; heig
 }) => {
   const value = useMemo(() => {
     if (!data || data.length === 0) return 0;
-    const col = config.valueColumn || config.dataColumns?.[0] || Object.keys(data[0]).find(k => typeof data[0][k] === 'number');
+    const col = config.valueColumn || config.yColumns?.[0] || Object.keys(data[0]).find(k => typeof data[0][k] === 'number');
     if (!col) return 0;
-    // Sum all values if multiple rows, or take first
-    if (data.length === 1) {
-      return parseFloat(data[0][col]) || 0;
-    }
+    if (data.length === 1) return parseFloat(data[0][col]) || 0;
     return data.reduce((sum, row) => sum + (parseFloat(row[col]) || 0), 0);
   }, [data, config]);
 
@@ -117,19 +59,14 @@ const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; heig
   }, [value, config.target]);
 
   return (
-    <div
-      className="flex flex-col items-center justify-center h-full p-6"
-      style={{ minHeight: height }}
-    >
-      {config.title && (
-        <h3 className="text-sm font-medium text-[#a0a0b0] mb-2 text-center">{config.title}</h3>
+    <div className="flex flex-col items-center justify-center h-full p-6 card bg-base-100 border border-base-300" style={{ minHeight: height }}>
+      {config.title?.show !== false && (
+        <h3 className="text-sm font-medium text-[#a0a0b0] mb-2 text-center">{(config.title as any)?.text || config.title}</h3>
       )}
 
       <div className="flex items-baseline gap-1">
         {config.prefix && <span className="text-2xl text-[#606070]">{config.prefix}</span>}
-        <span className="text-5xl font-bold text-[#f0f0f5] tabular-nums">
-          {formatNumber(value)}
-        </span>
+        <span className="text-5xl font-bold text-[#f0f0f5] tabular-nums">{formatNumber(value)}</span>
         {config.suffix && <span className="text-2xl text-[#606070]">{config.suffix}</span>}
       </div>
 
@@ -169,272 +106,230 @@ const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; heig
   );
 };
 
-// Gauge Chart Component
-const GaugeChart: React.FC<{ data: Record<string, any>[]; config: ChartConfig; height: number }> = ({
-  data,
-  config,
-  height,
-}) => {
-  const value = useMemo(() => {
-    if (!data || data.length === 0) return 0;
-    const col = config.valueColumn || config.dataColumns?.[0] || Object.keys(data[0]).find(k => typeof data[0][k] === 'number');
-    if (!col) return 0;
-    return parseFloat(data[0][col]) || 0;
-  }, [data, config]);
-
-  const min = config.min ?? 0;
-  const max = config.max ?? 100;
-  const normalizedValue = Math.max(min, Math.min(max, value));
-  const percentage = ((normalizedValue - min) / (max - min)) * 100;
-  
-  // Calculate angle for gauge (180 degrees arc)
-  const angle = (percentage / 100) * 180 - 90; // -90 to 90 degrees
-
-  // Determine color based on thresholds
-  const gaugeColor = useMemo(() => {
-    if (!config.thresholds || config.thresholds.length === 0) {
-      return '#00f5d4';
-    }
-    const sorted = [...config.thresholds].sort((a, b) => b.value - a.value);
-    for (const t of sorted) {
-      if (normalizedValue >= t.value) {
-        return t.color;
-      }
-    }
-    return config.thresholds[config.thresholds.length - 1]?.color || '#00f5d4';
-  }, [normalizedValue, config.thresholds]);
-
-  const size = Math.min(height - 40, 200);
-  const strokeWidth = size * 0.12;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = Math.PI * radius;
-
-  return (
-    <div className="flex flex-col items-center justify-center h-full p-4" style={{ minHeight: height }}>
-      {config.title && (
-        <h3 className="text-sm font-medium text-[#a0a0b0] mb-2 text-center">{config.title}</h3>
-      )}
-
-      <div className="relative" style={{ width: size, height: size / 2 + 30 }}>
-        <svg width={size} height={size / 2 + 20} viewBox={`0 0 ${size} ${size / 2 + 20}`}>
-          {/* Background arc */}
-          <path
-            d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2} ${size / 2}`}
-            fill="none"
-            stroke="#2a2a3a"
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-          />
-          {/* Value arc */}
-          <path
-            d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2} ${size / 2}`}
-            fill="none"
-            stroke={gaugeColor}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - percentage / 100)}
-            style={{ transition: 'stroke-dashoffset 0.5s ease-out, stroke 0.3s ease' }}
-          />
-          {/* Needle */}
-          <g transform={`translate(${size / 2}, ${size / 2})`}>
-            <line
-              x1="0"
-              y1="0"
-              x2="0"
-              y2={-radius + strokeWidth}
-              stroke="#f0f0f5"
-              strokeWidth="3"
-              strokeLinecap="round"
-              transform={`rotate(${angle})`}
-              style={{ transition: 'transform 0.5s ease-out' }}
-            />
-            <circle r={strokeWidth / 2} fill="#f0f0f5" />
-          </g>
-        </svg>
-
-        {/* Value display */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center">
-          <div className="flex items-baseline justify-center gap-1">
-            {config.prefix && <span className="text-lg text-[#606070]">{config.prefix}</span>}
-            <span className="text-3xl font-bold text-[#f0f0f5] tabular-nums">
-              {formatNumber(value)}
-            </span>
-            {config.suffix && <span className="text-lg text-[#606070]">{config.suffix}</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* Min/Max labels */}
-      <div className="flex justify-between w-full max-w-[200px] text-xs text-[#606070] mt-1 px-2">
-        <span>{formatNumber(min)}</span>
-        <span>{formatNumber(max)}</span>
-      </div>
-    </div>
-  );
-};
-
+// Main Chart Renderer
 export const ChartRenderer: React.FC<ChartRendererProps> = ({
   type,
   data,
   config,
   height = 300,
 }) => {
-  const chartData = useMemo(() => {
-    if (!data || data.length === 0) return null;
+  // Option Generator
+  const getOption = (): EChartsOption => {
+    if (!data || data.length === 0) return {};
 
-    const labelColumn = config.labelColumn || Object.keys(data[0])[0];
-    const dataColumns = config.dataColumns || Object.keys(data[0]).filter(k => k !== labelColumn);
-    const colors = config.colors || defaultColors;
+    // 1. Data Processing
+    // Backward compatibility: use config.labelColumn or defaults
+    const xColumn = config.xColumn || config.labelColumn || Object.keys(data[0])[0];
+    // Backward compatibility: use config.dataColumns or defaults
+    const yColumns = config.yColumns || config.dataColumns || Object.keys(data[0]).filter(k => k !== xColumn);
+    
+    const colors = config.colors || config.colorScheme || defaultColors;
 
-    const labels = data.map(row => row[labelColumn]);
-
-    const datasets = dataColumns.map((column, index) => ({
-      label: column.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      data: data.map(row => parseFloat(row[column]) || 0),
-      backgroundColor: type === 'line' || type === 'area'
-        ? `${colors[index % colors.length]}40`
-        : colors.slice(0, data.length),
-      borderColor: colors[index % colors.length],
-      borderWidth: type === 'pie' || type === 'doughnut' ? 0 : 2,
-      fill: type === 'area',
-      tension: 0.4,
-      pointRadius: type === 'scatter' ? 6 : 4,
-      pointHoverRadius: 6,
-    }));
-
-    return { labels, datasets };
-  }, [data, config, type]);
-
-  const options = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: config.showLegend !== false,
-        position: 'top' as const,
-        labels: {
-          color: '#a0a0b0',
-          padding: 20,
-          font: {
-            family: "'Outfit', sans-serif",
-            size: 12,
-          },
-        },
-      },
-      title: {
-        display: !!config.title,
-        text: config.title || '',
-        color: '#f0f0f5',
-        font: {
-          family: "'Outfit', sans-serif",
-          size: 16,
-          weight: 600,
-        },
-        padding: { bottom: 20 },
-      },
+    // Common Base Option
+    const baseOption: EChartsOption = {
+      backgroundColor: 'transparent',
+      textStyle: { fontFamily: "'Outfit', sans-serif" },
+      color: colors,
+      title: config.title?.show !== false ? {
+        text: typeof config.title === 'string' ? config.title : config.title?.text,
+        subtext: typeof config.title === 'object' ? config.title.subtext : undefined,
+        left: 'center',
+        textStyle: { color: '#f0f0f5', fontSize: 16, fontWeight: 600 },
+        subtextStyle: { color: '#a0a0b0' },
+        ...config.title
+      } : { show: false },
       tooltip: {
+        trigger: 'axis',
         backgroundColor: '#1e1e2a',
-        titleColor: '#f0f0f5',
-        bodyColor: '#a0a0b0',
         borderColor: '#2a2a3a',
-        borderWidth: 1,
-        padding: 12,
-        cornerRadius: 8,
-        titleFont: {
-          family: "'Outfit', sans-serif",
-          size: 14,
-          weight: 600,
-        },
-        bodyFont: {
-          family: "'Outfit', sans-serif",
-          size: 13,
-        },
+        textStyle: { color: '#a0a0b0' },
+        ...config.tooltip
       },
-    },
-    scales: type === 'pie' || type === 'doughnut' ? undefined : {
-      x: {
-        display: config.showGrid !== false,
-        grid: {
-          color: '#2a2a3a',
-          drawBorder: false,
-        },
-        ticks: {
-          color: '#606070',
-          font: {
-            family: "'Outfit', sans-serif",
-            size: 11,
-          },
-        },
+      legend: config.legend?.show !== false ? {
+        top: 'bottom',
+        textStyle: { color: '#a0a0b0' },
+        ...config.legend
+      } : { show: false },
+      grid: {
+        containLabel: true,
+        left: '5%', right: '5%', bottom: '10%', top: '15%',
+        ...config.grid
       },
-      y: {
-        display: config.showGrid !== false,
-        grid: {
-          color: '#2a2a3a',
-          drawBorder: false,
-        },
-        ticks: {
-          color: '#606070',
-          font: {
-            family: "'Outfit', sans-serif",
-            size: 11,
-          },
-        },
-        beginAtZero: true,
-      },
-    },
-  }), [config, type]);
+    };
 
+    // Chart-Specific Logic
+    switch (type) {
+      case 'bar':
+      case 'line':
+      case 'area':
+      case 'scatter':
+        return {
+          ...baseOption,
+          xAxis: {
+            type: 'category',
+            data: data.map(d => d[xColumn]),
+            axisLabel: { color: '#606070', rotate: config.xAxis?.labelRotate || 0 },
+            axisLine: { lineStyle: { color: '#2a2a3a' } },
+            ...config.xAxis
+          } as any, // Cast to avoid strict union check
+          yAxis: {
+            type: 'value',
+            splitLine: { lineStyle: { color: '#2a2a3a', type: 'dashed' } },
+            axisLabel: { color: '#606070' },
+            ...config.yAxis
+          },
+          series: yColumns.map((col: string) => ({
+            name: col,
+            type: (type === 'area' ? 'line' : type) as any,
+            data: data.map(d => d[col]),
+            areaStyle: type === 'area' ? { opacity: 0.3 } : undefined,
+            smooth: type === 'area' || type === 'line',
+            emphasis: { focus: 'series' },
+            ...config.seriesParams?.[col]
+          }))
+        };
+
+      case 'pie':
+      case 'doughnut':
+        return {
+          ...baseOption,
+          tooltip: { trigger: 'item' },
+          series: [{
+            name: xColumn,
+            type: 'pie',
+            radius: type === 'doughnut' ? ['40%', '70%'] : '70%',
+            center: ['50%', '50%'],
+            itemStyle: { borderRadius: 5, borderColor: '#151520', borderWidth: 2 },
+            label: { show: false },
+            data: data.map(row => ({
+              name: row[xColumn],
+              value: row[yColumns[0]] // Pie usually takes 1 metric
+            })),
+          }]
+        };
+        
+      case 'rose':
+        return {
+          ...baseOption,
+          tooltip: { trigger: 'item' },
+          series: [{
+            name: xColumn,
+            type: 'pie',
+            radius: ['20%', '70%'],
+            roseType: 'area', // Nightingale Rose Chart
+            itemStyle: { borderRadius: 5 },
+            data: data.map(row => ({
+               name: row[xColumn],
+               value: row[yColumns[0]]
+            })),
+          }]
+        }
+
+      case 'radar':
+        return {
+          ...baseOption,
+          radar: {
+            indicator: data.map(row => ({ name: row[xColumn], max: Math.max(...yColumns.map((c: string) => Number(row[c]))) * 1.2 })),
+            splitArea: { show: false },
+            axisLine: { lineStyle: { color: '#2a2a3a' } }
+          },
+          series: yColumns.map((col: string) => ({
+            name: col,
+            type: 'radar' as any,
+            data: [{
+              value: data.map(row => row[col]),
+              name: col
+            }]
+          }))
+        };
+
+      case 'funnel':
+        return {
+           ...baseOption,
+           tooltip: { trigger: 'item' },
+           series: [{
+              name: 'Funnel',
+              type: 'funnel',
+              left: '10%', top: 60, bottom: 60, width: '80%',
+              min: 0, max: 100,
+              minSize: '0%', maxSize: '100%',
+              sort: 'descending',
+              gap: 2,
+              label: { show: true, position: 'inside' },
+              data: data.map(row => ({
+                 value: row[yColumns[0]],
+                 name: row[xColumn]
+              }))
+           }]
+        };
+
+      case 'treemap':
+        return {
+            ...baseOption,
+             series: [{
+                type: 'treemap',
+                data: data.map(row => ({
+                    name: row[xColumn],
+                    value: row[yColumns[0]]
+                }))
+             }]
+        };
+        
+      case 'gauge':
+         // Basic Gauge implementation for ECharts if config is minimal
+         // Ideally use the Custom Gauge below, but this is for full ECharts support
+         const valCol = config.valueColumn || yColumns[0];
+         const val = data.length > 0 ? data[0][valCol] : 0;
+         return {
+            ...baseOption,
+            series: [{
+                type: 'gauge',
+                progress: { show: true, width: 18 },
+                axisLine: { lineStyle: { width: 18 } },
+                axisTick: { show: false },
+                splitLine: { length: 15, lineStyle: { width: 2, color: '#999' } },
+                axisLabel: { distance: 25, color: '#999', fontSize: 12 },
+                anchor: { show: true, showAbove: true, size: 25, itemStyle: { borderWidth: 10 } },
+                title: { show: false },
+                detail: { valueAnimation: true, fontSize: 30, offsetCenter: [0, '70%'] },
+                data: [{ value: val }]
+            }]
+         };
+
+      default:
+        // Generic fallback or try to render as bar
+        return {
+            ...baseOption,
+            xAxis: { type: 'category', data: data.map(d => d[xColumn]) },
+            yAxis: { type: 'value' },
+          series: yColumns.map((col: string) => ({ type: 'bar', data: data.map(d => d[col]) }))
+        };
+    }
+  };
+
+  // Rendering
   if (!data || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-[#606070]">
-        No data to display
-      </div>
-    );
+    return <div className="flex items-center justify-center h-full text-[#606070]">No data to display</div>;
   }
 
-  // Handle KPI type
-  if (type === 'kpi') {
-    return <KPICard data={data} config={config} height={height} />;
-  }
-
-  // Handle Gauge type
-  if (type === 'gauge') {
-    return <GaugeChart data={data} config={config} height={height} />;
-  }
-
-  if (!chartData) {
-    return (
-      <div className="flex items-center justify-center h-full text-[#606070]">
-        No data to display
-      </div>
-    );
-  }
-
+  // Handle Tables separately
   if (type === 'table') {
     return <DataTable data={data} maxHeight={`${height}px`} />;
   }
 
-  const ChartComponent = {
-    bar: Bar,
-    line: Line,
-    area: Line,
-    pie: Pie,
-    doughnut: Doughnut,
-    scatter: Scatter,
-  }[type];
-
-  if (!ChartComponent) {
-    return (
-      <div className="flex items-center justify-center h-full text-[#606070]">
-        Unsupported chart type: {type}
-      </div>
-    );
+  // Handle Custom KPIs
+  if (type === 'kpi') {
+    return <KPICard data={data} config={config} height={height} />;
   }
 
+  // Render ECharts
   return (
-    <div style={{ height: `${height}px` }}>
-      <ChartComponent data={chartData} options={options} />
+    <div style={{ height: `${height}px`, width: '100%' }}>
+      <EChartsWrapper 
+        option={getOption()} 
+        style={{ height: '100%', width: '100%' }} 
+        autoResize={true}
+      />
     </div>
   );
 };
