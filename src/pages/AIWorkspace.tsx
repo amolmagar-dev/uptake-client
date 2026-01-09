@@ -1,4 +1,12 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+/**
+ * AI Workspace Page
+ * Main interface for conversational AI interactions with database
+ * Supports context selection and follows chat UX best practices
+ */
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Send,
   Sparkles,
@@ -13,17 +21,18 @@ import {
   Clock,
   Command,
   ChevronRight,
-  ExternalLink,
   Mic,
   MicOff,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { aiApi, type ChatMessage, type AIContext } from "../lib/api";
-import { Card } from "../shared/components/ui/Card";
 import { ContextSelector, type SelectedContext } from "../components/ai/ContextSelector";
+import { WidgetRenderer } from "../components/widgets/WidgetRegistry";
+import type { BaseWidget, WidgetAction } from "../shared/types/widgets";
 
 interface EnhancedChatMessage extends ChatMessage {
   timestamp: string;
+  widget?: BaseWidget; // NEW: Support for rendering widgets in messages
 }
 
 export const AIWorkspacePage: React.FC = () => {
@@ -230,19 +239,61 @@ export const AIWorkspacePage: React.FC = () => {
         aiContexts.length > 0 ? aiContexts : undefined
       );
       const reply = response.data?.message || "No response received.";
-      setMessages([
-        ...nextMessages,
-        {
-          role: "assistant",
-          content: reply,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
+      const widgets = response.data?.widgets || null; // NEW: Extract widget data
+
+      // Create assistant message with widget support
+      const assistantMessage: EnhancedChatMessage = {
+        role: "assistant",
+        content: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        // NEW: Include first widget if available (can be extended to support multiple)
+        widget: widgets && widgets.length > 0 ? widgets[0] : undefined,
+      };
+
+      setMessages([...nextMessages, assistantMessage]);
     } catch (err) {
       console.error("Chat error", err);
       setError("Unable to reach the assistant. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Handle widget action execution
+   * Executes client tools based on widget action definitions
+   */
+  const handleWidgetAction = (action: WidgetAction) => {
+    console.log("[AIWorkspace] Widget action triggered:", action);
+
+    // Handle client tool execution
+    if (action.clientTool) {
+      switch (action.clientTool) {
+        case "navigate_to_page":
+          if (action.params?.page) {
+            navigate(`/${action.params.page}`, { state: action.params.params });
+          }
+          break;
+
+        case "add_to_context":
+          if (action.params?.type && action.params?.id && action.params?.name) {
+            setSelectedContexts(prev => [...prev, {
+              type: action.params!.type,
+              id: action.params!.id,
+              name: action.params!.name,
+              metadata: action.params!.metadata,
+            }]);
+          }
+          break;
+
+        case "show_notification":
+          // For now, just log. You can integrate with a toast library later
+          console.log(`[Notification ${action.params?.type}]:`, action.params?.message);
+          break;
+
+        default:
+          console.warn("Unknown client tool:", action.clientTool);
+      }
     }
   };
 
@@ -400,13 +451,40 @@ export const AIWorkspacePage: React.FC = () => {
                     </span>
                   </div>
                   <div
-                    className={`chat-bubble shadow-md text-sm leading-relaxed py-3.5 px-5 whitespace-pre-wrap transition-all duration-300 ${
+                    className={`chat-bubble shadow-md text-sm leading-relaxed py-3.5 px-5 transition-all duration-300 ${
                       msg.role === "user"
                         ? "chat-bubble-primary rounded-2xl! rounded-tr-none!"
                         : "chat-bubble-neutral bg-base-200/50 border border-base-300 text-base-content rounded-2xl! rounded-tl-none!"
                     }`}
                   >
-                    {msg.content}
+                    {/* Render markdown for AI messages, plain text for user messages */}
+                    {msg.role === "assistant" ? (
+                      <div className="prose prose-sm max-w-none prose-invert">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            // Customize rendering of specific elements
+                            p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                            ul: ({node, ...props}) => <ul className="mb-2 list-disc list-inside" {...props} />,
+                            ol: ({node, ...props}) => <ol className="mb-2 list-decimal list-inside" {...props} />,
+                            code: ({node, inline, ...props}: {node?: any; inline?: boolean; [key: string]: any}) => 
+                              inline 
+                                ? <code className="bg-base-300/50 px-1 py-0.5 rounded text-xs" {...props} />
+                                : <code className="block bg-base-300/50 p-2 rounded text-xs overflow-x-auto" {...props} />,
+                            strong: ({node, ...props}) => <strong className="font-bold text-primary" {...props} />,
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                    )}
+
+                    {/* NEW: Widget rendering */}
+                    {msg.widget && (
+                      <WidgetRenderer {...msg.widget} onAction={handleWidgetAction} />
+                    )}
 
                     {/* Inline Actions for AI messages */}
                     {msg.role === "assistant" && idx > 0 && (
