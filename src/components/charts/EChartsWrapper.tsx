@@ -6,6 +6,7 @@ interface EChartsWrapperProps {
   option: EChartsOption;
   style?: React.CSSProperties;
   theme?: string | object;
+  renderer?: 'canvas' | 'svg';  // Rendering mode: canvas (default) or svg
   onEvents?: Record<string, Function>;
   loading?: boolean;
   className?: string;
@@ -20,6 +21,7 @@ const EChartsWrapper = forwardRef<EChartsInstance, EChartsWrapperProps>(({
   option,
   style = { height: '300px', width: '100%' },
   theme = 'dark', // Default to dark theme to match app style
+  renderer = 'canvas', // Default to canvas, can be set to 'svg' for better scaling
   onEvents,
   loading,
   className,
@@ -42,8 +44,8 @@ const EChartsWrapper = forwardRef<EChartsInstance, EChartsWrapperProps>(({
       chartInstance.current.dispose();
     }
 
-    // Initialize
-    chartInstance.current = echarts.init(chartRef.current, theme) as unknown as EChartsType;
+    // Initialize with renderer option
+    chartInstance.current = echarts.init(chartRef.current, theme, { renderer }) as unknown as EChartsType;
     
     // Bind events
     if (onEvents) {
@@ -66,16 +68,21 @@ const EChartsWrapper = forwardRef<EChartsInstance, EChartsWrapperProps>(({
       chartInstance.current?.dispose();
       chartInstance.current = null;
     };
-  }, [theme]); // Re-init if theme changes
+  }, [theme, renderer]); // Re-init if theme or renderer changes
 
   // Update Options
   useEffect(() => {
-    if (!chartInstance.current) return;
+    if (!chartInstance.current) {
+      console.log('⚠️ EChartsWrapper: No chart instance, skipping option update');
+      return;
+    }
     
+    console.log('🔄 EChartsWrapper: Updating chart with new option:', option);
     chartInstance.current.setOption(option, {
       notMerge: false, // Merge with existing options
       replaceMerge: ['xAxis', 'yAxis', 'series'], // Replace these components if they change
     });
+    console.log('✅ EChartsWrapper: Option applied successfully');
   }, [option]);
 
   // Handle Loading

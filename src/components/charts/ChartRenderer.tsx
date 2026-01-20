@@ -4,6 +4,7 @@ import { DataTable } from '../../shared/components/ui/Table';
 import EChartsWrapper from './EChartsWrapper';
 import type { EChartsOption } from 'echarts';
 import type { ChartConfig } from '../../types/chart-config';
+import { isTemplateConfig, interpolateData } from '../../lib/dataTemplateUtils';
 
 // Re-export interface for backward compatibility
 export type { ChartConfig };
@@ -113,9 +114,36 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
   config,
   height = 300,
 }) => {
+  console.log('🎨 ChartRenderer received:', { type, dataLength: data?.length, config, height });
+  
   // Option Generator
   const getOption = (): EChartsOption => {
-    if (!data || data.length === 0) return {};
+    console.log('⚙️ getOption called with:', { type, dataLength: data?.length, config });
+    
+    // Check if config IS a full ECharts option (has series property)
+    // This happens when user saves from Advanced tab with a complete config
+    if (config && 'series' in config && (config as any).series) {
+      console.log('🎯 Full ECharts option detected in config');
+      
+      // Check if config uses $DATA template - interpolate with actual data
+      if (isTemplateConfig(config) && data && data.length > 0) {
+        console.log('📊 Interpolating $DATA placeholder with actual data');
+        try {
+          const interpolated = interpolateData(JSON.stringify(config), data);
+          return interpolated as EChartsOption;
+        } catch (e) {
+          console.error('Failed to interpolate $DATA:', e);
+          return config as unknown as EChartsOption;
+        }
+      }
+      
+      return config as unknown as EChartsOption;
+    }
+    
+    if (!data || data.length === 0) {
+      console.log('⚠️ No data available, returning empty option');
+      return {};
+    }
 
     // 1. Data Processing
     // Backward compatibility: use config.labelColumn or defaults
@@ -307,26 +335,32 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
     }
   };
 
+  // Check if config is a full ECharts option with embedded data
+  const isFullEChartsOption = config && 'series' in config && (config as any).series;
+
   // Rendering
-  if (!data || data.length === 0) {
+  if (!isFullEChartsOption && (!data || data.length === 0)) {
     return <div className="flex items-center justify-center h-full text-[#606070]">No data to display</div>;
   }
 
   // Handle Tables separately
-  if (type === 'table') {
+  if (type === 'table' && data && data.length > 0) {
     return <DataTable data={data} maxHeight={`${height}px`} />;
   }
 
   // Handle Custom KPIs
-  if (type === 'kpi') {
+  if (type === 'kpi' && data && data.length > 0) {
     return <KPICard data={data} config={config} height={height} />;
   }
 
   // Render ECharts
+  const chartOption = getOption();
+  console.log('📊 Final option being passed to EChartsWrapper:', chartOption);
+  
   return (
     <div style={{ height: `${height}px`, width: '100%' }}>
       <EChartsWrapper 
-        option={getOption()} 
+        option={chartOption} 
         style={{ height: '100%', width: '100%' }} 
         autoResize={true}
       />

@@ -1,17 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 import {
   ArrowLeft, Database, RefreshCw, Check, BarChart3, LineChart, PieChart,
   AreaChart, Table, Target, Hash, Circle, ChevronDown, ChevronRight, Search, 
-  X, Sparkles, Activity, LayoutGrid, GitMerge, PanelLeftClose, PanelLeftOpen
+  X, Sparkles, Activity, LayoutGrid, GitMerge, PanelLeftClose, PanelLeftOpen, Code, Copy, Maximize2, Minimize2
 } from 'lucide-react';
+import Editor from '@monaco-editor/react';
 
 import { Select } from '../shared/components/ui/Input';
 import { ChartRenderer } from '../components/charts/ChartRenderer';
+import EChartsWrapper from '../components/charts/EChartsWrapper';
 import { chartsApi, datasetsApi, type Dataset } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 import type { ChartConfig } from '../types/chart-config';
+import { generateEChartsOption } from '../lib/chartConfigGenerator';
+import { interpolateData, prepareConfigForStorage, getDefaultAdvancedTemplate, isTemplateConfig } from '../lib/dataTemplateUtils';
+
+import { parseChartConfig, stringifyChartConfig } from '../lib/chartConfigParser';
 
 // Customization Components
 import { GeneralSettings } from '../components/charts/editor/GeneralSettings';
@@ -43,7 +49,7 @@ const CHART_TYPES: ChartTypeInfo[] = [
   
   // Advanced
   { value: 'radar', label: 'Radar', icon: <Activity size={24} />, category: 'advanced' },
-  { value: 'funnel', label: 'Funnel', icon: <Activity size={24} />, category: 'advanced' }, // Using Activity as placeholder
+  { value: 'funnel', label: 'Funnel', icon: <Activity size={24} />, category: 'advanced' },
   { value: 'heatmap', label: 'Heatmap', icon: <LayoutGrid size={24} />, category: 'advanced' },
   { value: 'treemap', label: 'Treemap', icon: <LayoutGrid size={24} />, category: 'hierarchical' },
   { value: 'sunburst', label: 'Sunburst', icon: <Circle size={24} />, category: 'hierarchical' },
@@ -56,6 +62,9 @@ const CHART_TYPES: ChartTypeInfo[] = [
   { value: 'table', label: 'Data Table', icon: <Table size={24} />, category: 'table' },
   { value: 'kpi', label: 'KPI Card', icon: <Target size={24} />, category: 'kpi' },
   { value: 'gauge', label: 'Gauge', icon: <Target size={24} />, category: 'kpi' },
+  
+  // Custom - Full ECharts control with Advanced tab
+  { value: 'custom', label: 'Custom (ECharts)', icon: <Code size={24} />, category: 'custom' },
 ];
 
 export function ChartEditorPage() {
@@ -74,11 +83,14 @@ export function ChartEditorPage() {
   const [saving, setSaving] = useState(false);
   const [, setColumnsLoading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [configTab, setConfigTab] = useState<'data' | 'customize'>('data');
+  const [configTab, setConfigTab] = useState<'data' | 'customize' | 'advanced'>('data');
   const [metricsExpanded, setMetricsExpanded] = useState(true);
   const [columnsExpanded, setColumnsExpanded] = useState(true);
   const [columnSearch, setColumnSearch] = useState('');
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rawConfigText, setRawConfigText] = useState('');
+  const [rawEChartsOption, setRawEChartsOption] = useState<any>(null); // For direct ECharts rendering
+  const [isFullscreenEditor, setIsFullscreenEditor] = useState(false);
   
   // Drag and drop state
   const [draggedColumn, setDraggedColumn] = useState<{ name: string; isNumeric: boolean } | null>(null);
@@ -132,8 +144,16 @@ export function ChartEditorPage() {
       setChartType(chart.chart_type);
       setDatasetId(chart.dataset_id || '');
       
-      // Merge config carefully
-      setConfig(prev => _.merge({}, prev, chart.config));
+      // Check if this is a full ECharts option (has series)
+      if (chart.config && 'series' in chart.config && chart.config.series) {
+        // This is an Advanced config - set rawEChartsOption for direct rendering
+        setRawEChartsOption(chart.config);
+        // Also sync the raw config text
+        setRawConfigText(stringifyChartConfig(chart.config));
+      } else {
+        // This is a Data-driven config - merge with defaults
+        setConfig(prev => _.merge({}, prev, chart.config));
+      }
     } catch (error: any) {
       addToast('error', error.response?.data?.error || 'Failed to load chart');
       navigate('/charts');
@@ -193,12 +213,20 @@ export function ChartEditorPage() {
     }
 
     setSaving(true);
+    
+    // Use rawEChartsOption if user applied a full config from Advanced tab
+    // Otherwise use the config built from UI controls
+    // Always strip embedded data - use $DATA placeholder instead
+    const configToSave = rawEChartsOption 
+      ? prepareConfigForStorage(rawEChartsOption)
+      : config;
+    
     const chartPayload = {
       name,
       description,
       chart_type: chartType,
       dataset_id: datasetId,
-      config: config
+      config: configToSave
     };
 
     try {
@@ -217,9 +245,16 @@ export function ChartEditorPage() {
     }
   };
 
-  // Helper to update config
+  // Helper to update config - also clears series when switching to data-driven mode
   const updateConfig = (updates: Partial<ChartConfig>) => {
-    setConfig(prev => ({ ...prev, ...updates }));
+    setConfig(prev => {
+      const newConfig = { ...prev, ...updates };
+      // If user is setting xColumn or yColumns, remove series to switch to data-driven mode
+      if ('xColumn' in updates || 'yColumns' in updates) {
+        delete (newConfig as any).series;
+      }
+      return newConfig;
+    });
   };
 
   // Derived state
@@ -237,6 +272,151 @@ export function ChartEditorPage() {
   const filteredNumericColumns = numericColumns.filter((col) =>
     col.column_name.toLowerCase().includes(columnSearch.toLowerCase())
   );
+
+  // Generate ECharts option from current config
+  const generatedOption = useMemo(() => {
+    if (!previewData || previewData.length === 0) return {};
+    return generateEChartsOption(chartType, previewData, config);
+  }, [chartType, previewData, config]);
+
+  // Sync rawConfigText when generatedOption changes (unless user is in advanced tab or has saved advanced config)
+  // Replace embedded data with $DATA placeholder
+  useEffect(() => {
+    // Don't overwrite if we have a saved Advanced config (rawEChartsOption)
+    // or if user is currently in advanced tab editing
+    if (configTab !== 'advanced' && !rawEChartsOption) {
+      // Convert to string and replace dataset.source data with $DATA
+      const configStr = stringifyChartConfig(generatedOption);
+      setRawConfigText(configStr);
+    }
+  }, [generatedOption, configTab, rawEChartsOption]);
+
+  // When switching to Advanced tab, convert current config to use $DATA template
+  useEffect(() => {
+    if (configTab === 'advanced' && chartType === 'custom') {
+      // If rawConfigText has embedded data, replace with $DATA
+      if (rawConfigText && rawConfigText.includes('source:') && !rawConfigText.includes('$DATA')) {
+        // Replace the source array with $DATA placeholder
+        // Match source: [...] or source: [ ... ] patterns
+        const templateConfig = rawConfigText.replace(
+          /source:\s*\[[\s\S]*?\]\s*(?=,|\})/g,
+          'source: $DATA'
+        );
+        setRawConfigText(templateConfig);
+      } else if (!rawConfigText.trim()) {
+        // If empty, use default template
+        setRawConfigText(getDefaultAdvancedTemplate());
+      }
+    }
+  }, [configTab, chartType]);
+
+  // Compute the actual option to render - interpolate $DATA with preview data
+  const renderableOption = useMemo(() => {
+    if (!rawEChartsOption) return null;
+    
+    // Check if config uses $DATA template
+    if (isTemplateConfig(rawEChartsOption)) {
+      // If using $DATA but no data available yet, return null to prevent rendering
+      if (!previewData || previewData.length === 0) {
+        console.log('⏳ Waiting for previewData to interpolate $DATA...');
+        return null;
+      }
+      try {
+        return interpolateData(JSON.stringify(rawEChartsOption), previewData);
+      } catch (e) {
+        console.error('Failed to interpolate $DATA:', e);
+        return null; // Return null instead of broken config
+      }
+    }
+    return rawEChartsOption;
+  }, [rawEChartsOption, previewData]);
+
+  // Apply raw config changes
+  const handleApplyRawConfig = () => {
+    console.log('=== APPLY RAW CONFIG START ===');
+    console.log('1. Raw config text (first 300 chars):', rawConfigText.substring(0, 300));
+    
+    try {
+      console.log('2. Attempting to parse chart config (supports option = {...} format)...');
+      const parsed = parseChartConfig(rawConfigText);
+      console.log('3. Parsed successfully:', parsed);
+      
+      // Check if this is a COMPLETE ECharts option (has series - can be array or single object)
+      if (parsed.series && (Array.isArray(parsed.series) || typeof parsed.series === 'object')) {
+        console.log('🎯 FULL ECHARTS OPTION DETECTED - Using direct rendering mode');
+        const seriesCount = Array.isArray(parsed.series) ? parsed.series.length : 1;
+        console.log('   Series found:', seriesCount, 'series');
+        console.log('   Will render this option directly without extraction');
+        
+        setRawEChartsOption(parsed);
+        addToast('success', 'Full ECharts configuration applied - rendering directly');
+        console.log('=== APPLY RAW CONFIG END (DIRECT MODE) ===');
+        return;
+      }
+      
+      // Otherwise, it's a PARTIAL config - extract properties
+      console.log('⚙️ PARTIAL CONFIG DETECTED - Using extraction mode');
+      console.log('   Extracting customization properties into config');
+      
+      // Clear raw option if it was set
+      setRawEChartsOption(null);
+      
+      // Extract relevant fields back to config
+      const updatedConfig: Partial<ChartConfig> = { ...config };
+      console.log('4. Current config before update:', config);
+      
+      if (parsed.title) {
+        console.log('   - Updating title:', parsed.title);
+        updatedConfig.title = parsed.title;
+      }
+      if (parsed.legend) {
+        console.log('   - Updating legend:', parsed.legend);
+        updatedConfig.legend = parsed.legend;
+      }
+      if (parsed.xAxis) {
+        console.log('   - Updating xAxis:', parsed.xAxis);
+        updatedConfig.xAxis = parsed.xAxis;
+      }
+      if (parsed.yAxis) {
+        console.log('   - Updating yAxis:', parsed.yAxis);
+        updatedConfig.yAxis = parsed.yAxis;
+      }
+      if (parsed.grid) {
+        console.log('   - Updating grid:', parsed.grid);
+        updatedConfig.grid = parsed.grid;
+      }
+      if (parsed.tooltip) {
+        console.log('   - Updating tooltip:', parsed.tooltip);
+        updatedConfig.tooltip = parsed.tooltip;
+      }
+      if (parsed.color) {
+        console.log('   - Updating colors:', parsed.color);
+        updatedConfig.colors = parsed.color;
+      }
+      
+      console.log('5. Updated config:', updatedConfig);
+      console.log('6. Calling setConfig...');
+      setConfig(updatedConfig as ChartConfig);
+      
+      console.log('7. Config state updated successfully');
+      console.log('=== APPLY RAW CONFIG END (EXTRACTION MODE) ===');
+      addToast('success', 'Configuration properties applied');
+    } catch (error: any) {
+      console.error('=== APPLY RAW CONFIG END (ERROR) ===');
+      console.error('Error:', error);
+      addToast('error', error.message || 'Invalid JavaScript object syntax');
+    }
+  };
+
+  // Copy configuration to clipboard
+  const handleCopyConfig = async () => {
+    try {
+      await navigator.clipboard.writeText(rawConfigText);
+      addToast('success', 'Configuration copied to clipboard');
+    } catch (error) {
+      addToast('error', 'Failed to copy to clipboard');
+    }
+  };
 
   if (loading) {
     return (
@@ -310,7 +490,7 @@ export function ChartEditorPage() {
 
           <div className={`flex-1 flex flex-col overflow-hidden ${!leftPanelOpen ? 'opacity-0 invisible w-0' : 'opacity-100 visible'}`}>
             {/* Dataset Selector Component */}
-            <div className="px-4 pb-4">
+            <div className="px-4 pt-4 pb-4">
             <Select
               value={datasetId || null}
               onChange={(val: string | null) => {
@@ -424,6 +604,16 @@ export function ChartEditorPage() {
               Customize
               {configTab === 'customize' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary" />}
             </button>
+            {/* Advanced tab - only for Custom chart type */}
+            {chartType === 'custom' && (
+              <button
+                onClick={() => setConfigTab('advanced')}
+                className={`flex-1 py-3 text-sm font-medium transition-colors relative ${configTab === 'advanced' ? 'text-text-primary bg-bg-primary' : 'text-text-tertiary'}`}
+              >
+                Advanced
+                {configTab === 'advanced' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary" />}
+              </button>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
@@ -432,23 +622,17 @@ export function ChartEditorPage() {
                     {/* Chart Type Selection */}
                     <div>
                         <label className="block text-xs font-medium text-text-secondary mb-2">Chart Type</label>
-                        <div className="grid grid-cols-4 gap-2">
-                            {CHART_TYPES.filter(t => t.category === 'basic' || t.category === 'advanced').slice(0, 8).map(type => (
-                                <button
-                                    key={type.value}
-                                    onClick={() => setChartType(type.value)}
-                                    className={`p-2 rounded border flex flex-col items-center gap-1 hover:bg-bg-tertiary transition-colors ${chartType === type.value ? 'border-accent-primary bg-accent-primary/10 text-accent-primary' : 'border-transparent text-text-tertiary'}`}
-                                    title={type.label}
-                                >
-                                    {type.icon}
-                                </button>
-                            ))}
-                        </div>
                         <Select
                             value={chartType}
-                            onChange={(val: string | null) => setChartType(val || 'bar')}
+                            onChange={(val: string | null) => {
+                                const newType = val || 'bar';
+                                setChartType(newType);
+                                // Clear rawEChartsOption when switching away from custom
+                                if (newType !== 'custom') {
+                                    setRawEChartsOption(null);
+                                }
+                            }}
                             options={CHART_TYPES.map(t => ({ value: t.value, label: t.label }))}
-                            className="mt-2"
                         />
                     </div>
 
@@ -461,7 +645,11 @@ export function ChartEditorPage() {
                             onDrop={(e) => {
                                 e.preventDefault();
                                 setDragOverXAxis(false);
-                                if (draggedColumn) updateConfig({ xColumn: draggedColumn.name });
+                                if (draggedColumn) {
+                                    // Clear rawEChartsOption when user starts using Data tab
+                                    setRawEChartsOption(null);
+                                    updateConfig({ xColumn: draggedColumn.name });
+                                }
                             }}
                             className={`border border-dashed rounded-lg p-3 transition-colors ${dragOverXAxis ? 'border-accent-primary bg-accent-primary/10' : 'border-border'}`}
                          >
@@ -486,6 +674,8 @@ export function ChartEditorPage() {
                                 e.preventDefault();
                                 setDragOverMetrics(false);
                                 if (draggedColumn) {
+                                    // Clear rawEChartsOption when user starts using Data tab
+                                    setRawEChartsOption(null);
                                     const current = config.yColumns || [];
                                     if (!current.includes(draggedColumn.name)) {
                                         updateConfig({ yColumns: [...current, draggedColumn.name] });
@@ -510,7 +700,7 @@ export function ChartEditorPage() {
                          </div>
                     </div>
                 </div>
-             ) : (
+             ) : configTab === 'customize' ? (
                  /* CUSTOMIZE TAB */
                  <div className="space-y-8 pb-10">
                     <GeneralSettings config={config} onChange={updateConfig} />
@@ -522,6 +712,67 @@ export function ChartEditorPage() {
                     <VisualSettings config={config} onChange={updateConfig} />
                     <div className="h-px bg-border/50" />
                     <SeriesSettings config={config} onChange={updateConfig} />
+                 </div>
+             ) : (
+                 /* ADVANCED TAB */
+                 <div className="flex flex-col h-full space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                        <Code size={16} className="text-accent-primary" />
+                        Advanced Configuration
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setIsFullscreenEditor(true)}
+                          className="p-1.5 hover:bg-bg-tertiary rounded text-text-tertiary hover:text-text-primary transition-colors"
+                          title="Expand editor"
+                        >
+                          <Maximize2 size={16} />
+                        </button>
+                        <button
+                          onClick={handleCopyConfig}
+                          className="px-3 py-1.5 bg-bg-tertiary hover:bg-bg-secondary border border-border rounded text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1.5"
+                          title="Copy to clipboard"
+                        >
+                          <Copy size={14} />
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col min-h-0">
+                      <Editor
+                        height="100%"
+                        language="javascript"
+                        value={rawConfigText}
+                        onChange={(value) => setRawConfigText(value || '')}
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 12,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 2,
+                          wordWrap: 'on',
+                        }}
+                      />
+                    </div>
+
+                    <button
+                      onClick={handleApplyRawConfig}
+                      className="w-full px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-primary/90 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                    >
+                      <Check size={16} />
+                      Apply Configuration
+                    </button>
+
+                    <div className="p-3 bg-bg-tertiary/50 border border-border/50 rounded-lg">
+                      <p className="text-xs text-text-tertiary">
+                        Paste ECharts examples directly using <code className="text-accent-primary">option = {'{'} ... {'}'}</code> format.
+                        <a href="https://echarts.apache.org/examples/en/" target="_blank" rel="noopener noreferrer" className="text-accent-primary hover:underline ml-1">View examples</a>
+                      </p>
+                    </div>
                  </div>
              )}
           </div>
@@ -545,7 +796,17 @@ export function ChartEditorPage() {
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="spinner" />
                         </div>
+                    ) : renderableOption ? (
+                        /* Direct ECharts rendering mode - user provided complete option (with $DATA interpolated) */
+                        <div style={{ height: '500px', width: '100%' }}>
+                          <EChartsWrapper 
+                            option={renderableOption}
+                            style={{ height: '100%', width: '100%' }}
+                            autoResize={true}
+                          />
+                        </div>
                     ) : (
+                        /* Normal mode - use ChartRenderer with config */
                         <ChartRenderer
                             type={chartType}
                             data={previewData || []}
@@ -557,6 +818,71 @@ export function ChartEditorPage() {
             </div>
         </main>
       </div>
+
+      {/* Fullscreen Editor Modal */}
+      {isFullscreenEditor && (
+        <div className="fixed inset-0 z-50 bg-bg-primary flex flex-col">
+          {/* Modal Header */}
+          <div className="flex-shrink-0 h-14 border-b border-border bg-bg-secondary flex items-center justify-between px-4">
+            <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+              <Code size={20} className="text-accent-primary" />
+              Advanced Configuration Editor
+            </h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopyConfig}
+                className="px-3 py-1.5 bg-bg-tertiary hover:bg-bg-primary border border-border rounded text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1.5"
+                title="Copy to clipboard"
+              >
+                <Copy size={14} />
+                Copy
+              </button>
+              <button
+                onClick={handleApplyRawConfig}
+                className="px-4 py-1.5 bg-accent-primary text-white rounded hover:bg-accent-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
+              >
+                <Check size={16} />
+                Apply
+              </button>
+              <button
+                onClick={() => setIsFullscreenEditor(false)}
+                className="p-1.5 hover:bg-bg-tertiary rounded text-text-tertiary hover:text-text-primary transition-colors"
+                title="Close fullscreen"
+              >
+                <Minimize2 size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Editor Content */}
+          <div className="flex-1 overflow-hidden p-6">
+            <Editor
+              height="100%"
+              language="javascript"
+              value={rawConfigText}
+              onChange={(value) => setRawConfigText(value || '')}
+              theme="vs-dark"
+              options={{
+                minimap: { enabled: true },
+                fontSize: 14,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                tabSize: 2,
+                wordWrap: 'on',
+              }}
+            />
+          </div>
+
+          {/* Footer Help */}
+          <div className="flex-shrink-0 border-t border-border bg-bg-secondary px-6 py-3">
+            <p className="text-xs text-text-tertiary">
+              Paste ECharts examples directly using <code className="text-accent-primary">option = {'{'} ... {'}'}</code> format.
+              <a href="https://echarts.apache.org/examples/en/" target="_blank" rel="noopener noreferrer" className="text-accent-primary hover:underline ml-1">View examples</a>
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
