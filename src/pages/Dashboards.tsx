@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { ResourceListing } from "../shared/components/ResourceListing";
 import {
   Plus,
   LayoutDashboard,
   Trash2,
   Edit,
-  Grid,
-  List,
-  LayoutGrid,
   Search,
-  ChevronLeft,
-  ChevronRight,
   X,
   Star,
   Copy,
@@ -137,34 +133,6 @@ export const DashboardsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingDashboard, setEditingDashboard] = useState<Dashboard | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"vertical" | "grid">("vertical");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  // Filter dashboards based on search
-  const filteredDashboards = useMemo(() => {
-    if (!searchQuery.trim()) return dashboards;
-    const query = searchQuery.toLowerCase();
-    return dashboards.filter(
-      (d) =>
-        d.name.toLowerCase().includes(query) ||
-        d.description?.toLowerCase().includes(query) ||
-        d.created_by_name?.toLowerCase().includes(query)
-    );
-  }, [dashboards, searchQuery]);
-
-  // Paginate filtered dashboards
-  const totalPages = Math.ceil(filteredDashboards.length / itemsPerPage);
-  const paginatedDashboards = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredDashboards.slice(start, start + itemsPerPage);
-  }, [filteredDashboards, currentPage]);
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
 
   const fetchDashboards = async () => {
     try {
@@ -193,6 +161,165 @@ export const DashboardsPage: React.FC = () => {
     }
   };
 
+  // Grid Item Renderer
+  const renderGridItem = (dashboard: Dashboard) => (
+    <div
+      key={dashboard.id}
+      className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm hover:shadow-md h-full"
+    >
+      <div className="card-body p-6 flex flex-col h-full">
+        {/* Icon & Title */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <LayoutDashboard size={24} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3
+                className="card-title text-base hover:text-primary cursor-pointer truncate"
+                onClick={() => navigate(`/dashboard/${dashboard.id}`)}
+              >
+                {dashboard.name}
+              </h3>
+              {dashboard.is_public === 1 && (
+                <span className="badge badge-sm badge-outline badge-primary">Public</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs opacity-60">
+              <span>{dashboard.chart_count} charts</span>
+              <span>•</span>
+              <span className="truncate">By {dashboard.created_by_name}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        {dashboard.description && (
+          <p className="text-sm opacity-70 line-clamp-2 mb-6 h-10 flex-grow-0">{dashboard.description}</p>
+        )}
+        
+        <div className="flex-grow"></div>
+
+        {/* Actions */}
+        <div className="card-actions justify-end mt-auto pt-4 border-t border-base-200">
+          <div className="flex items-center gap-1">
+            <FavoriteButton dashboard={dashboard} />
+            <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
+                <MoreHorizontal size={18} />
+              </div>
+              <ul
+                tabIndex={0}
+                className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300"
+              >
+                <li>
+                  <button
+                    onClick={() => {
+                      setEditingDashboard(dashboard);
+                      setShowModal(true);
+                    }}
+                  >
+                    <Edit size={14} /> Edit
+                  </button>
+                </li>
+                <li>
+                  <button className="text-error" onClick={() => setDeleteConfirm(dashboard.id)}>
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // List Item Renderer
+  const renderListItem = (dashboard: Dashboard) => (
+    <div
+      key={dashboard.id}
+      className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm hover:shadow-md card-side"
+    >
+      <div className="card-body flex-row items-center gap-6 py-4 w-full">
+        {/* Icon & Title */}
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <LayoutDashboard size={24} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3
+                className="card-title text-base hover:text-primary cursor-pointer truncate"
+                onClick={() => navigate(`/dashboard/${dashboard.id}`)}
+              >
+                {dashboard.name}
+              </h3>
+              {dashboard.is_public === 1 && (
+                <span className="badge badge-sm badge-outline badge-primary">Public</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs opacity-60">
+              <span>{dashboard.chart_count} charts</span>
+              <span>•</span>
+              <span className="truncate">By {dashboard.created_by_name}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="card-actions justify-end">
+          <div className="flex items-center gap-1">
+            <FavoriteButton dashboard={dashboard} />
+            <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
+                <MoreHorizontal size={18} />
+              </div>
+              <ul
+                tabIndex={0}
+                className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300"
+              >
+                <li>
+                  <button
+                    onClick={() => {
+                      setEditingDashboard(dashboard);
+                      setShowModal(true);
+                    }}
+                  >
+                    <Edit size={14} /> Edit
+                  </button>
+                </li>
+                <li>
+                  <button className="text-error" onClick={() => setDeleteConfirm(dashboard.id)}>
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderEmptyState = () => (
+    <div className="card bg-base-200 border border-base-300 text-center py-16">
+      <div className="card-body items-center">
+        <LayoutDashboard size={48} className="mb-4 opacity-20" />
+        <h3 className="text-xl font-bold">No dashboards yet</h3>
+        <p className="text-base-content/60 max-w-sm mb-6">
+          Get started by creating your first dashboard to organize and visualize your data.
+        </p>
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <Plus size={18} />
+          Create Dashboard
+        </button>
+      </div>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -202,216 +329,31 @@ export const DashboardsPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-8">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboards</h1>
-          <p className="text-base-content/60 mt-1 text-sm">Create and manage your data dashboards</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="join bg-base-200 p-1">
-            <button
-              onClick={() => setViewMode("vertical")}
-              className={`btn btn-sm join-item ${viewMode === "vertical" ? "btn-active btn-primary" : "btn-ghost"}`}
-              title="List View"
-            >
-              <List size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`btn btn-sm join-item ${viewMode === "grid" ? "btn-active btn-primary" : "btn-ghost"}`}
-              title="Grid View"
-            >
-              <LayoutGrid size={18} />
-            </button>
+    <>
+      <ResourceListing
+        title="Dashboards"
+        description="Create and manage your data dashboards"
+        items={dashboards}
+        renderGridItem={renderGridItem}
+        renderListItem={renderListItem}
+        renderEmptyState={renderEmptyState}
+        onCreate={() => {
+          setEditingDashboard(null);
+          setShowModal(true);
+        }}
+        createButtonText="Create Dashboard"
+        onSearch={() => {}} // Internal search used
+        filterFunction={(d, query) => 
+          d.name.toLowerCase().includes(query.toLowerCase()) ||
+          d.description?.toLowerCase().includes(query.toLowerCase()) ||
+          d.created_by_name?.toLowerCase().includes(query.toLowerCase())
+        }
+        actions={
+          <div className="hidden sm:block">
+             {/* Reclaiming the space for future actions or keep simple */}
           </div>
-          <button
-            className="btn btn-primary btn-sm md:btn-md"
-            onClick={() => {
-              setEditingDashboard(null);
-              setShowModal(true);
-            }}
-          >
-            <Plus size={18} />
-            <span className="hidden sm:inline">Create Dashboard</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="max-w-2xl relative group">
-        <Search
-          size={18}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors"
-        />
-        <input
-          type="text"
-          placeholder="Search dashboards by name, description, or creator..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="input input-bordered w-full pl-12 bg-base-100"
-        />
-      </div>
-
-      {filteredDashboards.length === 0 ? (
-        <div className="card bg-base-200 border border-base-300 text-center py-16">
-          <div className="card-body items-center">
-            <LayoutDashboard size={48} className="mb-4 opacity-20" />
-            <h3 className="text-xl font-bold">{searchQuery ? "No dashboards found" : "No dashboards yet"}</h3>
-            <p className="text-base-content/60 max-w-sm mb-6">
-              {searchQuery
-                ? `We couldn't find any dashboards matching "${searchQuery}"`
-                : "Get started by creating your first dashboard to organize and visualize your data."}
-            </p>
-            {!searchQuery && (
-              <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                <Plus size={18} />
-                Create Dashboard
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <div
-            className={
-              viewMode === "vertical"
-                ? "grid gap-4"
-                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            }
-          >
-            {paginatedDashboards.map((dashboard) => (
-              <div
-                key={dashboard.id}
-                className={`card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm hover:shadow-md ${
-                  viewMode === "vertical" ? "card-side" : ""
-                }`}
-              >
-                <div className={`card-body ${viewMode === "vertical" ? "flex-row items-center gap-6 py-4" : "p-6"}`}>
-                  {/* Icon & Title */}
-                  <div className={`flex items-center gap-4 ${viewMode === "vertical" ? "flex-1 min-w-0" : "mb-4"}`}>
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Grid size={24} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3
-                          className="card-title text-base hover:text-primary cursor-pointer truncate"
-                          onClick={() => navigate(`/dashboard/${dashboard.id}`)}
-                        >
-                          {dashboard.name}
-                        </h3>
-                        {dashboard.is_public === 1 && (
-                          <span className="badge badge-sm badge-outline badge-primary">Public</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs opacity-60">
-                        <span>{dashboard.chart_count} charts</span>
-                        <span>•</span>
-                        <span className="truncate">By {dashboard.created_by_name}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Description - only in grid view */}
-                  {viewMode === "grid" && dashboard.description && (
-                    <p className="text-sm opacity-70 line-clamp-2 mb-6 h-10">{dashboard.description}</p>
-                  )}
-
-                  {/* Actions */}
-                  <div
-                    className={`card-actions justify-end ${
-                      viewMode === "vertical" ? "" : "mt-auto pt-4 border-t border-base-200"
-                    }`}
-                  >
-                    <div className="flex items-center gap-1">
-                      <FavoriteButton dashboard={dashboard} />
-                      <CloneButton dashboardId={dashboard.id} onClone={fetchDashboards} />
-                      <div className="dropdown dropdown-end">
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
-                          <MoreHorizontal size={18} />
-                        </div>
-                        <ul
-                          tabIndex={0}
-                          className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300"
-                        >
-                          <li>
-                            <button
-                              onClick={() => {
-                                setEditingDashboard(dashboard);
-                                setShowModal(true);
-                              }}
-                            >
-                              <Edit size={14} /> Edit
-                            </button>
-                          </li>
-                          <li>
-                            <button className="text-error" onClick={() => setDeleteConfirm(dashboard.id)}>
-                              <Trash2 size={14} /> Delete
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-base-300">
-              <p className="text-sm opacity-60">
-                Showing {(currentPage - 1) * itemsPerPage + 1} -{" "}
-                {Math.min(currentPage * itemsPerPage, filteredDashboards.length)} of {filteredDashboards.length}{" "}
-                dashboards
-              </p>
-              <div className="join shadow-sm">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="join-item btn btn-sm btn-square bg-base-200"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((page) => {
-                    if (page === 1 || page === totalPages) return true;
-                    if (Math.abs(page - currentPage) <= 1) return true;
-                    return false;
-                  })
-                  .map((page, idx, arr) => (
-                    <React.Fragment key={page}>
-                      {idx > 0 && arr[idx - 1] !== page - 1 && (
-                        <button disabled className="join-item btn btn-sm btn-disabled">
-                          ...
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setCurrentPage(page)}
-                        className={`join-item btn btn-sm ${currentPage === page ? "btn-primary" : "bg-base-200"}`}
-                      >
-                        {page}
-                      </button>
-                    </React.Fragment>
-                  ))}
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="join-item btn btn-sm btn-square bg-base-200"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Modals stay same... */}
+        }
+      />
 
       <DashboardModal
         isOpen={showModal}
@@ -436,7 +378,7 @@ export const DashboardsPage: React.FC = () => {
         confirmText="Delete"
         variant="danger"
       />
-    </div>
+    </>
   );
 };
 

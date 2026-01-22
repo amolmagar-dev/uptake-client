@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ResourceListing } from "../shared/components/ResourceListing";
 import {
   Plus,
   Database,
@@ -65,7 +66,8 @@ export const ConnectionsPage: React.FC = () => {
     fetchConnections();
   }, []);
 
-  const handleTest = async (id: string) => {
+  const handleTest = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setTestingId(id);
     try {
       const response = await connectionsApi.test(id);
@@ -91,7 +93,8 @@ export const ConnectionsPage: React.FC = () => {
     }
   };
 
-  const handleExpand = async (id: string, type: string) => {
+  const handleExpand = async (id: string, type: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (["api", "googlesheet"].includes(type)) return; // No tables for these types
 
     if (expandedConnection === id) {
@@ -140,6 +143,195 @@ export const ConnectionsPage: React.FC = () => {
     return `${conn.type} • ${conn.host}:${conn.port} • ${conn.database_name}`;
   };
 
+  const renderGridItem = (connection: Connection) => {
+    const IconComponent = getConnectionIcon(connection.type);
+    const isSqlType = !["api", "googlesheet"].includes(connection.type);
+
+    return (
+      <div
+        key={connection.id}
+        className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm h-full"
+      >
+        <div className="card-body p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: `${getConnectionColor(connection.type)}15` }}
+            >
+              <IconComponent size={24} style={{ color: getConnectionColor(connection.type) }} />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h3 className="card-title text-base">{connection.name}</h3>
+              <p className="text-sm opacity-60 truncate">{getConnectionDescription(connection)}</p>
+            </div>
+
+            <div className="flex items-center gap-1 mt-2 sm:mt-0">
+               {/* Actions in Grid View */}
+               <div className="dropdown dropdown-end">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
+                  <MoreHorizontal size={18} />
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300"
+                >
+                  <li>
+                    <button
+                      onClick={() => {
+                        setEditingConnection(connection);
+                        setShowModal(true);
+                      }}
+                    >
+                      <Edit size={14} /> Edit
+                    </button>
+                  </li>
+                   {isSqlType && (
+                    <li>
+                      <button onClick={(e) => handleExpand(connection.id, connection.type, e)}>
+                         <Table size={14} /> {expandedConnection === connection.id ? "Hide Tables" : "Show Tables"}
+                      </button>
+                    </li>
+                   )}
+                  <li>
+                    <button onClick={(e) => handleTest(connection.id, e)}>
+                       <RefreshCw size={14} className={testingId === connection.id ? "animate-spin" : ""} /> Test Connection
+                    </button>
+                  </li>
+                  <li>
+                    <button className="text-error" onClick={() => setDeleteConfirm(connection.id)}>
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+           {/* Status Badge inline or below */}
+           <div className="mt-4 flex flex-wrap gap-2">
+              {testResults[connection.id] !== undefined && (
+                <div
+                  className={`badge badge-sm gap-1 ${
+                    testResults[connection.id] ? "badge-success" : "badge-error"
+                  }`}
+                >
+                  {testResults[connection.id] ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                  {testResults[connection.id] ? "Connected" : "Failed"}
+                </div>
+              )}
+           </div>
+
+          {expandedConnection === connection.id && isSqlType && (
+            <div className="mt-6 pt-6 border-t border-base-200 animate-in fade-in slide-in-from-top-2">
+              {loadingTables ? (
+                <div className="flex justify-center py-8">
+                  <span className="loading loading-spinner loading-md text-primary"></span>
+                </div>
+              ) : tables.length === 0 ? (
+                <p className="text-center opacity-40 py-8 italic">No tables found in this connection</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {tables.map((table, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-200 text-sm hover:bg-base-300 transition-colors"
+                    >
+                      <Table size={14} className="opacity-40" />
+                      <span className="opacity-40">{table.table_schema}.</span>
+                      <span className="font-medium">{table.table_name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderListItem = (connection: Connection) => {
+    const IconComponent = getConnectionIcon(connection.type);
+    
+    return (
+    <div
+      key={connection.id}
+      className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm card-side"
+    >
+      <div className="card-body flex-row items-center gap-6 py-4 px-6 w-full">
+         <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+            style={{ backgroundColor: `${getConnectionColor(connection.type)}15` }}
+          >
+            <IconComponent size={20} style={{ color: getConnectionColor(connection.type) }} />
+          </div>
+
+        <div className="flex-1 min-w-0">
+          <h3 className="card-title text-base">{connection.name}</h3>
+          <p className="text-sm opacity-60 truncate">{getConnectionDescription(connection)}</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {testResults[connection.id] !== undefined && (
+             <div
+               className={`badge badge-sm gap-1 ${
+                 testResults[connection.id] ? "badge-success" : "badge-error"
+               }`}
+             >
+               {testResults[connection.id] ? <CheckCircle size={12} /> : <XCircle size={12} />}
+               {testResults[connection.id] ? "Connected" : "Failed"}
+             </div>
+           )}
+
+            {/* Quick Actions */}
+           <button
+              className="btn btn-ghost btn-sm btn-square"
+              onClick={(e) => handleTest(connection.id, e)}
+              title="Test Connection"
+              disabled={testingId === connection.id}
+            >
+              <RefreshCw size={18} className={testingId === connection.id ? "animate-spin" : ""} />
+            </button>
+            <button
+              className="btn btn-ghost btn-sm btn-square"
+              onClick={() => {
+                setEditingConnection(connection);
+                setShowModal(true);
+              }}
+              title="Edit"
+            >
+              <Edit size={18} />
+            </button>
+            <button 
+              className="btn btn-ghost btn-sm btn-square text-error" 
+              onClick={() => setDeleteConfirm(connection.id)}
+              title="Delete"
+            >
+              <Trash2 size={18} />
+            </button>
+        </div>
+      </div>
+      {/* Tables expander could be handled here too if needed, but keeping simple for list view */}
+    </div>
+  )};
+
+  const renderEmptyState = () => (
+    <div className="card bg-base-200 border border-base-300 text-center py-16">
+      <div className="card-body items-center">
+        <Database size={48} className="mb-4 opacity-20" />
+        <h3 className="text-xl font-bold">No connections yet</h3>
+        <p className="text-base-content/60 max-w-sm mb-6">
+          Connect your first data source to start creating datasets and charts.
+        </p>
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <Plus size={18} />
+          Add Connection
+        </button>
+      </div>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -149,153 +341,28 @@ export const ConnectionsPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-8">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Connections</h1>
-          <p className="text-base-content/60 mt-1 text-sm">Manage databases, APIs, and data sources</p>
-        </div>
-        <button
-          className="btn btn-primary btn-sm md:btn-md"
-          onClick={() => {
-            setEditingConnection(null);
-            setShowModal(true);
-          }}
-        >
-          <Plus size={18} />
-          <span>Add Connection</span>
-        </button>
-      </div>
-
-      {connections.length === 0 ? (
-        <div className="card bg-base-200 border border-base-300 text-center py-16">
-          <div className="card-body items-center">
-            <Database size={48} className="mb-4 opacity-20" />
-            <h3 className="text-xl font-bold">No connections yet</h3>
-            <p className="text-base-content/60 max-w-sm mb-6">
-              Connect your first data source to start creating datasets and charts.
-            </p>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              <Plus size={18} />
-              Add Connection
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="grid gap-6">
-          {connections.map((connection) => {
-            const IconComponent = getConnectionIcon(connection.type);
-            const isSqlType = !["api", "googlesheet"].includes(connection.type);
-
-            return (
-              <div
-                key={connection.id}
-                className="card bg-base-100 border border-base-300 hover:border-primary/50 transition-all shadow-sm"
-              >
-                <div className="card-body p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${getConnectionColor(connection.type)}15` }}
-                    >
-                      <IconComponent size={24} style={{ color: getConnectionColor(connection.type) }} />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h3 className="card-title text-base">{connection.name}</h3>
-                      <p className="text-sm opacity-60 truncate">{getConnectionDescription(connection)}</p>
-                    </div>
-
-                    <div className="flex items-center gap-1 mt-2 sm:mt-0">
-                      {testResults[connection.id] !== undefined && (
-                        <div
-                          className={`badge badge-sm gap-1 ${
-                            testResults[connection.id] ? "badge-success" : "badge-error"
-                          }`}
-                        >
-                          {testResults[connection.id] ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                          {testResults[connection.id] ? "Connected" : "Failed"}
-                        </div>
-                      )}
-
-                      {isSqlType && (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => handleExpand(connection.id, connection.type)}
-                        >
-                          <Table size={16} />
-                          <span className="hidden lg:inline">Tables</span>
-                        </button>
-                      )}
-
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => handleTest(connection.id)}
-                        disabled={testingId === connection.id}
-                      >
-                        <RefreshCw size={16} className={testingId === connection.id ? "animate-spin" : ""} />
-                        <span className="hidden lg:inline">Test</span>
-                      </button>
-
-                      <div className="dropdown dropdown-end">
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
-                          <MoreHorizontal size={18} />
-                        </div>
-                        <ul
-                          tabIndex={0}
-                          className="dropdown-content z-10 menu p-2 shadow-xl bg-base-200 rounded-box w-40 border border-base-300"
-                        >
-                          <li>
-                            <button
-                              onClick={() => {
-                                setEditingConnection(connection);
-                                setShowModal(true);
-                              }}
-                            >
-                              <Edit size={14} /> Edit
-                            </button>
-                          </li>
-                          <li>
-                            <button className="text-error" onClick={() => setDeleteConfirm(connection.id)}>
-                              <Trash2 size={14} /> Delete
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {expandedConnection === connection.id && isSqlType && (
-                    <div className="mt-6 pt-6 border-t border-base-200 animate-in fade-in slide-in-from-top-2">
-                      {loadingTables ? (
-                        <div className="flex justify-center py-8">
-                          <span className="loading loading-spinner loading-md text-primary"></span>
-                        </div>
-                      ) : tables.length === 0 ? (
-                        <p className="text-center opacity-40 py-8 italic">No tables found in this connection</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                          {tables.map((table, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-200 text-sm hover:bg-base-300 transition-colors"
-                            >
-                              <Table size={14} className="opacity-40" />
-                              <span className="opacity-40">{table.table_schema}.</span>
-                              <span className="font-medium">{table.table_name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+    <>
+      <ResourceListing
+        title="Connections"
+        description="Manage databases, APIs, and data sources"
+        items={connections}
+        renderGridItem={renderGridItem}
+        renderListItem={renderListItem}
+        renderEmptyState={renderEmptyState}
+        onCreate={() => {
+          setEditingConnection(null);
+          setShowModal(true);
+        }}
+        createButtonText="Add Connection"
+        itemsPerPage={12}
+        onSearch={() => {}}
+        filterFunction={(c, query) => 
+           c.name.toLowerCase().includes(query.toLowerCase()) || 
+           c.type.toLowerCase().includes(query.toLowerCase()) ||
+           (c.host?.toLowerCase().includes(query.toLowerCase()) ?? false) ||
+           (c.database_name?.toLowerCase().includes(query.toLowerCase()) ?? false)
+        }
+      />
 
       <ConnectionModal
         isOpen={showModal}
@@ -320,7 +387,7 @@ export const ConnectionsPage: React.FC = () => {
         confirmText="Delete"
         variant="danger"
       />
-    </div>
+    </>
   );
 };
 
