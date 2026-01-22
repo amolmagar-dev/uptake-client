@@ -109,6 +109,37 @@ export function ChartEditorPage() {
     legend: { show: true, orient: 'horizontal', top: 'bottom' },
   });
 
+  // Resizing State
+  const [configPanelWidth, setConfigPanelWidth] = useState(320);
+  const [isResizingConfig, setIsResizingConfig] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingConfig) return;
+      setConfigPanelWidth((prev) => {
+        const newWidth = prev + e.movementX;
+        return Math.max(200, Math.min(800, newWidth));
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingConfig(false);
+      document.body.style.cursor = 'default';
+    };
+
+    if (isResizingConfig) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizingConfig]);
+
+
   // Fetch datasets on mount
   useEffect(() => {
     fetchDatasets();
@@ -587,7 +618,18 @@ export function ChartEditorPage() {
         </aside>
 
         {/* Configuration Panel */}
-        <aside className="w-80 bg-bg-primary border-r border-border flex flex-col overflow-hidden">
+        <aside 
+          className="bg-bg-primary border-r border-border flex flex-col overflow-hidden relative"
+          style={{ width: configPanelWidth }}
+        >
+          {/* Drag Handle */}
+          <div
+            className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent-primary transition-colors z-10"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setIsResizingConfig(true);
+            }}
+          />
           {/* Tabs */}
           <div className="flex border-b border-border bg-bg-secondary">
              <button
