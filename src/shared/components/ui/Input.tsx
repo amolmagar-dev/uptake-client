@@ -148,6 +148,12 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
     borderRadius: "var(--radius-box)",
     boxShadow: "var(--shadow-lg)",
     zIndex: 99999,
+    overflow: "hidden",
+  }),
+  menuList: (base) => ({
+    ...base,
+    overflowX: "hidden",
+    padding: "4px",
   }),
   option: (base, state) => ({
     ...base,
@@ -158,7 +164,7 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
       : "transparent",
     color: state.isSelected ? "var(--color-primary-content)" : "var(--color-base-content)",
     borderRadius: "var(--radius-field)",
-    margin: "2px",
+    margin: "2px 0",
     padding: "8px 12px",
     cursor: "pointer",
   }),
