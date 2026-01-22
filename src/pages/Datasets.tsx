@@ -150,25 +150,24 @@ export function DatasetsPage() {
             {getSourceIcon(dataset.source_type)}
          </div>
 
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-           <div className="min-w-0 flex-1">
-             <div className="flex items-center gap-2">
-                <h3 className="card-title text-base truncate">{dataset.name}</h3>
-                <span
-                  className={`badge badge-sm gap-1 ${
-                    dataset.dataset_type === "physical"
-                      ? "badge-success badge-outline"
-                      : "badge-secondary badge-outline"
-                  }`}
-                >
-                  {getTypeIcon(dataset.dataset_type)}
-                  {dataset.dataset_type}
-                </span>
-             </div>
-             
-             <p className="text-xs opacity-60 truncate">{dataset.connection_name || "External Source"} • {dataset.columns?.length || 0} columns</p>
-           </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="card-title text-base truncate">{dataset.name}</h3>
+          <p className="text-xs opacity-60 truncate">
+            {dataset.connection_name || "External Source"} •{" "}
+            {dataset.columns?.length || 0} columns
+          </p>
         </div>
+
+        <span
+          className={`badge badge-sm gap-1 shrink-0 ${
+            dataset.dataset_type === "physical"
+              ? "badge-success badge-outline"
+              : "badge-secondary badge-outline"
+          }`}
+        >
+          {getTypeIcon(dataset.dataset_type)}
+          {dataset.dataset_type}
+        </span>
 
         <div className="card-actions justify-end">
           <div className="flex items-center gap-1">
