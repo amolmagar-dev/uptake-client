@@ -9,6 +9,7 @@ import { ChartsPage } from "./pages/Charts";
 import { ChartEditorPage } from "./pages/ChartEditorPage";
 import { DatasetsPage } from "./pages/Datasets";
 import { DatasetEditorPage } from "./pages/DatasetEditor";
+import { DataPreviewPage } from "./pages/DataPreviewPage";
 import { ComponentBuilderPage } from "./pages/ComponentBuilder";
 import { ComponentEditorPage } from "./pages/ComponentEditor";
 import { SettingsPage } from "./pages/Settings";
@@ -43,7 +44,10 @@ function App() {
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/datasets" element={<DatasetsPage />} />
         <Route path="/datasets/new" element={<DatasetEditorPage />} />
+        <Route path="/datasets" element={<DatasetsPage />} />
+        <Route path="/datasets/new" element={<DatasetEditorPage />} />
         <Route path="/datasets/:id/edit" element={<DatasetEditorPage />} />
+        <Route path="/datasets/:id/preview" element={<DataPreviewPage />} />
         <Route path="/sql-editor" element={<SQLEditorPage />} />
         <Route path="/charts" element={<ChartsPage />} />
         <Route path="/charts/new" element={<ChartEditorPage />} />

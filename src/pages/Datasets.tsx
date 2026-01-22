@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Database, Trash2, Edit, Eye, RefreshCw, Table, Code, FileSpreadsheet, Globe } from "lucide-react";
-import { ConfirmModal, Modal } from "../shared/components/ui/Modal";
+import { ConfirmModal } from "../shared/components/ui/Modal";
 import { datasetsApi, type Dataset } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
@@ -10,9 +10,6 @@ export function DatasetsPage() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDataset, setDeleteDataset] = useState<Dataset | null>(null);
-  const [previewDataset, setPreviewDataset] = useState<Dataset | null>(null);
-  const [previewData, setPreviewData] = useState<any>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
   const { addToast } = useAppStore();
 
   useEffect(() => {
@@ -42,18 +39,8 @@ export function DatasetsPage() {
     }
   };
 
-  const handlePreview = async (dataset: Dataset) => {
-    setPreviewDataset(dataset);
-    setPreviewLoading(true);
-    setPreviewData(null);
-    try {
-      const response = await datasetsApi.preview(dataset.id);
-      setPreviewData(response.data);
-    } catch (error: any) {
-      addToast("error", error.response?.data?.error || "Failed to preview dataset");
-    } finally {
-      setPreviewLoading(false);
-    }
+  const handlePreview = (dataset: Dataset) => {
+    navigate(`/datasets/${dataset.id}/preview`);
   };
 
   const getSourceIcon = (sourceType: string) => {
@@ -198,55 +185,7 @@ export function DatasetsPage() {
         variant="danger"
       />
 
-      {/* Preview Modal */}
-      <Modal
-        isOpen={!!previewDataset}
-        onClose={() => {
-          setPreviewDataset(null);
-          setPreviewData(null);
-        }}
-        title={`Preview: ${previewDataset?.name}`}
-        size="full"
-      >
-        {previewLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <RefreshCw className="h-8 w-8 animate-spin text-accent-primary" />
-          </div>
-        ) : previewData ? (
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between text-sm text-text-tertiary mb-4">
-              <span>{previewData.rowCount} rows</span>
-              <span>Execution time: {previewData.executionTime}ms</span>
-            </div>
-            <div className="overflow-auto flex-1">
-              <table className="w-full text-sm">
-                <thead className="bg-bg-tertiary sticky top-0">
-                  <tr>
-                    {previewData.fields?.map((field: any, i: number) => (
-                      <th key={i} className="px-3 py-2 text-left font-medium text-text-secondary">
-                        {field.name}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {previewData.data?.map((row: any, i: number) => (
-                    <tr key={i} className="border-t border-border">
-                      {previewData.fields?.map((field: any, j: number) => (
-                        <td key={j} className="px-3 py-2 text-text-primary">
-                          {row[field.name]?.toString() ?? "null"}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : (
-          <p className="text-text-tertiary text-center py-8">No data available</p>
-        )}
-      </Modal>
+
     </div>
   );
 }
