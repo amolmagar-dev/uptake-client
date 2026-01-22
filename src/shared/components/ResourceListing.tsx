@@ -28,7 +28,7 @@ export function ResourceListing<T extends { id: string }>({
   onCreate,
   createButtonText = "Create New",
   itemsPerPage = 12,
-  initialViewMode = "grid",
+  initialViewMode = "list",
   searchPlaceholder = "Search...",
   filterFunction,
   actions,
