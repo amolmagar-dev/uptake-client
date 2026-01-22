@@ -62,10 +62,8 @@ export interface Chart {
   description: string;
   chart_type: string;
   config: any;
-  sql_query: string;
-  connection_id: string;
-  connection_name: string;
-  dataset_id?: string;
+  dataset_id: string;
   dataset_name?: string;
   dataset_type?: string;
+  source_type?: string;
 }

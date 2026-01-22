@@ -96,9 +96,6 @@ export interface CustomComponentInput {
   js_content?: string;
   config?: Record<string, any>;
   dataset_id?: string;
-  // Legacy fields for backward compatibility
-  connection_id?: string;
-  sql_query?: string;
 }
 
 export interface DatasetInput {
