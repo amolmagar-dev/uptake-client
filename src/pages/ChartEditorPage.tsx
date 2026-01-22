@@ -110,7 +110,7 @@ export function ChartEditorPage() {
   });
 
   // Resizing State
-  const [configPanelWidth, setConfigPanelWidth] = useState(320);
+  const [configPanelWidth, setConfigPanelWidth] = useState(420);
   const [isResizingConfig, setIsResizingConfig] = useState(false);
 
   useEffect(() => {
