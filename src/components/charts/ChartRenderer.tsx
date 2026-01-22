@@ -13,7 +13,7 @@ interface ChartRendererProps {
   type: string;
   data: Record<string, any>[];
   config: ChartConfig;
-  height?: number;
+  height?: number | string;
 }
 
 const defaultColors = [
@@ -30,7 +30,7 @@ const formatNumber = (num: number, decimals = 1): string => {
 };
 
 // KPI Card Component (Preserved as React Component for best styling)
-const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; height: number }> = ({
+const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; height: number | string }> = ({
   data,
   config,
   height,
@@ -59,8 +59,10 @@ const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; heig
     return Math.min(100, (value / config.target) * 100);
   }, [value, config.target]);
 
+  const heightStyle = typeof height === 'number' ? `${height}px` : height;
+
   return (
-    <div className="flex flex-col items-center justify-center h-full p-6 card bg-base-100 border border-base-300" style={{ minHeight: height }}>
+    <div className="flex flex-col items-center justify-center h-full p-6 card bg-base-100 border border-base-300" style={{ minHeight: heightStyle }}>
       {config.title?.show !== false && (
         <h3 className="text-sm font-medium text-[#a0a0b0] mb-2 text-center">{(config.title as any)?.text || config.title}</h3>
       )}
@@ -294,13 +296,13 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
       case 'treemap':
         return {
             ...baseOption,
-             series: [{
-                type: 'treemap',
-                data: data.map(row => ({
-                    name: row[xColumn],
-                    value: row[yColumns[0]]
-                }))
-             }]
+            series: [{
+               type: 'treemap',
+               data: data.map(row => ({
+                   name: row[xColumn],
+                   value: row[yColumns[0]]
+               }))
+            }]
         };
         
       case 'gauge':
@@ -345,7 +347,8 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
 
   // Handle Tables separately
   if (type === 'table' && data && data.length > 0) {
-    return <DataTable data={data} maxHeight={`${height}px`} />;
+    const heightStyle = typeof height === 'number' ? `${height}px` : height;
+    return <DataTable data={data} maxHeight={heightStyle} />;
   }
 
   // Handle Custom KPIs
@@ -357,8 +360,10 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
   const chartOption = getOption();
   console.log('📊 Final option being passed to EChartsWrapper:', chartOption);
   
+  const heightStyle = typeof height === 'number' ? `${height}px` : height;
+
   return (
-    <div style={{ height: `${height}px`, width: '100%' }}>
+    <div style={{ height: heightStyle, width: '100%' }}>
       <EChartsWrapper 
         option={chartOption} 
         style={{ height: '100%', width: '100%' }} 

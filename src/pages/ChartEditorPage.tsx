@@ -840,7 +840,7 @@ export function ChartEditorPage() {
                         </div>
                     ) : renderableOption ? (
                         /* Direct ECharts rendering mode - user provided complete option (with $DATA interpolated) */
-                        <div style={{ height: '500px', width: '100%' }}>
+                        <div style={{ height: '100%', width: '100%' }}>
                           <EChartsWrapper 
                             option={renderableOption}
                             style={{ height: '100%', width: '100%' }}
@@ -853,7 +853,7 @@ export function ChartEditorPage() {
                             type={chartType}
                             data={previewData || []}
                             config={config}
-                            height={500}
+                            height="100%"
                         />
                     )}
                 </div>
