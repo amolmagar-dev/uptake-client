@@ -1067,7 +1067,7 @@ export const DashboardViewPage: React.FC = () => {
         } transition-all duration-200 h-full overflow-visible`}
       >
         {/* Fixed Header */}
-        <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300 min-h-20">
+        <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300 min-h-14">
           <div className="flex-1 flex items-center gap-4">
             <div className="p-2.5 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <LayoutDashboard size={22} />
