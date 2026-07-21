@@ -20,10 +20,10 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const variants = {
-    primary: "btn-primary shadow-lg hover:shadow-primary/20",
-    secondary: "btn-outline border-border hover:bg-bg-elevated text-text-primary",
-    ghost: "btn-ghost text-text-secondary",
-    danger: "btn-error text-white",
+    primary: "btn-primary shadow-sm hover:shadow-primary/20",
+    secondary: "btn-outline",
+    ghost: "btn-ghost",
+    danger: "btn-error",
   };
 
   const sizes = {

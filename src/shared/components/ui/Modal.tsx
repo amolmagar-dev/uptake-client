@@ -87,7 +87,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
       </div>
 
       {/* Backdrop */}
-      <div className="modal-backdrop bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="modal-backdrop bg-black/50 backdrop-blur-sm" onClick={onClose}>
         <button className="cursor-default">close</button>
       </div>
     </dialog>

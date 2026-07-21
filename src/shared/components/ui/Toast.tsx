@@ -36,7 +36,7 @@ export const ToastContainer: React.FC = () => {
   };
 
   return (
-    <div className="toast toast-end toast-bottom z-9999">
+    <div className="toast toast-end toast-bottom z-[9999]">
       {toasts.map((toast) => (
         <div key={toast.id} className={`alert shadow-lg ${getAlertClass(toast.type)} animate-slide-up`}>
           {getIcon(toast.type)}
