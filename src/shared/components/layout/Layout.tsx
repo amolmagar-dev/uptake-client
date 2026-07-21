@@ -4,28 +4,8 @@ import { TopBar } from "./TopBar";
 import { ToastContainer } from "../ui/Toast";
 import { CommandPalette } from "../ui/CommandPalette";
 import { useAuthStore } from "../../../store/authStore";
-import {
-  LayoutDashboard,
-  Database,
-  FileCode,
-  BarChart3,
-  Layers,
-  Code2,
-  Settings,
-  Zap,
-  Sparkles,
-} from "lucide-react";
-
-const navItems = [
-  { path: "/", icon: LayoutDashboard, label: "Dashboards" },
-  { path: "/connections", icon: Database, label: "Connections" },
-  { path: "/datasets", icon: Layers, label: "Datasets" },
-  { path: "/sql-editor", icon: FileCode, label: "SQL Editor" },
-  { path: "/charts", icon: BarChart3, label: "Charts" },
-  { path: "/components", icon: Code2, label: "Components" },
-  { path: "/ai-workspace", icon: Sparkles, label: "AI Workspace", badge: "Alpha" },
-  { path: "/settings", icon: Settings, label: "Settings" },
-];
+import { navItems } from "../../config/navConfig";
+import { Zap } from "lucide-react";
 
 export const Layout: React.FC = () => {
   const { user } = useAuthStore();
