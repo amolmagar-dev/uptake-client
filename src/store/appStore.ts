@@ -39,7 +39,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   // Sidebar
-  sidebarOpen: true,
+  sidebarOpen: false,
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
 
   // Connections
