@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Table, Code, Search, Download, Maximize2, Minimize2, Clock, Hash, ChevronRight, ChevronDown, ArrowUp, ArrowDown, Copy, MoreHorizontal, Check } from 'lucide-react';
+import { Table, Code, Search, Download, Maximize2, Minimize2, Clock, Hash, ChevronRight, ChevronDown, ArrowUp, ArrowDown, Copy, Check } from 'lucide-react';
 
 interface Field {
   name: string;
@@ -222,7 +222,6 @@ const CellValue: React.FC<{ value: any; level?: number }> = ({ value, level = 0 
 
   // String
   const stringValue = String(value);
-  const isLong = stringValue.length > 50;
   
   return (
     <div className="group flex items-center gap-1 min-w-[100px] max-w-[300px]">

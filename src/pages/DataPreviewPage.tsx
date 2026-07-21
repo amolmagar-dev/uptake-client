@@ -10,7 +10,6 @@ export function DataPreviewPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
-  const [datasetName, setDatasetName] = useState("");
   const { addToast } = useAppStore();
 
   useEffect(() => {
