@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, List, Calendar, Hash, AlertTriangle } from 'lucide-react';
 import { Modal } from '../../shared/components/ui/Modal';
 import { Button } from '../../shared/components/ui/Button';
-import { Input, Select, Checkbox } from '../../shared/components/ui/Input';
+import { Input, Select, MultiSelect, Checkbox } from '../../shared/components/ui/Input';
 import { datasetsApi, type Dataset } from '../../lib/api';
 import type { DashboardFilter } from './FiltersSidebar';
 
@@ -24,6 +24,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
   const [columns, setColumns] = useState<Array<{ column_name: string; data_type: string }>>([]);
   const [triedSave, setTriedSave] = useState(false);
+  const [valueOptionsMap, setValueOptionsMap] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -76,6 +77,42 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   };
 
   const selectedFilter = filters.find(f => f.id === selectedFilterId);
+
+  const fetchColumnOptions = async (datasetId: string, column: string) => {
+    if (!datasetId || !column) return;
+    const key = `${datasetId}_${column}`;
+    if (valueOptionsMap[key]) return;
+
+    try {
+      const res = await datasetsApi.preview(datasetId);
+      const rows = res.data.data || res.data.rows || [];
+      if (Array.isArray(rows)) {
+        const uniqueValues = Array.from(
+          new Set(
+            rows
+              .map((row: any) => row[column])
+              .filter((v: any) => v !== null && v !== undefined && v !== "")
+          )
+        ).map(String);
+        setValueOptionsMap(prev => ({ ...prev, [key]: uniqueValues }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch column values preview:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedFilter?.datasetId && selectedFilter?.column) {
+      fetchColumnOptions(selectedFilter.datasetId, selectedFilter.column);
+    }
+  }, [selectedFilter?.datasetId, selectedFilter?.column]);
+
+  const currentValueOptions = React.useMemo(() => {
+    if (!selectedFilter?.datasetId || !selectedFilter?.column) return [];
+    const key = `${selectedFilter.datasetId}_${selectedFilter.column}`;
+    const values = valueOptionsMap[key] || [];
+    return values.map((v) => ({ value: v, label: v }));
+  }, [selectedFilter?.datasetId, selectedFilter?.column, valueOptionsMap]);
 
   const handleAddFilter = () => {
     const newFilter: DashboardFilter = {
@@ -174,7 +211,26 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     setFilters(prev => prev.map(f => {
       if (f.id === selectedFilterId) {
         const prevConfig = f.config || {};
-        return { ...f, config: { ...prevConfig, [field]: value } };
+        let newConfig = { ...prevConfig, [field]: value };
+
+        // If required is checked, hasDefault becomes mandatory
+        if (field === 'required' && value === true) {
+          newConfig.hasDefault = true;
+          if (newConfig.defaultValue === undefined) {
+            newConfig.defaultValue = f.type === 'value' && newConfig.multiSelect ? [] : '';
+          }
+        }
+
+        // If multiSelect is toggled, convert defaultValue format cleanly
+        if (field === 'multiSelect') {
+          if (value === true && typeof newConfig.defaultValue === 'string') {
+            newConfig.defaultValue = newConfig.defaultValue ? newConfig.defaultValue.split(',').map(s => s.trim()).filter(Boolean) : [];
+          } else if (value === false && Array.isArray(newConfig.defaultValue)) {
+            newConfig.defaultValue = newConfig.defaultValue.length > 0 ? newConfig.defaultValue[0] : '';
+          }
+        }
+
+        return { ...f, config: newConfig };
       }
       return f;
     }));
@@ -186,6 +242,11 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     setFilters(prev => prev.map(f => {
       if (f.id === selectedFilterId) {
         const prevConfig = f.config || {};
+        // If required is true, cannot disable hasDefault
+        if (!isChecked && prevConfig.required) {
+          return f;
+        }
+
         const newConfig = { ...prevConfig, hasDefault: isChecked };
         if (!isChecked) {
           newConfig.defaultValue = undefined;
@@ -194,6 +255,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             newConfig.defaultValue = { start: '', end: '' };
           } else if (f.type === 'numerical_range') {
             newConfig.defaultValue = { min: '', max: '' };
+          } else if (f.type === 'value') {
+            newConfig.defaultValue = prevConfig.multiSelect ? [] : '';
           } else {
             newConfig.defaultValue = '';
           }
@@ -214,7 +277,31 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   };
 
   const isIncomplete = (filter: DashboardFilter) => {
-    return !filter.name?.trim() || !filter.datasetId || !filter.column;
+    if (!filter.name?.trim() || !filter.datasetId || !filter.column) {
+      return true;
+    }
+    // If Selection Required is enabled, Default Value is mandatory
+    if (filter.config?.required) {
+      if (!filter.config?.hasDefault) return true;
+      const def = filter.config?.defaultValue;
+      if (def === undefined || def === null || def === '') return true;
+      if (Array.isArray(def) && def.length === 0) return true;
+      if (typeof def === 'object' && !Array.isArray(def)) {
+        if (filter.type === 'time_range' && (!def.start || !def.end)) return true;
+        if (filter.type === 'numerical_range' && (def.min === '' && def.max === '')) return true;
+      }
+    }
+    // If hasDefault is checked, Default Value must be filled
+    if (filter.config?.hasDefault) {
+      const def = filter.config?.defaultValue;
+      if (def === undefined || def === null || def === '') return true;
+      if (Array.isArray(def) && def.length === 0) return true;
+      if (typeof def === 'object' && !Array.isArray(def)) {
+        if (filter.type === 'time_range' && (!def.start || !def.end)) return true;
+        if (filter.type === 'numerical_range' && (def.min === '' && def.max === '')) return true;
+      }
+    }
+    return false;
   };
 
   const isSaveDisabled = filters.some(isIncomplete);
@@ -443,9 +530,14 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
                   <Checkbox
                     label="Set a default value"
-                    description="Automatically apply a default selection on load"
+                    description={
+                      selectedFilter.config?.required
+                        ? "Required when 'Selection required' is enabled"
+                        : "Automatically apply a default selection on load"
+                    }
                     checked={selectedFilter.config?.hasDefault || false}
                     onChange={(e) => handleToggleDefaultValue(e.target.checked)}
+                    disabled={selectedFilter.config?.required}
                   />
                 </div>
 
@@ -453,13 +545,45 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 {selectedFilter.config?.hasDefault && (
                   <div className="p-3 bg-base-200/50 rounded-lg border border-base-300 space-y-3 mt-3">
                     {selectedFilter.type === 'value' && (
-                      <Input
-                        label="Default Value"
-                        placeholder={selectedFilter.config?.multiSelect ? "Default values (comma-separated)" : "Default value"}
-                        value={selectedFilter.config?.defaultValue || ''}
-                        onChange={(e) => handleConfigChange('defaultValue', e.target.value)}
-                        helperText={selectedFilter.config?.multiSelect ? "Enter values separated by commas, e.g. USA, Canada, UK" : undefined}
-                      />
+                      selectedFilter.config?.multiSelect ? (
+                        <MultiSelect
+                          label="Default Value *"
+                          placeholder="Select default value(s)..."
+                          options={currentValueOptions}
+                          value={
+                            Array.isArray(selectedFilter.config?.defaultValue)
+                              ? selectedFilter.config.defaultValue
+                              : typeof selectedFilter.config?.defaultValue === 'string'
+                              ? selectedFilter.config.defaultValue.split(',').map((s: string) => s.trim()).filter(Boolean)
+                              : []
+                          }
+                          onChange={(values: string[]) => handleConfigChange('defaultValue', values)}
+                          error={
+                            triedSave &&
+                            (selectedFilter.config?.required || selectedFilter.config?.hasDefault) &&
+                            (!selectedFilter.config?.defaultValue ||
+                              (Array.isArray(selectedFilter.config.defaultValue) && selectedFilter.config.defaultValue.length === 0))
+                              ? "Default value is required"
+                              : undefined
+                          }
+                        />
+                      ) : (
+                        <Select
+                          label="Default Value *"
+                          placeholder="Select a default value..."
+                          options={currentValueOptions}
+                          value={typeof selectedFilter.config?.defaultValue === 'string' ? selectedFilter.config.defaultValue : ''}
+                          onChange={(value: string | null) => handleConfigChange('defaultValue', value || '')}
+                          isClearable={!selectedFilter.config?.required}
+                          error={
+                            triedSave &&
+                            (selectedFilter.config?.required || selectedFilter.config?.hasDefault) &&
+                            !selectedFilter.config?.defaultValue
+                              ? "Default value is required"
+                              : undefined
+                          }
+                        />
+                      )
                     )}
 
                     {selectedFilter.type === 'time_range' && (() => {
