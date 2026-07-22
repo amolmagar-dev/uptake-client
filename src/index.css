@@ -133,3 +133,42 @@ body {
   background-color: var(--color-base-100);
   color: var(--color-base-content);
 }
+
+/* React Select Layout & Overflow Safeguards */
+.react-select-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.react-select__control {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.react-select__value-container {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.react-select__single-value {
+  max-width: calc(100% - 8px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.react-select__menu {
+  max-width: calc(100vw - 32px) !important;
+  overflow: hidden !important;
+}
+
+.react-select__option {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+

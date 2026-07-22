@@ -23,7 +23,7 @@ export const Input: React.FC<InputProps> = ({
   const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <fieldset className="fieldset w-full">
+    <fieldset className="fieldset w-full min-w-0">
       {label && <legend className="fieldset-legend">{label}</legend>}
       <div className="relative w-full">
         {leftIcon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">{leftIcon}</div>}
@@ -56,7 +56,7 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, helperText, cl
   const inputId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <fieldset className="fieldset w-full">
+    <fieldset className="fieldset w-full min-w-0">
       {label && <legend className="fieldset-legend">{label}</legend>}
       <textarea
         id={inputId}
@@ -113,6 +113,12 @@ export interface SelectOption {
 
 // Custom styles for react-select to match DaisyUI 5
 export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOption>> = {
+  container: (base) => ({
+    ...base,
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+  }),
   control: (base, state) => ({
     ...base,
     backgroundColor: "var(--color-base-100)",
@@ -127,18 +133,28 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
     cursor: "pointer",
     minHeight: "42px",
     color: "var(--color-base-content)",
+    flexWrap: "nowrap",
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+    overflow: "hidden",
   }),
   valueContainer: (base) => ({
     ...base,
     padding: "0 12px",
     display: "flex",
     alignItems: "center",
+    minWidth: 0,
+    maxWidth: "100%",
+    overflow: "hidden",
+    flexWrap: "nowrap",
   }),
   indicatorsContainer: (base) => ({
     ...base,
     height: "40px",
     display: "flex",
     alignItems: "center",
+    flexShrink: 0,
   }),
   menuPortal: (base) => ({ ...base, zIndex: 99999 }),
   menu: (base) => ({
@@ -149,10 +165,12 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
     boxShadow: "var(--shadow-lg)",
     zIndex: 99999,
     overflow: "hidden",
+    maxWidth: "calc(100vw - 32px)",
   }),
   menuList: (base) => ({
     ...base,
     overflowX: "hidden",
+    maxHeight: "250px",
     padding: "4px",
   }),
   option: (base, state) => ({
@@ -167,23 +185,36 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
     margin: "2px 0",
     padding: "8px 12px",
     cursor: "pointer",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    fontSize: "0.875rem",
+    lineHeight: "1.25rem",
   }),
   singleValue: (base) => ({
     ...base,
     color: "var(--color-base-content)",
     margin: "0",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: "calc(100% - 8px)",
   }),
   placeholder: (base) => ({
     ...base,
     color: "var(--color-base-content)",
     opacity: 0.5,
     margin: "0",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: "calc(100% - 8px)",
   }),
   input: (base) => ({
     ...base,
     color: "var(--color-base-content)",
     margin: "0",
     padding: "0",
+    maxWidth: "100%",
   }),
   indicatorSeparator: () => ({ display: "none" }),
   dropdownIndicator: (base, state) => ({
@@ -208,6 +239,55 @@ export const selectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpt
 // Multi-select styles
 export const multiSelectStyles: StylesConfig<SelectOption, true, GroupBase<SelectOption>> = {
   ...(selectStyles as unknown as StylesConfig<SelectOption, true, GroupBase<SelectOption>>),
+  container: (base) => ({
+    ...base,
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+  }),
+  control: (base, state) => ({
+    ...selectStyles.control!(base, state as any),
+    flexWrap: "wrap",
+    height: "auto",
+    minHeight: "42px",
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+    overflow: "hidden",
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: "2px 8px",
+    display: "flex",
+    alignItems: "center",
+    minWidth: 0,
+    maxWidth: "100%",
+    overflow: "hidden",
+    flexWrap: "wrap",
+    gap: "4px",
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: "var(--color-primary-10, rgba(123, 44, 191, 0.15))",
+    borderRadius: "4px",
+    maxWidth: "calc(100% - 4px)",
+    margin: "2px",
+    overflow: "hidden",
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: "var(--color-base-content)",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: "180px",
+  }),
+  indicatorsContainer: (base) => ({
+    ...base,
+    display: "flex",
+    alignItems: "center",
+    flexShrink: 0,
+  }),
 };
 
 interface SelectProps {
@@ -246,7 +326,7 @@ export const Select: React.FC<SelectProps> = ({
 
   if (children) {
     return (
-      <fieldset className="fieldset w-full">
+      <fieldset className="fieldset w-full min-w-0">
         {label && <legend className="fieldset-legend">{label}</legend>}
         <select
           id={inputId}
@@ -274,7 +354,7 @@ export const Select: React.FC<SelectProps> = ({
   const selectedOption = selectOptions.find((opt) => opt.value === value) || null;
 
   return (
-    <fieldset className="fieldset w-full">
+    <fieldset className="fieldset w-full min-w-0">
       {label && <legend className="fieldset-legend">{label}</legend>}
       <ReactSelect<SelectOption, false>
         inputId={inputId}
@@ -292,6 +372,8 @@ export const Select: React.FC<SelectProps> = ({
         styles={selectStyles}
         menuPortalTarget={document.body}
         menuPosition="fixed"
+        className="react-select-container w-full min-w-0"
+        classNamePrefix="react-select"
       />
       {error && <p className="fieldset-label text-error">{error}</p>}
     </fieldset>
@@ -327,7 +409,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   const selectedOptions = options.filter((opt) => value.includes(opt.value));
 
   return (
-    <fieldset className="fieldset w-full">
+    <fieldset className="fieldset w-full min-w-0">
       {label && <legend className="fieldset-legend">{label}</legend>}
       <ReactSelect<SelectOption, true>
         inputId={inputId}
@@ -342,6 +424,8 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
         styles={multiSelectStyles}
         menuPortalTarget={document.body}
         menuPosition="fixed"
+        className="react-select-container w-full min-w-0"
+        classNamePrefix="react-select"
       />
       {error && <p className="fieldset-label text-error">{error}</p>}
     </fieldset>

@@ -138,7 +138,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
       </div>
 
       {/* Filters List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-3">
         {filters.length === 0 ? (
           <div className="py-8 text-center">
             <Filter size={32} className="mx-auto mb-3 text-base-content/40" />
@@ -151,11 +151,11 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
           filters.map((filter) => (
             <div
               key={filter.id}
-              className="bg-base-100 rounded-lg border border-base-300 p-3"
+              className="bg-base-200 rounded-lg border border-base-300 p-3 shadow-sm min-w-0"
             >
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-sm font-semibold text-base-content">{filter.name}</span>
-                <div className="flex items-center gap-0.5">
+              <div className="flex items-center justify-between mb-2.5 min-w-0 gap-2">
+                <span className="text-sm font-semibold text-base-content truncate min-w-0 flex-1">{filter.name}</span>
+                <div className="flex items-center gap-0.5 shrink-0">
                   <button
                     onClick={() => onEditFilter(filter)}
                     className="w-7 h-7 flex items-center justify-center rounded text-base-content/50 hover:text-primary hover:bg-base-200 transition-colors"
@@ -175,22 +175,24 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                 
                 {/* Filter Input based on type */}
                 {filter.type === 'value' && (
-                  <Select
-                    value={filterValues[filter.id] || ''}
-                    onChange={(value: string | null) => onFilterValueChange(filter.id, value || '')}
-                    options={(filterOptions[filter.id] || []).map(option => ({
-                      value: option,
-                      label: option
-                    }))}
-                    placeholder={`Select ${filter.column}...`}
-                    isClearable
-                    isSearchable
-                  />
+                  <div className="min-w-0 w-full">
+                    <Select
+                      value={filterValues[filter.id] || ''}
+                      onChange={(value: string | null) => onFilterValueChange(filter.id, value || '')}
+                      options={(filterOptions[filter.id] || []).map(option => ({
+                        value: option,
+                        label: option
+                      }))}
+                      placeholder={`Select ${filter.column}...`}
+                      isClearable
+                      isSearchable
+                    />
+                  </div>
                 )}
 
                 
                 {filter.type === 'time_range' && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 min-w-0 w-full">
                     <input
                       type="date"
                       value={filterValues[filter.id]?.start || ''}
@@ -207,7 +209,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                 )}
                 
                 {filter.type === 'numerical_range' && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 min-w-0 w-full">
                     <input
                       type="number"
                       placeholder="Min"
