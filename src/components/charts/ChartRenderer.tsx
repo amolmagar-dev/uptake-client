@@ -357,8 +357,7 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
   }
 
   // Render ECharts
-  const chartOption = getOption();
-  console.log('📊 Final option being passed to EChartsWrapper:', chartOption);
+  const chartOption = useMemo(() => getOption(), [type, data, config]);
   
   const heightStyle = typeof height === 'number' ? `${height}px` : height;
 

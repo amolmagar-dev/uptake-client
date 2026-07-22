@@ -26,10 +26,10 @@ interface FiltersSidebarProps {
   onAddFilter: () => void;
   onEditFilter: (filter: DashboardFilter) => void;
   onRemoveFilter: (filterId: string) => void;
-  onApplyFilters: () => void;
+  onApplyFilters: (draftValues: Record<string, any>) => void;
   onClearFilters: () => void;
   filterValues: Record<string, any>;
-  onFilterValueChange: (filterId: string, value: any) => void;
+  onFilterValueChange?: (filterId: string, value: any) => void;
 }
 
 export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
@@ -42,8 +42,17 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   onApplyFilters,
   onClearFilters,
   filterValues,
-  onFilterValueChange,
 }) => {
+  // Local draft state for filters so changes only apply on explicit "Apply filters" button click
+  const [draftValues, setDraftValues] = useState<Record<string, any>>(filterValues);
+
+  useEffect(() => {
+    setDraftValues(filterValues);
+  }, [filterValues]);
+
+  const handleDraftValueChange = (filterId: string, value: any) => {
+    setDraftValues((prev) => ({ ...prev, [filterId]: value }));
+  };
   // Store unique values for each filter's column
   const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
 
@@ -100,7 +109,16 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [filters]);
+  }, [filters, filterOptions]);
+
+  // Memoize select options per filter to prevent re-creating options array on every render
+  const formattedSelectOptions = React.useMemo(() => {
+    const map: Record<string, Array<{ value: string; label: string }>> = {};
+    Object.entries(filterOptions).forEach(([id, options]) => {
+      map[id] = options.map((option) => ({ value: option, label: option }));
+    });
+    return map;
+  }, [filterOptions]);
 
   if (!isOpen) {
     // Collapsed state - show just the toggle button
@@ -203,29 +221,23 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                   {filter.config?.multiSelect ? (
                     <MultiSelect
                       value={
-                        Array.isArray(filterValues[filter.id])
-                          ? filterValues[filter.id]
-                          : filterValues[filter.id]
-                          ? [filterValues[filter.id]]
+                        Array.isArray(draftValues[filter.id])
+                          ? draftValues[filter.id]
+                          : draftValues[filter.id]
+                          ? [draftValues[filter.id]]
                           : []
                       }
-                      onChange={(values: string[]) => onFilterValueChange(filter.id, values)}
-                      options={(filterOptions[filter.id] || []).map((option) => ({
-                        value: option,
-                        label: option,
-                      }))}
+                      onChange={(values: string[]) => handleDraftValueChange(filter.id, values)}
+                      options={formattedSelectOptions[filter.id] || []}
                       placeholder={`Select ${filter.column}...`}
                       isClearable
                       isSearchable
                     />
                   ) : (
                     <Select
-                      value={filterValues[filter.id] || ''}
-                      onChange={(value: string | null) => onFilterValueChange(filter.id, value || '')}
-                      options={(filterOptions[filter.id] || []).map((option) => ({
-                        value: option,
-                        label: option,
-                      }))}
+                      value={draftValues[filter.id] || ''}
+                      onChange={(value: string | null) => handleDraftValueChange(filter.id, value || '')}
+                      options={formattedSelectOptions[filter.id] || []}
                       placeholder={`Select ${filter.column}...`}
                       isClearable
                       isSearchable
@@ -238,14 +250,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                 <div className="space-y-2 min-w-0 w-full">
                   <input
                     type="date"
-                    value={filterValues[filter.id]?.start || ''}
-                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], start: e.target.value })}
+                    value={draftValues[filter.id]?.start || ''}
+                    onChange={(e) => handleDraftValueChange(filter.id, { ...draftValues[filter.id], start: e.target.value })}
                     className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                   />
                   <input
                     type="date"
-                    value={filterValues[filter.id]?.end || ''}
-                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], end: e.target.value })}
+                    value={draftValues[filter.id]?.end || ''}
+                    onChange={(e) => handleDraftValueChange(filter.id, { ...draftValues[filter.id], end: e.target.value })}
                     className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
@@ -256,15 +268,15 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                   <input
                     type="number"
                     placeholder="Min"
-                    value={filterValues[filter.id]?.min || ''}
-                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], min: e.target.value })}
+                    value={draftValues[filter.id]?.min || ''}
+                    onChange={(e) => handleDraftValueChange(filter.id, { ...draftValues[filter.id], min: e.target.value })}
                     className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                   />
                   <input
                     type="number"
                     placeholder="Max"
-                    value={filterValues[filter.id]?.max || ''}
-                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], max: e.target.value })}
+                    value={draftValues[filter.id]?.max || ''}
+                    onChange={(e) => handleDraftValueChange(filter.id, { ...draftValues[filter.id], max: e.target.value })}
                     className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
@@ -277,11 +289,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
       {/* Footer Actions */}
       {filters.length > 0 && (
         <div className="border-t border-base-300 p-4 shrink-0 space-y-2 bg-base-100">
-          <Button onClick={onApplyFilters} className="w-full">
+          <Button onClick={() => onApplyFilters(draftValues)} className="w-full">
             Apply filters
           </Button>
           <button
-            onClick={onClearFilters}
+            onClick={() => {
+              setDraftValues({});
+              onClearFilters();
+            }}
             className="w-full py-2 text-sm text-base-content/50 hover:text-base-content/70 transition-colors"
           >
             Clear all

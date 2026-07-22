@@ -1040,10 +1040,12 @@ export const DashboardViewPage: React.FC = () => {
     }
   };
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = (newValues?: Record<string, any>) => {
+    const appliedValues = newValues !== undefined ? newValues : filterValues;
+    setFilterValues(appliedValues);
     setFiltersApplied(true);
     addToast("success", "Filters applied");
-    fetchDashboard(filterValues);
+    fetchDashboard(appliedValues);
   };
 
   const handleClearFilters = () => {
