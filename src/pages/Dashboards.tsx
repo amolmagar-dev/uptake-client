@@ -702,8 +702,13 @@ export const DashboardViewPage: React.FC = () => {
           // Filter by exact value match
           filteredData = filteredData.filter((row: any) => {
             const rowValue = row[column];
-            if (filter.config.multiSelect && Array.isArray(filterValue)) {
-              return filterValue.includes(rowValue);
+            if (filter.config?.multiSelect) {
+              const valArr = Array.isArray(filterValue)
+                ? filterValue
+                : typeof filterValue === 'string'
+                ? filterValue.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : [filterValue];
+              return valArr.map(String).includes(String(rowValue));
             }
             return rowValue === filterValue || String(rowValue) === String(filterValue);
           });
@@ -736,10 +741,13 @@ export const DashboardViewPage: React.FC = () => {
 
   const layoutTimeoutRef = useRef<any>(null);
 
-  const getResolvedFilters = useCallback((filtersMap: Record<string, any>) => {
+  const getResolvedFilters = useCallback((filtersMap: Record<string, any>, filtersList = dashboardFilters) => {
     const resolved: Record<string, any> = {};
-    dashboardFilters.forEach((f) => {
-      const val = filtersMap[f.id];
+    filtersList.forEach((f) => {
+      let val = filtersMap[f.id];
+      if (f.type === 'value' && f.config?.multiSelect && typeof val === 'string') {
+        val = val.split(',').map((s: string) => s.trim()).filter(Boolean);
+      }
       if (val !== undefined && val !== null && val !== "" && !(Array.isArray(val) && val.length === 0)) {
         resolved[f.column] = val;
         resolved[f.id] = val;
@@ -751,36 +759,41 @@ export const DashboardViewPage: React.FC = () => {
   const fetchDashboard = async (filters: Record<string, any> = filterValues) => {
     if (!id) return;
     try {
-      const resolvedFilters = getResolvedFilters(filters);
-      const [dashboardRes, dataRes] = await Promise.all([
-        dashboardsApi.getOne(id), 
-        dashboardsApi.getData(id, resolvedFilters)
-      ]);
+      const dashboardRes = await dashboardsApi.getOne(id);
       const fetchedDashboard = dashboardRes.data.dashboard;
       setDashboard(fetchedDashboard);
-      setChartData(dataRes.data.chartData);
+
+      let loadedFilters: DashboardFilter[] = [];
+      if (fetchedDashboard.filters && Array.isArray(fetchedDashboard.filters)) {
+        loadedFilters = fetchedDashboard.filters;
+        setDashboardFilters(loadedFilters);
+      }
 
       // Load saved filters from dashboard and apply default values if present
-      if (fetchedDashboard.filters && Array.isArray(fetchedDashboard.filters)) {
-        const loadedFilters: DashboardFilter[] = fetchedDashboard.filters;
-        setDashboardFilters(loadedFilters);
-
-        // Apply config.defaultValue on load if filterValues is empty
-        if (Object.keys(filters).length === 0) {
-          const defaults: Record<string, any> = {};
-          let hasDefaults = false;
-          loadedFilters.forEach((f) => {
-            if (f.config?.hasDefault && f.config?.defaultValue !== undefined && f.config?.defaultValue !== "") {
-              defaults[f.id] = f.config.defaultValue;
-              hasDefaults = true;
+      let activeFilters = filters;
+      if (Object.keys(filters).length === 0 && loadedFilters.length > 0) {
+        const defaults: Record<string, any> = {};
+        let hasDefaults = false;
+        loadedFilters.forEach((f) => {
+          if (f.config?.hasDefault && f.config?.defaultValue !== undefined && f.config?.defaultValue !== "") {
+            let defVal = f.config.defaultValue;
+            if (f.type === 'value' && f.config?.multiSelect && typeof defVal === 'string') {
+              defVal = defVal.split(',').map((s: string) => s.trim()).filter(Boolean);
             }
-          });
-          if (hasDefaults) {
-            setFilterValues(defaults);
-            setFiltersApplied(true);
+            defaults[f.id] = defVal;
+            hasDefaults = true;
           }
+        });
+        if (hasDefaults) {
+          activeFilters = defaults;
+          setFilterValues(defaults);
+          setFiltersApplied(true);
         }
       }
+
+      const resolvedFilters = getResolvedFilters(activeFilters, loadedFilters);
+      const dataRes = await dashboardsApi.getData(id, resolvedFilters);
+      setChartData(dataRes.data.chartData);
 
       // Initialize layouts from dashboard charts
       if (fetchedDashboard.charts) {
