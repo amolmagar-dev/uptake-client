@@ -1030,7 +1030,7 @@ export const DashboardViewPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-full">
         <div className="spinner" />
       </div>
     );
@@ -1038,15 +1038,15 @@ export const DashboardViewPage: React.FC = () => {
 
   if (!dashboard) {
     return (
-      <div className="text-center py-12">
+      <div className="flex items-center justify-center h-full">
         <p className="text-base-content/50">Dashboard not found</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col relative bg-base-100 overflow-visible">
-      {/* Filters Sidebar - at root level, fixed position */}
+    <div className="flex h-full overflow-hidden bg-base-100">
+      {/* Filters Sidebar */}
       <FiltersSidebar
         isOpen={filtersOpen}
         onToggle={handleToggleFilters}
@@ -1060,12 +1060,7 @@ export const DashboardViewPage: React.FC = () => {
         onFilterValueChange={handleFilterValueChange}
       />
 
-      {/* Main wrapper with left margin for sidebar */}
-      <div
-        className={`flex-1 flex flex-col ${
-          filtersOpen ? "ml-72" : "ml-10"
-        } transition-all duration-200 h-full overflow-visible`}
-      >
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <WorkspaceHeader
           leading={
             <button
@@ -1105,57 +1100,38 @@ export const DashboardViewPage: React.FC = () => {
           }
         />
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex overflow-visible">
-          <div className="transition-all duration-200 p-6 flex-1">
-            {dashboard.charts && dashboard.charts.length > 0 ? (
-              <div className="dashboard-grid w-full">
-                <ResponsiveGridLayout
-                  key={`grid-${isEditMode ? "edit" : "view"}-${filtersOpen ? "filters" : "nofilters"}`}
-                  className="layout"
-                  layouts={layouts}
-                  breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
-                  cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
-                  rowHeight={100}
-                  onLayoutChange={isEditMode ? handleLayoutChange : undefined}
-                  isDraggable={isEditMode}
-                  isResizable={isEditMode}
-                  useCSSTransforms={true}
-                  compactType="vertical"
-                  preventCollision={false}
-                >
-                  {dashboard.charts.map((item) => {
-                    const itemId = item.component_id || item.chart_id;
-                    const data = filteredChartData.find((d) => d.chartId === itemId);
-                    const itemHeight = (item.height || 4) * 100 - 50;
+        <div className="flex-1 overflow-auto p-6">
+          {dashboard.charts && dashboard.charts.length > 0 ? (
+            <div className="dashboard-grid w-full">
+              <ResponsiveGridLayout
+                key={`grid-${isEditMode ? "edit" : "view"}-${filtersOpen ? "filters" : "nofilters"}`}
+                className="layout"
+                layouts={layouts}
+                breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
+                cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
+                rowHeight={100}
+                onLayoutChange={isEditMode ? handleLayoutChange : undefined}
+                isDraggable={isEditMode}
+                isResizable={isEditMode}
+                useCSSTransforms={true}
+                compactType="vertical"
+                preventCollision={false}
+              >
+                {dashboard.charts.map((item) => {
+                  const itemId = item.component_id || item.chart_id;
+                  const data = filteredChartData.find((d) => d.chartId === itemId);
+                  const itemHeight = (item.height || 4) * 100 - 50;
 
-                    if (item.type === "component" || item.component_id) {
-                      return (
-                        <div key={item.id} className="grid-item">
-                          <DraggableComponent
-                            id={item.id}
-                            name={item.name}
-                            htmlContent={item.html_content || ""}
-                            cssContent={item.css_content}
-                            jsContent={item.js_content}
-                            data={data?.data}
-                            error={data?.error}
-                            onRemove={isEditMode ? handleRemoveChart : undefined}
-                            onSettings={isEditMode ? handleChartSettings : undefined}
-                            height={itemHeight}
-                          />
-                        </div>
-                      );
-                    }
-
+                  if (item.type === "component" || item.component_id) {
                     return (
                       <div key={item.id} className="grid-item">
-                        <DraggableChart
+                        <DraggableComponent
                           id={item.id}
                           name={item.name}
-                          chartType={item.chart_type || "bar"}
+                          htmlContent={item.html_content || ""}
+                          cssContent={item.css_content}
+                          jsContent={item.js_content}
                           data={data?.data}
-                          config={data?.config || item.config}
                           error={data?.error}
                           onRemove={isEditMode ? handleRemoveChart : undefined}
                           onSettings={isEditMode ? handleChartSettings : undefined}
@@ -1163,115 +1139,130 @@ export const DashboardViewPage: React.FC = () => {
                         />
                       </div>
                     );
-                  })}
-                </ResponsiveGridLayout>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-32 opacity-20">
-                <LayoutDashboard size={80} className="mb-6" />
-                <h3 className="text-2xl font-bold mb-2">Empty Dashboard</h3>
-                <p className="max-w-md text-center mb-8">
-                  {isEditMode
-                    ? "Add charts or components from the right panel to build your dashboard."
-                    : "This dashboard doesn't have any content yet. Click edit to add some."}
-                </p>
-                {!isEditMode && (
-                  <button className="btn btn-primary" onClick={() => navigate(`/dashboard/${id}/edit`)}>
-                    <Edit size={18} /> Edit Dashboard
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+                  }
 
-          {/* Right Sidebar Panel - Only in Edit Mode */}
-          {isEditMode && (
-            <div className="sticky top-20 self-start w-80 h-[calc(100vh-144px)] bg-base-200 border-l border-base-300 flex flex-col z-40 animate-in slide-in-from-right duration-300">
-              {/* Tabs Header */}
-              <div className="tabs tabs-boxed rounded-none bg-base-300/50 p-1">
-                <button
-                  onClick={() => setDrawerTab("charts")}
-                  className={`tab flex-1 transition-all ${
-                    drawerTab === "charts" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
-                  }`}
-                >
-                  Charts
+                  return (
+                    <div key={item.id} className="grid-item">
+                      <DraggableChart
+                        id={item.id}
+                        name={item.name}
+                        chartType={item.chart_type || "bar"}
+                        data={data?.data}
+                        config={data?.config || item.config}
+                        error={data?.error}
+                        onRemove={isEditMode ? handleRemoveChart : undefined}
+                        onSettings={isEditMode ? handleChartSettings : undefined}
+                        height={itemHeight}
+                      />
+                    </div>
+                  );
+                })}
+              </ResponsiveGridLayout>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-32 opacity-20">
+              <LayoutDashboard size={80} className="mb-6" />
+              <h3 className="text-2xl font-bold mb-2">Empty Dashboard</h3>
+              <p className="max-w-md text-center mb-8">
+                {isEditMode
+                  ? "Add charts or components from the right panel to build your dashboard."
+                  : "This dashboard doesn't have any content yet. Click edit to add some."}
+              </p>
+              {!isEditMode && (
+                <button className="btn btn-primary" onClick={() => navigate(`/dashboard/${id}/edit`)}>
+                  <Edit size={18} /> Edit Dashboard
                 </button>
-                <button
-                  onClick={() => setDrawerTab("components")}
-                  className={`tab flex-1 transition-all ${
-                    drawerTab === "components" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
-                  }`}
-                >
-                  Components
-                </button>
-              </div>
-
-              <div className="flex-1 flex flex-col min-h-0 bg-base-100">
-                {/* Create New Link */}
-                <div className="p-4 border-b border-base-200">
-                  <button
-                    onClick={() => navigate(drawerTab === "charts" ? "/charts" : "/components")}
-                    className="btn btn-outline btn-primary btn-sm btn-block gap-2"
-                  >
-                    <Plus size={16} />
-                    New {drawerTab === "charts" ? "Chart" : "Component"}
-                  </button>
-                </div>
-
-                {/* Search */}
-                <div className="p-4 bg-base-200/50">
-                  <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
-                    <input
-                      type="text"
-                      placeholder={`Search ${drawerTab}...`}
-                      value={drawerSearch}
-                      onChange={(e) => setDrawerSearch(e.target.value)}
-                      className="input input-bordered input-sm w-full pl-9"
-                    />
-                  </div>
-                </div>
-
-                {/* Items List */}
-                <div className="flex-1 overflow-y-auto">
-                  <ul className="menu menu-md p-2">
-                    {drawerTab === "charts" ? (
-                      filteredCharts.length === 0 ? (
-                        <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
-                      ) : (
-                        filteredCharts.map((chart) => (
-                          <li key={chart.id}>
-                            <button
-                              onClick={() => handleAddChart(chart.id)}
-                              className="flex flex-col items-start gap-0.5"
-                            >
-                              <span className="font-medium">{chart.name}</span>
-                              <span className="text-[10px] opacity-50 uppercase tracking-tight">
-                                {chart.chart_type}
-                              </span>
-                            </button>
-                          </li>
-                        ))
-                      )
-                    ) : filteredComponents.length === 0 ? (
-                      <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
-                    ) : (
-                      filteredComponents.map((comp) => (
-                        <li key={comp.id}>
-                          <button onClick={() => handleAddComponent(comp.id)}>
-                            <span className="font-medium">{comp.name}</span>
-                          </button>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {isEditMode && (
+        <div className="w-80 shrink-0 border-l border-base-300 bg-base-100 flex flex-col overflow-hidden">
+          {/* Tabs Header */}
+          <div className="tabs tabs-boxed rounded-none bg-base-300/50 p-1">
+            <button
+              onClick={() => setDrawerTab("charts")}
+              className={`tab flex-1 transition-all ${
+                drawerTab === "charts" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
+              }`}
+            >
+              Charts
+            </button>
+            <button
+              onClick={() => setDrawerTab("components")}
+              className={`tab flex-1 transition-all ${
+                drawerTab === "components" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
+              }`}
+            >
+              Components
+            </button>
+          </div>
+
+          <div className="flex-1 flex flex-col min-h-0 bg-base-100">
+            {/* Create New Link */}
+            <div className="p-4 border-b border-base-200">
+              <button
+                onClick={() => navigate(drawerTab === "charts" ? "/charts" : "/components")}
+                className="btn btn-outline btn-primary btn-sm btn-block gap-2"
+              >
+                <Plus size={16} />
+                New {drawerTab === "charts" ? "Chart" : "Component"}
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="p-4 bg-base-200/50">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
+                <input
+                  type="text"
+                  placeholder={`Search ${drawerTab}...`}
+                  value={drawerSearch}
+                  onChange={(e) => setDrawerSearch(e.target.value)}
+                  className="input input-bordered input-sm w-full pl-9"
+                />
+              </div>
+            </div>
+
+            {/* Items List */}
+            <div className="flex-1 overflow-y-auto">
+              <ul className="menu menu-md p-2">
+                {drawerTab === "charts" ? (
+                  filteredCharts.length === 0 ? (
+                    <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
+                  ) : (
+                    filteredCharts.map((chart) => (
+                      <li key={chart.id}>
+                        <button
+                          onClick={() => handleAddChart(chart.id)}
+                          className="flex flex-col items-start gap-0.5"
+                        >
+                          <span className="font-medium">{chart.name}</span>
+                          <span className="text-[10px] opacity-50 uppercase tracking-tight">
+                            {chart.chart_type}
+                          </span>
+                        </button>
+                      </li>
+                    ))
+                  )
+                ) : filteredComponents.length === 0 ? (
+                  <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
+                ) : (
+                  filteredComponents.map((comp) => (
+                    <li key={comp.id}>
+                      <button onClick={() => handleAddComponent(comp.id)}>
+                        <span className="font-medium">{comp.name}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chart Dimensions Settings Modal */}
       <Modal
