@@ -49,7 +49,7 @@ export const AppRail: React.FC = () => {
               aria-label={!sidebarOpen ? item.label : undefined}
               className={({ isActive }) => `
                 relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                transition-colors duration-150 group w-full
+                transition-all duration-150 active:scale-[0.98] group w-full
                 ${
                   isActive
                     ? "bg-primary/10 text-primary border-l-2 border-primary rounded-l-none"

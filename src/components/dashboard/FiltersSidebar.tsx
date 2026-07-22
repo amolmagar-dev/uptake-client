@@ -105,13 +105,13 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   if (!isOpen) {
     // Collapsed state - show just the toggle button
     return (
-      <div className="w-10 shrink-0 h-full flex flex-col items-center py-4 overflow-hidden bg-base-100 border-r border-base-300">
+      <div className="w-10 shrink-0 h-full flex flex-col items-center py-4 overflow-hidden bg-base-100 border-r border-base-300 transition-all duration-200 ease-out">
         <button
           onClick={onToggle}
-          className="p-2 rounded-lg text-base-content/50 hover:text-primary hover:bg-base-300 transition-colors"
+          className="p-2 rounded-lg text-base-content/50 hover:text-primary hover:bg-base-300 transition-colors duration-150"
           title="Open Filters"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={20} className="transition-transform duration-200" />
         </button>
         <div className="mt-4">
           <Filter size={18} className="text-base-content/50" />
@@ -125,7 +125,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
   // Expanded state
   return (
-    <div className="w-72 shrink-0 h-full flex flex-col overflow-hidden bg-base-100 border-r border-base-300">
+    <div className="w-72 shrink-0 h-full flex flex-col overflow-hidden bg-base-100 border-r border-base-300 transition-all duration-200 ease-out">
       {/* Header */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-base-300 shrink-0">
         <div className="flex items-center gap-2">

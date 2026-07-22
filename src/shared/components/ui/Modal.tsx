@@ -74,7 +74,7 @@ export const Modal: React.FC<ModalProps> = ({
         className={`
           modal-box relative w-full ${sizes[size]} p-0
           bg-base-100 border border-base-300 shadow-2xl
-          flex flex-col
+          flex flex-col animate-scale-in
           ${!isFullscreen ? "rounded-xl max-h-[90vh]" : ""}
         `}
         style={fullscreenStyles}
@@ -96,7 +96,7 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
 
       {/* Backdrop */}
-      <div className="modal-backdrop bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="modal-backdrop bg-black/50 backdrop-blur-sm transition-opacity duration-150" onClick={onClose}>
         <button className="cursor-default">close</button>
       </div>
     </dialog>

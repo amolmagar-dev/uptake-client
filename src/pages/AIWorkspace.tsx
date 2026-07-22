@@ -510,7 +510,7 @@ export const AIWorkspacePage: React.FC = () => {
 
                 {/* Prompt Chips */}
                 {idx === 0 && msg.role === "assistant" && messages.length <= 2 && (
-                  <div className="mt-6 flex flex-wrap gap-2 animate-in fade-in duration-700 max-w-3xl">
+                  <div className="mt-6 flex flex-wrap gap-2 animate-fade-in duration-300 max-w-3xl">
                     <span className="w-full text-[10px] font-bold uppercase tracking-widest opacity-30 mb-1">
                       Suggestions
                     </span>
@@ -518,7 +518,7 @@ export const AIWorkspacePage: React.FC = () => {
                       <button
                         key={cIdx}
                         onClick={() => handleSend(chip.prompt)}
-                        className="btn btn-outline btn-sm gap-2 rounded-full border-base-300 hover:border-primary hover:bg-primary/5 text-xs font-bold"
+                        className="btn btn-outline btn-sm gap-2 rounded-full border-base-300 hover:border-primary hover:bg-primary/5 text-xs font-bold active:scale-[0.98] transition-all duration-150"
                       >
                         <chip.icon size={14} className="text-primary" />
                         {chip.label}
