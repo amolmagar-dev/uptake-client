@@ -4,6 +4,7 @@ import { Play, Save, History, Loader2 } from 'lucide-react';
 import { Button } from '../../shared/components/ui/Button';
 import { Select } from '../../shared/components/ui/Input';
 import { DataTable } from '../../shared/components/ui/Table';
+import { WorkspaceHeader } from '../../shared/components';
 import { queriesApi } from '../../lib/api';
 import { useAppStore } from '../../store/appStore';
 
@@ -71,92 +72,96 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
 
   return (
     <div className="flex flex-col h-full" onKeyDown={handleKeyDown}>
-      {/* Toolbar */}
-      <div className="flex items-center gap-4 mb-4 flex-wrap">
-        <div className="w-64">
+      <WorkspaceHeader
+        title="SQL Editor"
+        actions={
+          <>
+            {executionTime !== null && (
+              <div className="flex items-center gap-4 text-sm text-base-content/50 mr-2">
+                <span className="flex items-center gap-1">
+                  <History size={14} />
+                  {executionTime}ms
+                </span>
+                <span>{rowCount} rows</span>
+              </div>
+            )}
+            <Button
+              onClick={executeQuery}
+              isLoading={isExecuting}
+              leftIcon={isExecuting ? <Loader2 className="animate-spin" size={16} /> : <Play size={16} />}
+            >
+              Run Query
+            </Button>
+            {onSave && (
+              <Button
+                variant="ghost"
+                leftIcon={<Save size={16} />}
+                onClick={() => {
+                  const name = prompt('Enter a name for this query:');
+                  if (name) {
+                    onSave(query, name);
+                  }
+                }}
+              >
+                Save
+              </Button>
+            )}
+          </>
+        }
+      >
+        <div className="w-56">
           <Select
             options={connectionOptions}
             value={selectedConnectionId}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedConnectionId(e.target.value)}
+            onChange={(val: any) => setSelectedConnectionId(typeof val === 'string' ? val : (val?.target?.value ?? ''))}
           />
         </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={executeQuery}
-            isLoading={isExecuting}
-            leftIcon={isExecuting ? <Loader2 className="animate-spin" size={16} /> : <Play size={16} />}
-          >
-            Run Query
-          </Button>
-          
-          {onSave && (
-            <Button
-              variant="secondary"
-              leftIcon={<Save size={16} />}
-              onClick={() => {
-                const name = prompt('Enter a name for this query:');
-                if (name) {
-                  onSave(query, name);
-                }
-              }}
-            >
-              Save
-            </Button>
-          )}
+      </WorkspaceHeader>
+
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        {/* Editor */}
+        <div className="flex-1 min-h-[120px] border-b border-base-300">
+          <Editor
+            height="100%"
+            defaultLanguage="sql"
+            value={query}
+            onChange={(value) => setQuery(value || '')}
+            theme="vs-dark"
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+              lineNumbers: 'on',
+              roundedSelection: true,
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+              tabSize: 2,
+              wordWrap: 'on',
+              padding: { top: 12, bottom: 12 },
+              suggestOnTriggerCharacters: true,
+              quickSuggestions: true,
+            }}
+          />
         </div>
 
-        {executionTime !== null && (
-          <div className="ml-auto flex items-center gap-4 text-sm text-[#a0a0b0]">
-            <span className="flex items-center gap-1">
-              <History size={14} />
-              {executionTime}ms
-            </span>
-            <span>{rowCount} rows</span>
-          </div>
-        )}
-      </div>
-
-      {/* Editor */}
-      <div className="flex-1 min-h-[200px] rounded-lg overflow-hidden border border-[#2a2a3a]">
-        <Editor
-          height="100%"
-          defaultLanguage="sql"
-          value={query}
-          onChange={(value) => setQuery(value || '')}
-          theme="vs-dark"
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-            lineNumbers: 'on',
-            roundedSelection: true,
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-            tabSize: 2,
-            wordWrap: 'on',
-            padding: { top: 12, bottom: 12 },
-            suggestOnTriggerCharacters: true,
-            quickSuggestions: true,
-          }}
-        />
-      </div>
-
-      {/* Results */}
-      <div className="mt-4">
-        {error && (
-          <div className="p-4 rounded-lg bg-[#ff4757]/10 border border-[#ff4757]/30 text-[#ff4757]">
-            <p className="font-medium mb-1">Error</p>
-            <p className="text-sm font-mono">{error}</p>
-          </div>
-        )}
-        
-        {results && (
-          <div className="rounded-lg border border-[#2a2a3a] overflow-hidden">
-            <div className="px-4 py-2 bg-[#1a1a25] border-b border-[#2a2a3a] text-sm text-[#a0a0b0]">
-              Results ({rowCount} rows)
-            </div>
-            <DataTable data={results} maxHeight="400px" />
+        {/* Results */}
+        {(error || results) && (
+          <div className="p-4 shrink-0">
+            {error && (
+              <div className="p-4 rounded-lg bg-error/10 border border-error/30 text-error">
+                <p className="font-medium mb-1">Error</p>
+                <p className="text-sm font-mono">{error}</p>
+              </div>
+            )}
+            
+            {results && (
+              <div className="rounded-lg border border-base-300 overflow-hidden">
+                <div className="px-4 py-2 bg-base-200 border-b border-base-300 text-sm text-base-content/50">
+                  Results ({rowCount} rows)
+                </div>
+                <DataTable data={results} maxHeight="400px" />
+              </div>
+            )}
           </div>
         )}
       </div>
