@@ -6,17 +6,17 @@ import {
   Trash2,
   Edit,
   Search,
-  X,
   Star,
   Copy,
   RefreshCw,
   MoreHorizontal,
   Timer,
   Check,
+  ArrowLeft,
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
-import { Button } from "../shared/components/ui/Button";
+import { WorkspaceHeader, Button } from "../shared/components";
 import { Input, Textarea, Checkbox } from "../shared/components/ui/Input";
 import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
 import { DraggableChart } from "../components/charts/DraggableChart";
@@ -85,7 +85,7 @@ const FavoriteButton: React.FC<{ dashboard: Dashboard }> = ({ dashboard }) => {
         });
       }}
       className={`p-2 rounded-lg transition-colors ${
-        favorite ? "text-accent-warning hover:text-accent-warning/80" : "text-text-muted hover:text-text-secondary"
+        favorite ? "text-warning hover:text-warning/80" : "text-base-content/50 hover:text-base-content/70"
       }`}
       title={favorite ? "Remove from favorites" : "Add to favorites"}
     >
@@ -117,7 +117,7 @@ const CloneButton: React.FC<{ dashboardId: string; onClone: () => void }> = ({ d
     <button
       onClick={handleClone}
       disabled={isCloning}
-      className="p-2 rounded-lg text-text-muted hover:text-text-secondary transition-colors disabled:opacity-50"
+      className="p-2 rounded-lg text-base-content/50 hover:text-base-content/70 transition-colors disabled:opacity-50"
       title="Clone dashboard"
     >
       <Copy size={16} className={isCloning ? "animate-pulse" : ""} />
@@ -532,12 +532,12 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Last refresh indicator */}
-      {lastRefresh && <span className="text-xs text-[#606070] mr-2">Updated {lastRefresh.toLocaleTimeString()}</span>}
+      {lastRefresh && <span className="text-xs text-base-content/50 mr-2">Updated {lastRefresh.toLocaleTimeString()}</span>}
 
       {/* More Options Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"
+        className="p-2 rounded-lg bg-base-300 border border-base-300 text-base-content/50 hover:text-base-content hover:border-primary transition-colors"
         title="More options"
       >
         <MoreHorizontal size={20} />
@@ -545,7 +545,7 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-56 bg-bg-secondary border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 w-56 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
           {/* Refresh Dashboard */}
           <button
             onClick={() => {
@@ -553,9 +553,9 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
               setIsOpen(false);
             }}
             disabled={isRefreshing}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left text-text-primary hover:bg-bg-tertiary transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-3 px-4 py-3 text-left text-base-content hover:bg-base-300 transition-colors disabled:opacity-50"
           >
-            <RefreshCw size={16} className={isRefreshing ? "animate-spin text-accent-primary" : ""} />
+            <RefreshCw size={16} className={isRefreshing ? "animate-spin text-primary" : ""} />
             <span>Refresh dashboard</span>
           </button>
 
@@ -563,29 +563,29 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowIntervalMenu(!showIntervalMenu)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left text-text-primary hover:bg-bg-tertiary transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 text-left text-base-content hover:bg-base-300 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <Timer size={16} />
                 <span>Set auto-refresh interval</span>
               </div>
-              <span className="text-xs text-text-muted">
+              <span className="text-xs text-base-content/50">
                 {autoRefresh ? intervalOptions.find((o) => o.value === refreshInterval)?.label : "Off"}
               </span>
             </button>
 
             {/* Submenu */}
             {showIntervalMenu && (
-              <div className="absolute left-full top-0 ml-1 w-40 bg-bg-secondary border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+              <div className="absolute left-full top-0 ml-1 w-40 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
                 {intervalOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => handleIntervalSelect(option.value)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-text-primary hover:bg-bg-tertiary transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-base-content hover:bg-base-300 transition-colors"
                   >
                     <span className="text-sm">{option.label}</span>
                     {((option.value === 0 && !autoRefresh) || (autoRefresh && option.value === refreshInterval)) && (
-                      <Check size={14} className="text-accent-primary" />
+                      <Check size={14} className="text-primary" />
                     )}
                   </button>
                 ))}
@@ -594,12 +594,12 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
           </div>
 
           {/* Divider */}
-          <div className="border-t border-border" />
+          <div className="border-t border-base-300" />
 
           {/* Auto-refresh status indicator */}
           {autoRefresh && (
-            <div className="px-4 py-2 text-xs text-text-muted flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
+            <div className="px-4 py-2 text-xs text-base-content/50 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Auto-refreshing every {intervalOptions.find((o) => o.value === refreshInterval)?.label}
             </div>
           )}
@@ -1039,7 +1039,7 @@ export const DashboardViewPage: React.FC = () => {
   if (!dashboard) {
     return (
       <div className="text-center py-12">
-        <p className="text-[#a0a0b0]">Dashboard not found</p>
+        <p className="text-base-content/50">Dashboard not found</p>
       </div>
     );
   }
@@ -1066,48 +1066,44 @@ export const DashboardViewPage: React.FC = () => {
           filtersOpen ? "ml-72" : "ml-10"
         } transition-all duration-200 h-full overflow-visible`}
       >
-        {/* Fixed Header */}
-        <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300 min-h-14">
-          <div className="flex-1 flex items-center gap-4">
-            <div className="p-2.5 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <LayoutDashboard size={22} />
-            </div>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-xl font-bold leading-tight text-base-content">{dashboard.name}</h1>
-              {dashboard.description && (
-                <p className="opacity-50 text-[10px] uppercase tracking-wider font-bold truncate max-w-md mt-0.5">
-                  {dashboard.description}
-                </p>
+        <WorkspaceHeader
+          leading={
+            <button
+              type="button"
+              onClick={() => navigate("/dashboards")}
+              className="btn btn-ghost btn-sm btn-square"
+              aria-label="Back to dashboards"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          }
+          title={dashboard.name}
+          description={dashboard.description || undefined}
+          actions={
+            <>
+              {!isEditMode && (
+                <MoreOptionsDropdown
+                  onRefresh={handleManualRefresh}
+                  isRefreshing={isRefreshing}
+                  lastRefresh={lastRefresh}
+                  autoRefresh={autoRefresh}
+                  setAutoRefresh={setAutoRefresh}
+                  refreshInterval={refreshInterval}
+                  setRefreshInterval={setRefreshInterval}
+                />
               )}
-            </div>
-          </div>
-
-          <div className="flex-none flex items-center gap-3">
-            {!isEditMode && (
-              <MoreOptionsDropdown
-                onRefresh={handleManualRefresh}
-                isRefreshing={isRefreshing}
-                lastRefresh={lastRefresh}
-                autoRefresh={autoRefresh}
-                setAutoRefresh={setAutoRefresh}
-                refreshInterval={refreshInterval}
-                setRefreshInterval={setRefreshInterval}
-              />
-            )}
-
-            {isEditMode ? (
-              <button className="btn btn-secondary btn-sm gap-2" onClick={() => navigate(`/dashboard/${id}`)}>
-                <X size={16} />
-                <span className="hidden sm:inline">Exit Edit Mode</span>
-              </button>
-            ) : (
-              <button className="btn btn-primary btn-sm gap-2" onClick={() => navigate(`/dashboard/${id}/edit`)}>
-                <Edit size={16} />
-                <span className="hidden sm:inline">Edit dashboard</span>
-              </button>
-            )}
-          </div>
-        </div>
+              {isEditMode ? (
+                <Button variant="ghost" onClick={() => navigate(`/dashboard/${id}`)}>
+                  Exit Edit
+                </Button>
+              ) : (
+                <Button onClick={() => navigate(`/dashboard/${id}/edit`)}>
+                  Edit Dashboard
+                </Button>
+              )}
+            </>
+          }
+        />
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-visible">
@@ -1289,7 +1285,7 @@ export const DashboardViewPage: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Width (Columns: 3-12)</label>
+            <label className="block text-sm font-medium text-base-content mb-2">Width (Columns: 3-12)</label>
             <Input
               type="number"
               min={3}
@@ -1306,7 +1302,7 @@ export const DashboardViewPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Height (Rows: 3-12)</label>
+            <label className="block text-sm font-medium text-base-content mb-2">Height (Rows: 3-12)</label>
             <Input
               type="number"
               min={3}
@@ -1322,8 +1318,8 @@ export const DashboardViewPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-4 rounded-lg bg-bg-tertiary border border-border">
-            <p className="text-sm text-text-muted">
+          <div className="p-4 rounded-lg bg-base-300 border border-base-300">
+            <p className="text-sm text-base-content/50">
               💡 Tip: You can also resize charts by dragging the bottom-right corner or drag charts to rearrange them.
             </p>
           </div>

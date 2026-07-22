@@ -81,19 +81,19 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   if (!isOpen) {
     // Collapsed state - show just the toggle button
     return (
-      <div className="fixed left-0 top-16 bottom-0 w-10 bg-bg-secondary border-r border-border flex flex-col items-center py-4 z-40">
+      <div className="fixed left-0 top-16 bottom-0 w-10 bg-base-200 border-r border-base-300 flex flex-col items-center py-4 z-40">
         <button
           onClick={onToggle}
-          className="p-2 rounded-lg text-text-muted hover:text-accent-primary hover:bg-bg-tertiary transition-colors"
+          className="p-2 rounded-lg text-base-content/50 hover:text-primary hover:bg-base-300 transition-colors"
           title="Open Filters"
         >
           <ChevronRight size={20} />
         </button>
         <div className="mt-4">
-          <Filter size={18} className="text-text-muted" />
+          <Filter size={18} className="text-base-content/50" />
         </div>
         {filters.length > 0 && (
-          <span className="mt-2 text-xs text-accent-primary font-medium">{filters.length}</span>
+          <span className="mt-2 text-xs text-primary font-medium">{filters.length}</span>
         )}
       </div>
     );
@@ -101,24 +101,24 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
   // Expanded state
   return (
-    <div className="fixed left-0 top-16 bottom-0 w-72 bg-bg-secondary border-r border-border flex flex-col z-40">
+    <div className="fixed left-0 top-16 bottom-0 w-72 bg-base-200 border-r border-base-300 flex flex-col z-40">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border min-h-[57px]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-base-300 min-h-[57px]">
         <div className="flex items-center gap-2">
-          <Filter size={18} className="text-accent-primary" />
-          <span className="text-sm font-medium text-text-primary">Filters</span>
+          <Filter size={18} className="text-primary" />
+          <span className="text-sm font-medium text-base-content">Filters</span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={onAddFilter}
-            className="w-8 h-8 flex items-center justify-center rounded-md text-text-muted hover:text-accent-primary hover:bg-bg-tertiary transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-base-content/50 hover:text-primary hover:bg-base-300 transition-colors"
             title="Add Filter"
           >
             <Settings size={18} />
           </button>
           <button
             onClick={onToggle}
-            className="w-8 h-8 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-base-content/50 hover:text-base-content hover:bg-base-300 transition-colors"
             title="Collapse Filters"
           >
             <ChevronLeft size={20} />
@@ -127,10 +127,10 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
       </div>
 
       {/* Add Filter Link */}
-      <div className="px-4 py-3 border-b border-border">
+      <div className="px-4 py-3 border-b border-base-300">
         <button
           onClick={onAddFilter}
-          className="flex items-center gap-2 text-sm text-accent-primary hover:text-accent-info transition-colors"
+          className="flex items-center gap-2 text-sm text-primary hover:text-info transition-colors"
         >
           <Plus size={16} />
           Add or edit filters
@@ -141,9 +141,9 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
       <div className="flex-1 overflow-y-auto">
         {filters.length === 0 ? (
           <div className="px-4 py-8 text-center">
-            <Filter size={32} className="mx-auto mb-3 text-text-muted/70" />
-            <p className="text-sm text-text-muted">No global filters are currently added</p>
-            <p className="text-xs text-text-muted/80 mt-2">
+            <Filter size={32} className="mx-auto mb-3 text-base-content/40" />
+            <p className="text-sm text-base-content/50">No global filters are currently added</p>
+            <p className="text-xs text-base-content/45 mt-2">
               Click on "Add or edit filters" to create new dashboard filters
             </p>
           </div>
@@ -152,21 +152,21 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
             {filters.map((filter) => (
               <div
                 key={filter.id}
-                className="bg-bg-tertiary rounded-lg border border-border p-3"
+                className="bg-base-300 rounded-lg border border-base-300 p-3"
               >
                 <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-sm font-semibold text-text-primary">{filter.name}</span>
+                  <span className="text-sm font-semibold text-base-content">{filter.name}</span>
                   <div className="flex items-center gap-0.5">
                     <button
                       onClick={() => onEditFilter(filter)}
-                      className="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:text-accent-primary hover:bg-bg-primary/50 transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-base-content/50 hover:text-primary hover:bg-base-100/50 transition-colors"
                       title="Edit Filter"
                     >
                       <Settings size={14} />
                     </button>
                     <button
                       onClick={() => onRemoveFilter(filter.id)}
-                      className="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:text-status-error hover:bg-bg-primary/50 transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-base-content/50 hover:text-error hover:bg-base-100/50 transition-colors"
                       title="Remove Filter"
                     >
                       <Trash2 size={14} />
@@ -196,13 +196,13 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                       type="date"
                       value={filterValues[filter.id]?.start || ''}
                       onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], start: e.target.value })}
-                      className="w-full px-3 py-2 bg-bg-primary border border-border rounded text-sm text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
+                      className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                     />
                     <input
                       type="date"
                       value={filterValues[filter.id]?.end || ''}
                       onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], end: e.target.value })}
-                      className="w-full px-3 py-2 bg-bg-primary border border-border rounded text-sm text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
+                      className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
                 )}
@@ -214,14 +214,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                       placeholder="Min"
                       value={filterValues[filter.id]?.min || ''}
                       onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], min: e.target.value })}
-                      className="flex-1 px-3 py-2 bg-bg-primary border border-border rounded text-sm text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
+                      className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                     />
                     <input
                       type="number"
                       placeholder="Max"
                       value={filterValues[filter.id]?.max || ''}
                       onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], max: e.target.value })}
-                      className="flex-1 px-3 py-2 bg-bg-primary border border-border rounded text-sm text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
+                      className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
                 )}
@@ -233,13 +233,13 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
       {/* Footer Actions */}
       {filters.length > 0 && (
-        <div className="px-4 py-3 border-t border-border space-y-2">
+        <div className="px-4 py-3 border-t border-base-300 space-y-2">
           <Button onClick={onApplyFilters} className="w-full">
             Apply filters
           </Button>
           <button
             onClick={onClearFilters}
-            className="w-full py-2 text-sm text-text-muted hover:text-text-secondary transition-colors"
+            className="w-full py-2 text-sm text-base-content/50 hover:text-base-content/70 transition-colors"
           >
             Clear all
           </button>
