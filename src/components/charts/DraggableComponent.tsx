@@ -16,7 +16,7 @@ interface DraggableComponentProps {
   height?: number;
 }
 
-export const DraggableComponent: React.FC<DraggableComponentProps> = ({
+const DraggableComponentInternal: React.FC<DraggableComponentProps> = ({
   id,
   name,
   htmlContent,
@@ -138,3 +138,5 @@ export const DraggableComponent: React.FC<DraggableComponentProps> = ({
     </div>
   );
 };
+
+export const DraggableComponent = React.memo(DraggableComponentInternal);

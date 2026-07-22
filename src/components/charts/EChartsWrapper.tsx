@@ -107,17 +107,28 @@ const EChartsWrapper = forwardRef<EChartsInstance, EChartsWrapperProps>(({
     }
   }, [loading]);
 
-  // Handle Resize
+  // Handle Resize with requestAnimationFrame throttling
   useEffect(() => {
     if (!autoResize || !chartRef.current || !chartInstance.current) return;
 
+    let rafId: number | null = null;
+
     const resizeObserver = new ResizeObserver(() => {
-      chartInstance.current?.resize();
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        chartInstance.current?.resize();
+        rafId = null;
+      });
     });
 
     resizeObserver.observe(chartRef.current);
 
     return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
       resizeObserver.disconnect();
     };
   }, [autoResize]);

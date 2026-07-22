@@ -16,7 +16,7 @@ interface DraggableChartProps {
   height?: number;
 }
 
-export const DraggableChart: React.FC<DraggableChartProps> = ({
+const DraggableChartComponent: React.FC<DraggableChartProps> = ({
   id,
   name,
   chartType,
@@ -74,3 +74,5 @@ export const DraggableChart: React.FC<DraggableChartProps> = ({
     </div>
   );
 };
+
+export const DraggableChart = React.memo(DraggableChartComponent);

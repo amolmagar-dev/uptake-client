@@ -120,30 +120,32 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
     return map;
   }, [filterOptions]);
 
-  if (!isOpen) {
-    // Collapsed state - show just the toggle button
-    return (
-      <div className="w-10 shrink-0 h-full flex flex-col items-center py-4 overflow-hidden bg-base-100 border-r border-base-300 transition-all duration-200 ease-out">
-        <button
-          onClick={onToggle}
-          className="p-2 rounded-lg text-base-content/50 hover:text-primary hover:bg-base-300 transition-colors duration-150"
-          title="Open Filters"
-        >
-          <ChevronRight size={20} className="transition-transform duration-200" />
-        </button>
-        <div className="mt-4">
-          <Filter size={18} className="text-base-content/50" />
-        </div>
-        {filters.length > 0 && (
-          <span className="mt-2 text-xs text-primary font-medium">{filters.length}</span>
-        )}
-      </div>
-    );
-  }
-
-  // Expanded state
   return (
-    <div className="w-72 shrink-0 h-full flex flex-col overflow-hidden bg-base-100 border-r border-base-300 transition-all duration-200 ease-out">
+    <aside
+      className={`shrink-0 h-full flex flex-col overflow-hidden bg-base-100 border-r border-base-300 transition-[width] duration-300 ease-in-out ${
+        isOpen ? "w-72" : "w-10"
+      }`}
+    >
+      {!isOpen ? (
+        // Collapsed state
+        <div className="w-10 h-full flex flex-col items-center py-4 overflow-hidden">
+          <button
+            onClick={onToggle}
+            className="p-2 rounded-lg text-base-content/50 hover:text-primary hover:bg-base-300 transition-colors duration-150"
+            title="Open Filters"
+          >
+            <ChevronRight size={20} className="transition-transform duration-200" />
+          </button>
+          <div className="mt-4">
+            <Filter size={18} className="text-base-content/50" />
+          </div>
+          {filters.length > 0 && (
+            <span className="mt-2 text-xs text-primary font-medium">{filters.length}</span>
+          )}
+        </div>
+      ) : (
+        // Expanded state
+        <div className="w-72 h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-base-300 shrink-0">
         <div className="flex items-center gap-2">
@@ -303,6 +305,8 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
           </button>
         </div>
       )}
-    </div>
+        </div>
+      )}
+    </aside>
   );
 };

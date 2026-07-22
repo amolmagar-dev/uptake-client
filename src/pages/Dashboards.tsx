@@ -830,13 +830,21 @@ export const DashboardViewPage: React.FC = () => {
     fetchAvailableComponents();
   }, [id]);
 
-  // Force grid to recalculate width when edit mode or filters sidebar changes
+  // Smoothly recalculate grid width during and after sidebar / edit mode transition
   useEffect(() => {
-    // Small delay to let DOM update first
-    const timer = setTimeout(() => {
+    const interval = setInterval(() => {
       window.dispatchEvent(new Event("resize"));
-    }, 100);
-    return () => clearTimeout(timer);
+    }, 50);
+
+    const timer = setTimeout(() => {
+      clearInterval(interval);
+      window.dispatchEvent(new Event("resize"));
+    }, 350);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
   }, [isEditMode, filtersOpen]);
 
   // Auto-refresh effect (passes resolved filters)
@@ -1136,7 +1144,7 @@ export const DashboardViewPage: React.FC = () => {
           {dashboard.charts && dashboard.charts.length > 0 ? (
             <div className="dashboard-grid w-full">
               <ResponsiveGridLayout
-                key={`grid-${isEditMode ? "edit" : "view"}-${filtersOpen ? "filters" : "nofilters"}`}
+                key={`grid-${isEditMode ? "edit" : "view"}`}
                 className="layout"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
