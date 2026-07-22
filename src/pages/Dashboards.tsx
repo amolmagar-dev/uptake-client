@@ -894,20 +894,33 @@ export const DashboardViewPage: React.FC = () => {
 
       layoutTimeoutRef.current = setTimeout(async () => {
         if (!id || !dashboard?.charts) return;
+
+        // Filter items that actually changed position or size
+        const changedItems = layout.filter((item) => {
+          const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i);
+          if (!chart) return false;
+          const currX = chart.position_x ?? 0;
+          const currY = chart.position_y ?? 0;
+          const currW = chart.width ?? 6;
+          const currH = chart.height ?? 4;
+          return item.x !== currX || item.y !== currY || item.w !== currW || item.h !== currH;
+        });
+
+        if (changedItems.length === 0) {
+          return;
+        }
+
         setIsUpdating(true);
 
         try {
-          const updatePromises = layout.map((item) => {
-            const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i);
-            if (chart) {
-              return dashboardsApi.updateChart(id, chart.id, {
-                position_x: item.x,
-                position_y: item.y,
-                width: item.w,
-                height: item.h,
-              });
-            }
-            return Promise.resolve();
+          const updatePromises = changedItems.map((item) => {
+            const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i)!;
+            return dashboardsApi.updateChart(id, chart.id, {
+              position_x: item.x,
+              position_y: item.y,
+              width: item.w,
+              height: item.h,
+            });
           });
 
           await Promise.all(updatePromises);
