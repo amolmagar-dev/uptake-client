@@ -1144,7 +1144,7 @@ export const DashboardViewPage: React.FC = () => {
           {dashboard.charts && dashboard.charts.length > 0 ? (
             <div className="dashboard-grid w-full">
               <ResponsiveGridLayout
-                key={`grid-${isEditMode ? "edit" : "view"}`}
+                key="dashboard-grid"
                 className="layout"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
