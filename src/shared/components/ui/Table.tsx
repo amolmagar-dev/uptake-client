@@ -27,10 +27,14 @@ export function Table<T extends Record<string, any>>({
   maxHeight,
 }: TableProps<T>) {
   const getValue = (row: T, key: string) => {
+    if (!row) return undefined;
+    if (key in row) return row[key];
+    if (typeof key !== 'string') return undefined;
     const keys = key.split('.');
     let value: any = row;
     for (const k of keys) {
-      value = value?.[k];
+      if (value === null || value === undefined) return undefined;
+      value = value[k];
     }
     return value;
   };

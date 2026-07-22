@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Settings, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../../shared/components/ui/Button';
-import { Select } from '../../shared/components/ui/Input';
-
+import { Select, MultiSelect } from '../../shared/components/ui/Input';
 import { datasetsApi } from '../../lib/api';
-
 
 export interface DashboardFilter {
   id: string;
@@ -49,33 +47,59 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   // Store unique values for each filter's column
   const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
 
-  // Fetch unique values for value-type filters
+  // Fetch unique values for value-type filters in parallel with cleanup
   useEffect(() => {
+    let isMounted = true;
     const fetchFilterOptions = async () => {
-      for (const filter of filters) {
-        if (filter.type === 'value' && filter.datasetId && filter.column && !filterOptions[filter.id]) {
-          try {
-            const response = await datasetsApi.preview(filter.datasetId);
-            const previewData = response.data?.preview || response.data?.data || response.data || [];
-            
-            if (Array.isArray(previewData) && previewData.length > 0) {
-              // Extract unique values for the column
-              const uniqueValues = [...new Set(previewData.map((row: any) => row[filter.column]).filter(v => v !== null && v !== undefined))];
-              setFilterOptions(prev => ({
-                ...prev,
-                [filter.id]: uniqueValues.map(v => String(v))
-              }));
+      const valueFilters = filters.filter(
+        (f) => f.type === 'value' && f.datasetId && f.column && !filterOptions[f.id]
+      );
+      if (valueFilters.length === 0) return;
+
+      try {
+        const results = await Promise.all(
+          valueFilters.map(async (filter) => {
+            try {
+              const response = await datasetsApi.preview(filter.datasetId);
+              const previewData = response.data?.preview || response.data?.data || response.data || [];
+              if (Array.isArray(previewData) && previewData.length > 0) {
+                const uniqueValues = [
+                  ...new Set(
+                    previewData
+                      .map((row: any) => row[filter.column])
+                      .filter((v) => v !== null && v !== undefined)
+                  ),
+                ];
+                return { id: filter.id, options: uniqueValues.map((v) => String(v)) };
+              }
+            } catch (error) {
+              console.error('Failed to fetch filter options:', error);
             }
-          } catch (error) {
-            console.error('Failed to fetch filter options:', error);
-          }
+            return null;
+          })
+        );
+
+        if (isMounted) {
+          setFilterOptions((prev) => {
+            const updated = { ...prev };
+            results.forEach((res) => {
+              if (res) updated[res.id] = res.options;
+            });
+            return updated;
+          });
         }
+      } catch (err) {
+        console.error('Error fetching filter options', err);
       }
     };
 
     if (filters.length > 0) {
       fetchFilterOptions();
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [filters]);
 
   if (!isOpen) {
@@ -173,59 +197,78 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                 </div>
               </div>
                 
-                {/* Filter Input based on type */}
-                {filter.type === 'value' && (
-                  <div className="min-w-0 w-full">
-                    <Select
-                      value={filterValues[filter.id] || ''}
-                      onChange={(value: string | null) => onFilterValueChange(filter.id, value || '')}
-                      options={(filterOptions[filter.id] || []).map(option => ({
+              {/* Filter Input based on type */}
+              {filter.type === 'value' && (
+                <div className="min-w-0 w-full">
+                  {filter.config?.multiSelect ? (
+                    <MultiSelect
+                      value={
+                        Array.isArray(filterValues[filter.id])
+                          ? filterValues[filter.id]
+                          : filterValues[filter.id]
+                          ? [filterValues[filter.id]]
+                          : []
+                      }
+                      onChange={(values: string[]) => onFilterValueChange(filter.id, values)}
+                      options={(filterOptions[filter.id] || []).map((option) => ({
                         value: option,
-                        label: option
+                        label: option,
                       }))}
                       placeholder={`Select ${filter.column}...`}
                       isClearable
                       isSearchable
                     />
-                  </div>
-                )}
-
+                  ) : (
+                    <Select
+                      value={filterValues[filter.id] || ''}
+                      onChange={(value: string | null) => onFilterValueChange(filter.id, value || '')}
+                      options={(filterOptions[filter.id] || []).map((option) => ({
+                        value: option,
+                        label: option,
+                      }))}
+                      placeholder={`Select ${filter.column}...`}
+                      isClearable
+                      isSearchable
+                    />
+                  )}
+                </div>
+              )}
                 
-                {filter.type === 'time_range' && (
-                  <div className="space-y-2 min-w-0 w-full">
-                    <input
-                      type="date"
-                      value={filterValues[filter.id]?.start || ''}
-                      onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], start: e.target.value })}
-                      className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
-                    />
-                    <input
-                      type="date"
-                      value={filterValues[filter.id]?.end || ''}
-                      onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], end: e.target.value })}
-                      className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
-                    />
-                  </div>
-                )}
+              {filter.type === 'time_range' && (
+                <div className="space-y-2 min-w-0 w-full">
+                  <input
+                    type="date"
+                    value={filterValues[filter.id]?.start || ''}
+                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], start: e.target.value })}
+                    className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
+                  />
+                  <input
+                    type="date"
+                    value={filterValues[filter.id]?.end || ''}
+                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], end: e.target.value })}
+                    className="w-full px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              )}
                 
-                {filter.type === 'numerical_range' && (
-                  <div className="flex gap-2 min-w-0 w-full">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      value={filterValues[filter.id]?.min || ''}
-                      onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], min: e.target.value })}
-                      className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      value={filterValues[filter.id]?.max || ''}
-                      onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], max: e.target.value })}
-                      className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
-                    />
-                  </div>
-                )}
+              {filter.type === 'numerical_range' && (
+                <div className="flex gap-2 min-w-0 w-full">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={filterValues[filter.id]?.min || ''}
+                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], min: e.target.value })}
+                    className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={filterValues[filter.id]?.max || ''}
+                    onChange={(e) => onFilterValueChange(filter.id, { ...filterValues[filter.id], max: e.target.value })}
+                    className="flex-1 px-3 py-2 bg-base-100 border border-base-300 rounded text-sm text-base-content focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              )}
             </div>
           ))
         )}

@@ -7,6 +7,9 @@ import { DataTable } from '../../shared/components/ui/Table';
 import { WorkspaceHeader } from '../../shared/components';
 import { queriesApi } from '../../lib/api';
 import { useAppStore } from '../../store/appStore';
+import { useThemeStore } from '../../store/themeStore';
+
+const LIGHT_THEMES = ['light', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'retro', 'cyberpunk', 'valentine', 'garden', 'lofi', 'pastel', 'fantasy', 'wireframe', 'cmyk', 'autumn', 'acid', 'lemonade', 'winter'];
 
 interface SQLEditorProps {
   initialQuery?: string;
@@ -27,6 +30,8 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [rowCount, setRowCount] = useState<number>(0);
+  const currentThemeId = useThemeStore((s) => s.currentThemeId);
+  const monacoTheme = LIGHT_THEMES.includes(currentThemeId) ? 'vs' : 'vs-dark';
 
   const executeQuery = useCallback(async () => {
     if (!selectedConnectionId) {
@@ -56,7 +61,13 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
     } finally {
       setIsExecuting(false);
     }
-  }, [query, selectedConnectionId, addToast]);
+  }, [selectedConnectionId, query, addToast]);
+
+  const handleEditorMount = useCallback((editor: any, monaco: any) => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      executeQuery();
+    });
+  }, [executeQuery]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -71,9 +82,11 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
   ];
 
   return (
-    <div className="flex flex-col h-full" onKeyDown={handleKeyDown}>
+    <div className="flex flex-col h-full bg-base-100" onKeyDown={handleKeyDown}>
+      {/* Header */}
       <WorkspaceHeader
         title="SQL Editor"
+        description="Run raw SQL queries against your connected database"
         actions={
           <>
             {executionTime !== null && (
@@ -126,7 +139,8 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
             defaultLanguage="sql"
             value={query}
             onChange={(value) => setQuery(value || '')}
-            theme="vs-dark"
+            onMount={handleEditorMount}
+            theme={monacoTheme}
             options={{
               minimap: { enabled: false },
               fontSize: 14,

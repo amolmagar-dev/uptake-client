@@ -57,8 +57,11 @@ export const AxisSettings: React.FC<AxisSettingsProps> = ({ config, onChange }) 
               <label className="block text-xs text-base-content/50 mb-1">Label Rotation</label>
               <Input
                 type="number"
-                value={config.xAxis?.labelRotate || 0}
-                onChange={(e) => updateXAxis({ labelRotate: parseInt(e.target.value) || 0 })}
+                value={config.xAxis?.labelRotate ?? 0}
+                onChange={(e) => {
+                  const parsed = parseInt(e.target.value, 10);
+                  updateXAxis({ labelRotate: isNaN(parsed) ? 0 : parsed });
+                }}
                 placeholder="0"
               />
             </div>

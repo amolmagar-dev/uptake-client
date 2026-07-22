@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { ResourceListing } from "../shared/components/ResourceListing";
 import {
   Plus,
@@ -734,49 +734,57 @@ export const DashboardViewPage: React.FC = () => {
     });
   }, [chartData, dashboardFilters, filterValues, filtersApplied]);
 
-  const fetchDashboard = async (filters: Record<string, any> = {}) => {
+  const layoutTimeoutRef = useRef<any>(null);
+
+  const getResolvedFilters = useCallback((filtersMap: Record<string, any>) => {
+    const resolved: Record<string, any> = {};
+    dashboardFilters.forEach((f) => {
+      const val = filtersMap[f.id];
+      if (val !== undefined && val !== null && val !== "" && !(Array.isArray(val) && val.length === 0)) {
+        resolved[f.column] = val;
+        resolved[f.id] = val;
+      }
+    });
+    return resolved;
+  }, [dashboardFilters]);
+
+  const fetchDashboard = async (filters: Record<string, any> = filterValues) => {
     if (!id) return;
     try {
-      // Build filter context - map filter ID to value, but backend expects column to value?
-      // The plan said: "filterContext[filter.column] = filterValues[filter.id]"
-      
-      // We need to map filterValues (by ID) to actual filter columns if we want cleaner usage in SQL
-      // But we can also just pass the map we have. 
-      // Let's pass the raw filterValues map (by ID) AND a mapped version if we have dashboard filters loaded?
-      // Actually, let's look at how filterValues is structured: { [filterId]: value }
-      
-      // Best to resolve columns here if possible, but dashboard might not be loaded yet on first run.
-      // However, for handleApplyFilters, dashboard IS loaded.
-      
-      let resolvedFilters = filters;
-      
-      // If we have dashboard definitions, map id -> column for easier SQL usage
-      if (dashboardFilters.length > 0) {
-        resolvedFilters = {};
-        dashboardFilters.forEach(f => {
-          if (filters[f.id] !== undefined) {
-             resolvedFilters[f.column] = filters[f.id];
-             // Also keep ID-based mapping for safety/flexibility?
-             resolvedFilters[f.id] = filters[f.id];
-          }
-        });
-      }
-
+      const resolvedFilters = getResolvedFilters(filters);
       const [dashboardRes, dataRes] = await Promise.all([
         dashboardsApi.getOne(id), 
         dashboardsApi.getData(id, resolvedFilters)
       ]);
-      setDashboard(dashboardRes.data.dashboard);
+      const fetchedDashboard = dashboardRes.data.dashboard;
+      setDashboard(fetchedDashboard);
       setChartData(dataRes.data.chartData);
 
-      // Load saved filters from dashboard
-      if (dashboardRes.data.dashboard.filters && Array.isArray(dashboardRes.data.dashboard.filters)) {
-        setDashboardFilters(dashboardRes.data.dashboard.filters);
+      // Load saved filters from dashboard and apply default values if present
+      if (fetchedDashboard.filters && Array.isArray(fetchedDashboard.filters)) {
+        const loadedFilters: DashboardFilter[] = fetchedDashboard.filters;
+        setDashboardFilters(loadedFilters);
+
+        // Apply config.defaultValue on load if filterValues is empty
+        if (Object.keys(filters).length === 0) {
+          const defaults: Record<string, any> = {};
+          let hasDefaults = false;
+          loadedFilters.forEach((f) => {
+            if (f.config?.hasDefault && f.config?.defaultValue !== undefined && f.config?.defaultValue !== "") {
+              defaults[f.id] = f.config.defaultValue;
+              hasDefaults = true;
+            }
+          });
+          if (hasDefaults) {
+            setFilterValues(defaults);
+            setFiltersApplied(true);
+          }
+        }
       }
 
       // Initialize layouts from dashboard charts
-      if (dashboardRes.data.dashboard.charts) {
-        const initialLayout = dashboardRes.data.dashboard.charts.map((chart: DashboardChart) => ({
+      if (fetchedDashboard.charts) {
+        const initialLayout = fetchedDashboard.charts.map((chart: DashboardChart) => ({
           i: chart.id,
           x: chart.position_x || 0,
           y: chart.position_y || 0,
@@ -815,7 +823,9 @@ export const DashboardViewPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDashboard();
+    setFilterValues({});
+    setFiltersApplied(false);
+    fetchDashboard({});
     fetchAvailableCharts();
     fetchAvailableComponents();
   }, [id]);
@@ -829,14 +839,14 @@ export const DashboardViewPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [isEditMode, filtersOpen]);
 
-  // Auto-refresh effect
+  // Auto-refresh effect (passes resolved filters)
   useEffect(() => {
     if (!autoRefresh || !id) return;
 
     const refreshData = async () => {
       setIsRefreshing(true);
       try {
-        const dataRes = await dashboardsApi.getData(id);
+        const dataRes = await dashboardsApi.getData(id, getResolvedFilters(filterValues));
         setChartData(dataRes.data.chartData);
         setLastRefresh(new Date());
       } catch (error) {
@@ -848,14 +858,14 @@ export const DashboardViewPage: React.FC = () => {
 
     const intervalId = setInterval(refreshData, refreshInterval * 1000);
     return () => clearInterval(intervalId);
-  }, [autoRefresh, refreshInterval, id]);
+  }, [autoRefresh, refreshInterval, id, filterValues, getResolvedFilters]);
 
-  // Manual refresh function
+  // Manual refresh function (passes resolved filters)
   const handleManualRefresh = async () => {
     if (!id || isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const dataRes = await dashboardsApi.getData(id);
+      const dataRes = await dashboardsApi.getData(id, getResolvedFilters(filterValues));
       setChartData(dataRes.data.chartData);
       setLastRefresh(new Date());
       addToast("success", "Dashboard refreshed");
@@ -867,15 +877,16 @@ export const DashboardViewPage: React.FC = () => {
   };
 
   const handleLayoutChange = useCallback(
-    async (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
+    (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
       setLayouts(allLayouts);
 
-      // Debounce API calls to avoid too many requests
-      if (isUpdating) return;
-      setIsUpdating(true);
+      if (layoutTimeoutRef.current) {
+        clearTimeout(layoutTimeoutRef.current);
+      }
 
-      setTimeout(async () => {
+      layoutTimeoutRef.current = setTimeout(async () => {
         if (!id || !dashboard?.charts) return;
+        setIsUpdating(true);
 
         try {
           const updatePromises = layout.map((item) => {
@@ -900,7 +911,7 @@ export const DashboardViewPage: React.FC = () => {
         }
       }, 500);
     },
-    [id, dashboard, isUpdating, addToast]
+    [id, dashboard, addToast]
   );
 
   const handleAddChart = async (chartId: string) => {
@@ -1006,8 +1017,6 @@ export const DashboardViewPage: React.FC = () => {
         console.error("Failed to delete filter:", error);
         addToast("error", "Failed to delete filter");
         setDashboardFilters(oldFilters); 
-        // Note: We don't necessarily need to revert filterValues since the filter is back, 
-        // but the value might be lost. That's acceptable for a revert scenario.
       }
     }
   };
@@ -1041,10 +1050,11 @@ export const DashboardViewPage: React.FC = () => {
     setFilterValues({});
     setFiltersApplied(false);
     addToast("info", "Filters cleared");
+    fetchDashboard({});
   };
 
   const handleFilterValueChange = (filterId: string, value: any) => {
-    setFilterValues({ ...filterValues, [filterId]: value });
+    setFilterValues((prev) => ({ ...prev, [filterId]: value }));
   };
 
   if (isLoading) {
@@ -1095,6 +1105,7 @@ export const DashboardViewPage: React.FC = () => {
           description={dashboard.description || undefined}
           actions={
             <>
+              {isUpdating && <span className="text-xs text-primary animate-pulse mr-2">Saving layout...</span>}
               {!isEditMode && (
                 <MoreOptionsDropdown
                   onRefresh={handleManualRefresh}

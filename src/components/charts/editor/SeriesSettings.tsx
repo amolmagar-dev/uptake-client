@@ -43,7 +43,15 @@ export const SeriesSettings: React.FC<SeriesSettingsProps> = ({ config, onChange
                              <label className="block text-[10px] text-base-content/50 mb-1">Chart Type</label>
                              <Select
                                 value={currentConfig.type || 'default'}
-                                onChange={(val: string | null) => updateSeries(series, { type: val === 'default' ? undefined : val })}
+                                onChange={(val: string | null) => {
+                                  const nextConfig = { ...currentConfig };
+                                  if (!val || val === 'default') {
+                                    delete nextConfig.type;
+                                  } else {
+                                    nextConfig.type = val;
+                                  }
+                                  updateSeries(series, nextConfig);
+                                }}
                                 options={[
                                     { value: 'default', label: 'Default' },
                                     { value: 'bar', label: 'Bar' },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 import {
@@ -14,7 +14,10 @@ import { ChartRenderer } from '../components/charts/ChartRenderer';
 import EChartsWrapper from '../components/charts/EChartsWrapper';
 import { chartsApi, datasetsApi, type Dataset } from '../lib/api';
 import { useAppStore } from '../store/appStore';
+import { useThemeStore } from '../store/themeStore';
 import type { ChartConfig } from '../types/chart-config';
+
+const LIGHT_THEMES = ['light', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'retro', 'cyberpunk', 'valentine', 'garden', 'lofi', 'pastel', 'fantasy', 'wireframe', 'cmyk', 'autumn', 'acid', 'lemonade', 'winter'];
 import { generateEChartsOption } from '../lib/chartConfigGenerator';
 import { interpolateData, prepareConfigForStorage, getDefaultAdvancedTemplate, isTemplateConfig } from '../lib/dataTemplateUtils';
 
@@ -97,6 +100,9 @@ export function ChartEditorPage() {
   const [draggedColumn, setDraggedColumn] = useState<{ name: string; isNumeric: boolean } | null>(null);
   const [dragOverMetrics, setDragOverMetrics] = useState(false);
   const [dragOverXAxis, setDragOverXAxis] = useState(false);
+
+  const currentThemeId = useThemeStore((s) => s.currentThemeId);
+  const monacoTheme = LIGHT_THEMES.includes(currentThemeId) ? 'vs' : 'vs-dark';
 
   // Form state
   const [name, setName] = useState('');
@@ -194,17 +200,25 @@ export function ChartEditorPage() {
     }
   };
 
+  const fetchSeqRef = useRef(0);
   const fetchColumns = async (dsId: string) => {
     if (!dsId) return;
+    const seq = ++fetchSeqRef.current;
     setColumnsLoading(true);
     try {
       const response = await datasetsApi.getColumns(dsId);
-      setColumns(response.data.columns || []);
+      if (fetchSeqRef.current === seq) {
+        setColumns(response.data.columns || []);
+      }
     } catch (error) {
-      console.error('Failed to fetch columns:', error);
-      setColumns([]);
+      if (fetchSeqRef.current === seq) {
+        console.error('Failed to fetch columns:', error);
+        setColumns([]);
+      }
     } finally {
-      setColumnsLoading(false);
+      if (fetchSeqRef.current === seq) {
+        setColumnsLoading(false);
+      }
     }
   };
 
@@ -517,6 +531,8 @@ export function ChartEditorPage() {
               onChange={(val: string | null) => {
                 setDatasetId(val || '');
                 setConfig(prev => ({ ...prev, xColumn: '', yColumns: [] }));
+                setRawEChartsOption(null);
+                setRawConfigText('');
                 setPreviewData(null);
               }}
               options={datasets.map((d) => ({ value: d.id, label: d.name }))}
@@ -778,7 +794,7 @@ export function ChartEditorPage() {
                          language="javascript"
                          value={rawConfigText}
                          onChange={(value) => setRawConfigText(value || '')}
-                         theme="vs-dark"
+                         theme={monacoTheme}
                          options={{
                            minimap: { enabled: false },
                            fontSize: 12,
