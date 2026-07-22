@@ -32,34 +32,13 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-secondary">
-        <div className="relative z-10 flex flex-col justify-center px-12 text-primary-content">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary-content/20 flex items-center justify-center shadow-2xl">
-              <Zap size={36} className="text-primary-content" />
-            </div>
-            <h1 className="text-4xl font-bold">Uptake</h1>
+      {/* Left side - Branding (Logo only) */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-secondary items-center justify-center">
+        <div className="relative z-10 flex items-center gap-4 text-primary-content">
+          <div className="w-20 h-20 rounded-2xl bg-primary-content/20 flex items-center justify-center shadow-2xl backdrop-blur-md border border-primary-content/20">
+            <Zap size={44} className="text-primary-content" />
           </div>
-          <h2 className="text-3xl font-light mb-4">
-            Data Exploration<br />
-            <span className="text-gradient font-semibold">Reimagined</span>
-          </h2>
-          <p className="text-lg text-primary-content/70 max-w-md">
-            Connect to any database, write SQL queries, create stunning visualizations, 
-            and build interactive dashboards — all in one place.
-          </p>
-          
-          <div className="mt-12 grid grid-cols-2 gap-6">
-            <div className="p-4 rounded-xl bg-primary-content/10 backdrop-blur border border-primary-content/20">
-              <div className="text-3xl font-bold text-primary-content">10+</div>
-              <div className="text-sm text-primary-content/70">Database Types</div>
-            </div>
-            <div className="p-4 rounded-xl bg-primary-content/10 backdrop-blur border border-primary-content/20">
-              <div className="text-3xl font-bold text-primary-content">∞</div>
-              <div className="text-sm text-primary-content/70">Dashboards</div>
-            </div>
-          </div>
+          <h1 className="text-5xl font-extrabold tracking-tight">Uptake</h1>
         </div>
       </div>
 
