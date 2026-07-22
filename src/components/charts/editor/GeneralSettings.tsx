@@ -21,12 +21,12 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({ config, onChan
 
   return (
     <div className="space-y-4">
-      <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">General Settings</h4>
+      <h4 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider mb-3">General Settings</h4>
       
       {/* Title */}
       <div className="space-y-3">
         <div>
-          <label className="block text-xs text-text-tertiary mb-1">Chart Title</label>
+          <label className="block text-xs text-base-content/50 mb-1">Chart Title</label>
           <Input
             value={config.title?.text || ''}
             onChange={(e) => updateTitle({ text: e.target.value })}
@@ -35,7 +35,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({ config, onChan
         </div>
         
         <div>
-          <label className="block text-xs text-text-tertiary mb-1">Subtitle</label>
+          <label className="block text-xs text-base-content/50 mb-1">Subtitle</label>
           <Input
             value={config.title?.subtext || ''}
             onChange={(e) => updateTitle({ subtext: e.target.value })}
@@ -45,7 +45,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({ config, onChan
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-text-tertiary mb-1">Alignment</label>
+            <label className="block text-xs text-base-content/50 mb-1">Alignment</label>
             <Select
               value={config.title?.left || 'center'}
               onChange={(val: string | null) => updateTitle({ left: val as any })}
@@ -57,7 +57,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({ config, onChan
             />
           </div>
           <div>
-             <label className="block text-xs text-text-tertiary mb-1">Position</label>
+             <label className="block text-xs text-base-content/50 mb-1">Position</label>
              <Select
               value={config.title?.top || 'top'}
               onChange={(val: string | null) => updateTitle({ top: val as any })}

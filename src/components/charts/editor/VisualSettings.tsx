@@ -10,10 +10,10 @@ interface VisualSettingsProps {
 export const VisualSettings: React.FC<VisualSettingsProps> = ({ config, onChange }) => {
   return (
     <div className="space-y-4">
-      <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">Appearance</h4>
+      <h4 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider mb-3">Appearance</h4>
        
       <div>
-        <label className="block text-xs text-text-tertiary mb-1">Color Scheme</label>
+        <label className="block text-xs text-base-content/50 mb-1">Color Scheme</label>
         <Select
           value={config.colorScheme ? 'custom' : 'default'} // Simplified logic for now
           onChange={(val: string | null) => {
@@ -33,17 +33,17 @@ export const VisualSettings: React.FC<VisualSettingsProps> = ({ config, onChange
       </div>
 
        <div>
-        <label className="block text-xs text-text-tertiary mb-1">Background Color</label>
+        <label className="block text-xs text-base-content/50 mb-1">Background Color</label>
         <div className="flex gap-2">
              <button 
                 onClick={() => onChange({ backgroundColor: 'transparent' })}
-                className={`w-8 h-8 rounded border ${config.backgroundColor === 'transparent' ? 'border-accent-primary' : 'border-border'}`}
+                className={`w-8 h-8 rounded border ${config.backgroundColor === 'transparent' ? 'border-primary' : 'border-base-300'}`}
                 style={{ background: 'transparent' }}
                 title="Transparent"
              />
              <button 
                 onClick={() => onChange({ backgroundColor: '#151520' })}
-                className={`w-8 h-8 rounded border ${config.backgroundColor === '#151520' ? 'border-accent-primary' : 'border-border'}`}
+                className={`w-8 h-8 rounded border ${config.backgroundColor === '#151520' ? 'border-primary' : 'border-base-300'}`}
                 style={{ background: '#151520' }}
                 title="Dark"
              />

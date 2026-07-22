@@ -33,19 +33,19 @@ export const AxisSettings: React.FC<AxisSettingsProps> = ({ config, onChange }) 
       {/* X Axis */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">X Axis</h4>
+          <h4 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider">X Axis</h4>
           <input
             type="checkbox"
             checked={config.xAxis?.show !== false}
             onChange={(e) => updateXAxis({ show: e.target.checked })}
-            className="w-4 h-4 rounded border-border text-accent-primary focus:ring-accent-primary"
+            className="checkbox checkbox-primary checkbox-sm"
           />
         </div>
         
         {config.xAxis?.show !== false && (
-          <div className="space-y-3 pl-2 border-l-2 border-border/50">
+          <div className="space-y-3 pl-2 border-l-2 border-base-300/50">
             <div>
-              <label className="block text-xs text-text-tertiary mb-1">Axis Name</label>
+              <label className="block text-xs text-base-content/50 mb-1">Axis Name</label>
               <Input
                 value={config.xAxis?.name || ''}
                 onChange={(e) => updateXAxis({ name: e.target.value })}
@@ -54,7 +54,7 @@ export const AxisSettings: React.FC<AxisSettingsProps> = ({ config, onChange }) 
             </div>
             
             <div>
-              <label className="block text-xs text-text-tertiary mb-1">Label Rotation</label>
+              <label className="block text-xs text-base-content/50 mb-1">Label Rotation</label>
               <Input
                 type="number"
                 value={config.xAxis?.labelRotate || 0}
@@ -69,19 +69,19 @@ export const AxisSettings: React.FC<AxisSettingsProps> = ({ config, onChange }) 
       {/* Y Axis */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Y Axis</h4>
+          <h4 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider">Y Axis</h4>
           <input
             type="checkbox"
             checked={config.yAxis?.show !== false}
             onChange={(e) => updateYAxis({ show: e.target.checked })}
-            className="w-4 h-4 rounded border-border text-accent-primary focus:ring-accent-primary"
+            className="checkbox checkbox-primary checkbox-sm"
           />
         </div>
         
          {config.yAxis?.show !== false && (
-          <div className="space-y-3 pl-2 border-l-2 border-border/50">
+          <div className="space-y-3 pl-2 border-l-2 border-base-300/50">
             <div>
-              <label className="block text-xs text-text-tertiary mb-1">Axis Name</label>
+              <label className="block text-xs text-base-content/50 mb-1">Axis Name</label>
               <Input
                 value={config.yAxis?.name || ''}
                 onChange={(e) => updateYAxis({ name: e.target.value })}
@@ -95,12 +95,12 @@ export const AxisSettings: React.FC<AxisSettingsProps> = ({ config, onChange }) 
        {/* Grid */}
       <div>
          <div className="flex items-center justify-between mb-2">
-          <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Grid</h4>
+          <h4 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider">Grid</h4>
           <input
             type="checkbox"
             checked={config.grid?.show !== false}
             onChange={(e) => onChange({ grid: { ...config.grid, show: e.target.checked } })}
-            className="w-4 h-4 rounded border-border text-accent-primary focus:ring-accent-primary"
+            className="checkbox checkbox-primary checkbox-sm"
           />
         </div>
       </div>

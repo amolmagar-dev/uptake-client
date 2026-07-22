@@ -9,6 +9,7 @@ import {
 import Editor from '@monaco-editor/react';
 
 import { Select } from '../shared/components/ui/Input';
+import { WorkspaceHeader, Button } from '../shared/components';
 import { ChartRenderer } from '../components/charts/ChartRenderer';
 import EChartsWrapper from '../components/charts/EChartsWrapper';
 import { chartsApi, datasetsApi, type Dataset } from '../lib/api';
@@ -451,68 +452,57 @@ export function ChartEditorPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-bg-secondary">
-        <RefreshCw className="w-8 h-8 animate-spin text-accent-primary" />
+      <div className="flex items-center justify-center h-screen bg-base-200">
+        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ background: 'var(--bg-secondary)' }}>
+    <div className="h-full flex flex-col bg-base-200">
       {/* Header Bar */}
-      <header className="flex-shrink-0 h-14 border-b border-border bg-bg-primary flex items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/charts')}
-            className="p-2 rounded-lg hover:bg-bg-tertiary transition-colors text-text-secondary hover:text-text-primary"
-          >
-            <ArrowLeft size={20} />
+      <WorkspaceHeader
+        leading={
+          <button type="button" onClick={() => navigate('/charts')} className="btn btn-ghost btn-sm btn-square" aria-label="Back to charts">
+            <ArrowLeft size={18} />
           </button>
-          <div className="h-6 w-px bg-border" />
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Untitled chart"
-            className="text-lg font-semibold bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary w-64"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate('/charts')}
-            className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving || !datasetId || !name.trim()}
-            className="px-4 py-2 text-sm font-medium bg-accent-primary text-white rounded-lg hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {saving ? <RefreshCw size={16} className="animate-spin" /> : <Check size={16} />}
-            Save
-          </button>
-        </div>
-      </header>
+        }
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => navigate('/charts')}>Cancel</Button>
+            <Button onClick={handleSave} isLoading={saving} disabled={saving || !datasetId || !name.trim()}>
+              {isEditing ? "Update Chart" : "Create Chart"}
+            </Button>
+          </>
+        }
+      >
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Untitled chart"
+          className="bg-transparent border-0 outline-none focus:ring-0 text-base font-semibold text-base-content placeholder:text-base-content/50 w-64 max-w-full"
+        />
+      </WorkspaceHeader>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Data Source */}
         <aside 
-            className={`bg-bg-primary border-r border-border flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+            className={`bg-base-100 border-r border-base-300 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
                 leftPanelOpen ? 'w-64' : 'w-12'
             }`}
         >
            {/* Dataset Selector header */}
-          <div className={`p-4 border-b border-border flex items-center ${leftPanelOpen ? 'justify-between' : 'justify-center px-2'}`}>
+          <div className={`p-4 border-b border-base-300 flex items-center ${leftPanelOpen ? 'justify-between' : 'justify-center px-2'}`}>
             {leftPanelOpen && (
                 <div className="flex items-center gap-2 overflow-hidden">
-                    <Database size={16} className="text-text-tertiary flex-shrink-0" />
-                    <span className="text-xs font-semibold text-text-secondary uppercase tracking-wide whitespace-nowrap truncate">Chart Source</span>
+                    <Database size={16} className="text-base-content/50 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-base-content/70 uppercase tracking-wide whitespace-nowrap truncate">Chart Source</span>
                 </div>
             )}
             
             <button 
                 onClick={() => setLeftPanelOpen(!leftPanelOpen)}
-                className={`p-1 hover:bg-bg-tertiary rounded text-text-tertiary hover:text-text-primary transition-colors ${!leftPanelOpen ? 'w-full flex justify-center' : ''}`}
+                className={`p-1 hover:bg-base-300 rounded text-base-content/50 hover:text-base-content transition-colors ${!leftPanelOpen ? 'w-full flex justify-center' : ''}`}
                 title={leftPanelOpen ? "Collapse" : "Expand"}
             >
                 {leftPanelOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
@@ -535,15 +525,15 @@ export function ChartEditorPage() {
             </div>
 
            {/* Search */}
-           <div className="px-4 py-3 border-b border-border">
+           <div className="px-4 py-3 border-b border-base-300">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
               <input
                 type="text"
                 value={columnSearch}
                 onChange={(e) => setColumnSearch(e.target.value)}
                 placeholder="Search columns..."
-                className="w-full pl-9 pr-3 py-2 text-sm bg-bg-tertiary border border-border rounded-lg focus:outline-none focus:border-accent-primary text-text-primary placeholder:text-text-tertiary"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-base-300 border border-base-300 rounded-lg focus:outline-none focus:border-primary text-base-content placeholder:text-base-content/50"
               />
             </div>
           </div>
@@ -551,13 +541,13 @@ export function ChartEditorPage() {
            {/* Columns List */}
            <div className="flex-1 overflow-y-auto">
              {/* Metrics */}
-             <div className="border-b border-border">
+             <div className="border-b border-base-300">
                <button
                  onClick={() => setMetricsExpanded(!metricsExpanded)}
-                 className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary hover:bg-bg-tertiary transition-colors"
+                 className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-base-content/70 hover:bg-base-300 transition-colors"
                >
                  <div className="flex items-center gap-2">
-                   <Sparkles size={14} className="text-accent-primary" />
+                   <Sparkles size={14} className="text-primary" />
                    <span>Metrics</span>
                  </div>
                  {metricsExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -572,9 +562,9 @@ export function ChartEditorPage() {
                                 setDraggedColumn({ name: col.column_name, isNumeric: true });
                                 e.dataTransfer.setData('text/plain', col.column_name);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-accent-primary/10 rounded-md transition-colors cursor-grab"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-base-content hover:bg-primary/10 rounded-md transition-colors cursor-grab"
                         >
-                            <Hash size={12} className="text-accent-primary" />
+                            <Hash size={12} className="text-primary" />
                             <span className="truncate">{col.column_name}</span>
                         </div>
                     ))}
@@ -585,17 +575,17 @@ export function ChartEditorPage() {
              {/* All Columns */}
              <div>
                 <button
-                 onClick={() => setColumnsExpanded(!columnsExpanded)}
-                 className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary hover:bg-bg-tertiary transition-colors"
-               >
-                 <div className="flex items-center gap-2">
-                   <Database size={14} className="text-text-tertiary" />
-                   <span>Columns</span>
-                 </div>
-                 {columnsExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-               </button>
-               {columnsExpanded && (
-                 <div className="pb-2 px-2 space-y-0.5">
+                  onClick={() => setColumnsExpanded(!columnsExpanded)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-base-content/70 hover:bg-base-300 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Database size={14} className="text-base-content/50" />
+                    <span>Columns</span>
+                  </div>
+                  {columnsExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </button>
+                {columnsExpanded && (
+                  <div className="pb-2 px-2 space-y-0.5">
                     {filteredColumns.map(col => (
                         <div
                             key={col.column_name}
@@ -604,14 +594,14 @@ export function ChartEditorPage() {
                                 setDraggedColumn({ name: col.column_name, isNumeric: false });
                                 e.dataTransfer.setData('text/plain', col.column_name);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-tertiary rounded-md transition-colors cursor-grab"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-base-content hover:bg-base-300 rounded-md transition-colors cursor-grab"
                         >
-                             <Database size={12} className="text-text-tertiary" />
+                             <Database size={12} className="text-base-content/50" />
                             <span className="truncate">{col.column_name}</span>
                         </div>
                     ))}
-                 </div>
-               )}
+                  </div>
+                )}
              </div>
            </div>
            </div>
@@ -619,41 +609,41 @@ export function ChartEditorPage() {
 
         {/* Configuration Panel */}
         <aside 
-          className="bg-bg-primary border-r border-border flex flex-col overflow-hidden relative"
+          className="bg-base-100 border-r border-base-300 flex flex-col overflow-hidden relative"
           style={{ width: configPanelWidth }}
         >
           {/* Drag Handle */}
           <div
-            className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent-primary transition-colors z-10"
+            className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary transition-colors z-10"
             onMouseDown={(e) => {
               e.preventDefault();
               setIsResizingConfig(true);
             }}
           />
           {/* Tabs */}
-          <div className="flex border-b border-border bg-bg-secondary">
+          <div className="flex border-b border-base-300 bg-base-200">
              <button
               onClick={() => setConfigTab('data')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors relative ${configTab === 'data' ? 'text-text-primary bg-bg-primary' : 'text-text-tertiary'}`}
+              className={`flex-1 py-3 text-sm font-medium transition-colors relative ${configTab === 'data' ? 'text-base-content bg-base-100' : 'text-base-content/50'}`}
             >
               Data
-              {configTab === 'data' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary" />}
+              {configTab === 'data' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
             </button>
             <button
               onClick={() => setConfigTab('customize')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors relative ${configTab === 'customize' ? 'text-text-primary bg-bg-primary' : 'text-text-tertiary'}`}
+              className={`flex-1 py-3 text-sm font-medium transition-colors relative ${configTab === 'customize' ? 'text-base-content bg-base-100' : 'text-base-content/50'}`}
             >
               Customize
-              {configTab === 'customize' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary" />}
+              {configTab === 'customize' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
             </button>
             {/* Advanced tab - only for Custom chart type */}
             {chartType === 'custom' && (
               <button
                 onClick={() => setConfigTab('advanced')}
-                className={`flex-1 py-3 text-sm font-medium transition-colors relative ${configTab === 'advanced' ? 'text-text-primary bg-bg-primary' : 'text-text-tertiary'}`}
+                className={`flex-1 py-3 text-sm font-medium transition-colors relative ${configTab === 'advanced' ? 'text-base-content bg-base-100' : 'text-base-content/50'}`}
               >
                 Advanced
-                {configTab === 'advanced' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary" />}
+                {configTab === 'advanced' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
               </button>
             )}
           </div>
@@ -663,7 +653,7 @@ export function ChartEditorPage() {
                 <div className="space-y-6">
                     {/* Chart Type Selection */}
                     <div>
-                        <label className="block text-xs font-medium text-text-secondary mb-2">Chart Type</label>
+                        <label className="block text-xs font-medium text-base-content/70 mb-2">Chart Type</label>
                         <Select
                             value={chartType}
                             onChange={(val: string | null) => {
@@ -680,7 +670,7 @@ export function ChartEditorPage() {
 
                     {/* X-Axis / Category */}
                     <div>
-                         <label className="block text-xs font-medium text-text-secondary mb-2">X-Axis / Category</label>
+                         <label className="block text-xs font-medium text-base-content/70 mb-2">X-Axis / Category</label>
                          <div
                             onDragOver={(e) => { e.preventDefault(); setDragOverXAxis(true); }}
                             onDragLeave={() => setDragOverXAxis(false)}
@@ -693,22 +683,22 @@ export function ChartEditorPage() {
                                     updateConfig({ xColumn: draggedColumn.name });
                                 }
                             }}
-                            className={`border border-dashed rounded-lg p-3 transition-colors ${dragOverXAxis ? 'border-accent-primary bg-accent-primary/10' : 'border-border'}`}
+                            className={`border border-dashed rounded-lg p-3 transition-colors ${dragOverXAxis ? 'border-primary bg-primary/10' : 'border-base-300'}`}
                          >
                              {config.xColumn ? (
-                                 <div className="flex items-center justify-between bg-bg-tertiary px-3 py-2 rounded">
+                                 <div className="flex items-center justify-between bg-base-300 px-3 py-2 rounded">
                                      <span className="text-sm">{config.xColumn}</span>
-                                     <button onClick={() => updateConfig({ xColumn: '' })}><X size={14} className="text-text-tertiary hover:text-error" /></button>
+                                     <button onClick={() => updateConfig({ xColumn: '' })}><X size={14} className="text-base-content/50 hover:text-error" /></button>
                                  </div>
                              ) : (
-                                 <div className="text-xs text-text-tertiary text-center py-2">Drop column here</div>
+                                 <div className="text-xs text-base-content/50 text-center py-2">Drop column here</div>
                              )}
                          </div>
                     </div>
 
                     {/* Metrics / Y-Axis */}
                     <div>
-                         <label className="block text-xs font-medium text-text-secondary mb-2">Metrics / Values</label>
+                         <label className="block text-xs font-medium text-base-content/70 mb-2">Metrics / Values</label>
                          <div
                             onDragOver={(e) => { e.preventDefault(); setDragOverMetrics(true); }}
                             onDragLeave={() => setDragOverMetrics(false)}
@@ -724,116 +714,116 @@ export function ChartEditorPage() {
                                     }
                                 }
                             }}
-                             className={`border border-dashed rounded-lg p-3 transition-colors ${dragOverMetrics ? 'border-accent-primary bg-accent-primary/10' : 'border-border'}`}
+                             className={`border border-dashed rounded-lg p-3 transition-colors ${dragOverMetrics ? 'border-primary bg-primary/10' : 'border-base-300'}`}
                          >
                              <div className="space-y-2">
                                  {(config.yColumns || []).map((col, idx) => (
-                                     <div key={col} className="flex items-center justify-between bg-bg-tertiary px-3 py-2 rounded">
+                                     <div key={col} className="flex items-center justify-between bg-base-300 px-3 py-2 rounded">
                                          <span className="text-sm">{col}</span>
                                          <button onClick={() => {
                                              const newCols = [...(config.yColumns || [])];
                                              newCols.splice(idx, 1);
                                              updateConfig({ yColumns: newCols });
-                                         }}><X size={14} className="text-text-tertiary hover:text-error" /></button>
+                                         }}><X size={14} className="text-base-content/50 hover:text-error" /></button>
                                      </div>
                                  ))}
-                                 <div className="text-xs text-text-tertiary text-center py-2">Drop metrics here</div>
+                                 <div className="text-xs text-base-content/50 text-center py-2">Drop metrics here</div>
                              </div>
                          </div>
                     </div>
                 </div>
              ) : configTab === 'customize' ? (
-                 /* CUSTOMIZE TAB */
-                 <div className="space-y-8 pb-10">
-                    <GeneralSettings config={config} onChange={updateConfig} />
-                    <div className="h-px bg-border/50" />
-                    <AxisSettings config={config} onChange={updateConfig} />
-                    <div className="h-px bg-border/50" />
-                    <LegendSettings config={config} onChange={updateConfig} />
-                    <div className="h-px bg-border/50" />
-                    <VisualSettings config={config} onChange={updateConfig} />
-                    <div className="h-px bg-border/50" />
-                    <SeriesSettings config={config} onChange={updateConfig} />
-                 </div>
+                  /* CUSTOMIZE TAB */
+                  <div className="space-y-8 pb-10">
+                     <GeneralSettings config={config} onChange={updateConfig} />
+                     <div className="h-px bg-base-300/50" />
+                     <AxisSettings config={config} onChange={updateConfig} />
+                     <div className="h-px bg-base-300/50" />
+                     <LegendSettings config={config} onChange={updateConfig} />
+                     <div className="h-px bg-base-300/50" />
+                     <VisualSettings config={config} onChange={updateConfig} />
+                     <div className="h-px bg-base-300/50" />
+                     <SeriesSettings config={config} onChange={updateConfig} />
+                  </div>
              ) : (
-                 /* ADVANCED TAB */
-                 <div className="flex flex-col h-full space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                        <Code size={16} className="text-accent-primary" />
-                        Advanced Configuration
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setIsFullscreenEditor(true)}
-                          className="p-1.5 hover:bg-bg-tertiary rounded text-text-tertiary hover:text-text-primary transition-colors"
-                          title="Expand editor"
-                        >
-                          <Maximize2 size={16} />
-                        </button>
-                        <button
-                          onClick={handleCopyConfig}
-                          className="px-3 py-1.5 bg-bg-tertiary hover:bg-bg-secondary border border-border rounded text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1.5"
-                          title="Copy to clipboard"
-                        >
-                          <Copy size={14} />
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1 flex flex-col min-h-0">
-                      <Editor
-                        height="100%"
-                        language="javascript"
-                        value={rawConfigText}
-                        onChange={(value) => setRawConfigText(value || '')}
-                        theme="vs-dark"
-                        options={{
-                          minimap: { enabled: false },
-                          fontSize: 12,
-                          lineNumbers: 'on',
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true,
-                          tabSize: 2,
-                          wordWrap: 'on',
-                        }}
-                      />
-                    </div>
+                  /* ADVANCED TAB */
+                  <div className="flex flex-col h-full space-y-4">
+                     <div className="flex items-center justify-between">
+                       <h3 className="text-sm font-semibold text-base-content flex items-center gap-2">
+                         <Code size={16} className="text-primary" />
+                         Advanced Configuration
+                       </h3>
+                       <div className="flex items-center gap-2">
+                         <button
+                           onClick={() => setIsFullscreenEditor(true)}
+                           className="p-1.5 hover:bg-base-300 rounded text-base-content/50 hover:text-base-content transition-colors"
+                           title="Expand editor"
+                         >
+                           <Maximize2 size={16} />
+                         </button>
+                         <button
+                           onClick={handleCopyConfig}
+                           className="px-3 py-1.5 bg-base-300 hover:bg-base-200 border border-base-300 rounded text-xs font-medium text-base-content/70 hover:text-base-content transition-colors flex items-center gap-1.5"
+                           title="Copy to clipboard"
+                         >
+                           <Copy size={14} />
+                           Copy
+                         </button>
+                       </div>
+                     </div>
+                     
+                     <div className="flex-1 flex flex-col min-h-0">
+                       <Editor
+                         height="100%"
+                         language="javascript"
+                         value={rawConfigText}
+                         onChange={(value) => setRawConfigText(value || '')}
+                         theme="vs-dark"
+                         options={{
+                           minimap: { enabled: false },
+                           fontSize: 12,
+                           lineNumbers: 'on',
+                           scrollBeyondLastLine: false,
+                           automaticLayout: true,
+                           tabSize: 2,
+                           wordWrap: 'on',
+                         }}
+                       />
+                     </div>
 
-                    <button
-                      onClick={handleApplyRawConfig}
-                      className="w-full px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-primary/90 transition-colors text-sm font-medium flex items-center justify-center gap-2"
-                    >
-                      <Check size={16} />
-                      Apply Configuration
-                    </button>
+                     <button
+                       onClick={handleApplyRawConfig}
+                       className="w-full px-4 py-2 bg-primary text-primary-content rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                     >
+                       <Check size={16} />
+                       Apply Configuration
+                     </button>
 
-                    <div className="p-3 bg-bg-tertiary/50 border border-border/50 rounded-lg">
-                      <p className="text-xs text-text-tertiary">
-                        Paste ECharts examples directly using <code className="text-accent-primary">option = {'{'} ... {'}'}</code> format.
-                        <a href="https://echarts.apache.org/examples/en/" target="_blank" rel="noopener noreferrer" className="text-accent-primary hover:underline ml-1">View examples</a>
-                      </p>
-                    </div>
-                 </div>
+                     <div className="p-3 bg-base-300/50 border border-base-300/50 rounded-lg">
+                       <p className="text-xs text-base-content/50">
+                         Paste ECharts examples directly using <code className="text-primary">option = {'{'} ... {'}'}</code> format.
+                         <a href="https://echarts.apache.org/examples/en/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">View examples</a>
+                       </p>
+                     </div>
+                  </div>
              )}
           </div>
         </aside>
 
         {/* Preview Area */}
-        <main className="flex-1 bg-bg-secondary p-6 overflow-hidden flex flex-col">
-            <div className="flex-1 bg-bg-primary rounded-xl border border-border shadow-sm flex flex-col overflow-hidden">
-                <div className="p-4 border-b border-border flex justify-between items-center">
-                    <h2 className="text-sm font-semibold text-text-secondary">Preview</h2>
+        <main className="flex-1 bg-base-200 p-6 overflow-hidden flex flex-col">
+            <div className="flex-1 bg-base-100 rounded-xl border border-base-300 shadow-sm flex flex-col overflow-hidden">
+                <div className="p-4 border-b border-base-300 flex justify-between items-center">
+                    <h2 className="text-sm font-semibold text-base-content/70">Preview</h2>
                     <button 
                         onClick={handleUpdatePreview} 
-                        className="p-1.5 hover:bg-bg-tertiary rounded text-text-tertiary hover:text-text-primary"
+                        className="p-1.5 hover:bg-base-300 rounded text-base-content/50 hover:text-base-content"
                         title="Refresh Data"
                     >
                         <RefreshCw size={14} />
                     </button>
                 </div>
-                <div className="flex-1 relative p-4 bg-bg-primary/50">
+                <div className="flex-1 relative p-4 bg-base-100/50">
                     {previewLoading ? (
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="spinner" />
@@ -863,17 +853,17 @@ export function ChartEditorPage() {
 
       {/* Fullscreen Editor Modal */}
       {isFullscreenEditor && (
-        <div className="fixed inset-0 z-50 bg-bg-primary flex flex-col">
+        <div className="fixed inset-0 z-50 bg-base-100 flex flex-col">
           {/* Modal Header */}
-          <div className="flex-shrink-0 h-14 border-b border-border bg-bg-secondary flex items-center justify-between px-4">
-            <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-              <Code size={20} className="text-accent-primary" />
+          <div className="flex-shrink-0 h-14 border-b border-base-300 bg-base-200 flex items-center justify-between px-4">
+            <h2 className="text-lg font-semibold text-base-content flex items-center gap-2">
+              <Code size={20} className="text-primary" />
               Advanced Configuration Editor
             </h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyConfig}
-                className="px-3 py-1.5 bg-bg-tertiary hover:bg-bg-primary border border-border rounded text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-base-300 hover:bg-base-100 border border-base-300 rounded text-xs font-medium text-base-content/70 hover:text-base-content transition-colors flex items-center gap-1.5"
                 title="Copy to clipboard"
               >
                 <Copy size={14} />
@@ -881,14 +871,14 @@ export function ChartEditorPage() {
               </button>
               <button
                 onClick={handleApplyRawConfig}
-                className="px-4 py-1.5 bg-accent-primary text-white rounded hover:bg-accent-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
+                className="px-4 py-1.5 bg-primary text-primary-content rounded hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
               >
                 <Check size={16} />
                 Apply
               </button>
               <button
                 onClick={() => setIsFullscreenEditor(false)}
-                className="p-1.5 hover:bg-bg-tertiary rounded text-text-tertiary hover:text-text-primary transition-colors"
+                className="p-1.5 hover:bg-base-300 rounded text-base-content/50 hover:text-base-content transition-colors"
                 title="Close fullscreen"
               >
                 <Minimize2 size={18} />
@@ -917,10 +907,10 @@ export function ChartEditorPage() {
           </div>
 
           {/* Footer Help */}
-          <div className="flex-shrink-0 border-t border-border bg-bg-secondary px-6 py-3">
-            <p className="text-xs text-text-tertiary">
-              Paste ECharts examples directly using <code className="text-accent-primary">option = {'{'} ... {'}'}</code> format.
-              <a href="https://echarts.apache.org/examples/en/" target="_blank" rel="noopener noreferrer" className="text-accent-primary hover:underline ml-1">View examples</a>
+          <div className="flex-shrink-0 border-t border-base-300 bg-base-200 px-6 py-3">
+            <p className="text-xs text-base-content/50">
+              Paste ECharts examples directly using <code className="text-primary">option = {'{'} ... {'}'}</code> format.
+              <a href="https://echarts.apache.org/examples/en/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">View examples</a>
             </p>
           </div>
         </div>
