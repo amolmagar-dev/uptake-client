@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import { aiApi, type ChatMessage, type AIContext } from "../lib/api";
 import { ContextSelector, type SelectedContext } from "../components/ai/ContextSelector";
 import { WidgetRenderer } from "../components/widgets/WidgetRegistry";
+import { WorkspaceHeader } from "../shared/components";
 import type { BaseWidget, WidgetAction } from "../shared/types/widgets";
 
 interface EnhancedChatMessage extends ChatMessage {
@@ -309,30 +310,26 @@ export const AIWorkspacePage: React.FC = () => {
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-base-200/30 overflow-hidden">
-      {/* Page Header */}
-      <div className="flex items-center justify-between gap-4 shrink-0 px-4 py-3 bg-base-100 border-b border-base-300">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-sm border border-primary/20">
-            <Sparkles size={20} />
+    <div className="h-full flex flex-col bg-base-100 overflow-hidden min-h-0">
+      <WorkspaceHeader
+        title="Data Analysis Session"
+        description="Conversational AI Data Assistant"
+        leading={
+          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+            <Sparkles size={18} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black tracking-tight text-base-content">Data Analysis Session</h1>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
+        }
+        actions={
           <button
-            className="btn btn-ghost btn-sm gap-2 text-base-content/40 hover:text-error transition-all hover:bg-error/10"
+            className="btn btn-ghost btn-sm gap-2 text-base-content/60 hover:text-error transition-all hover:bg-error/10"
             onClick={clearChat}
             aria-label="Clear chat session"
           >
             <Trash2 size={16} />
+            Clear Chat
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Three-column layout */}
       <div className="flex-1 flex gap-0 overflow-hidden">

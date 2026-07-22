@@ -4,8 +4,12 @@ import { ArrowLeft, Save, Layers } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Button } from "../shared/components/ui/Button";
 import { Input, Select } from "../shared/components/ui/Input";
+import { WorkspaceHeader } from "../shared/components";
 import { customComponentsApi, datasetsApi, type Dataset } from "../lib/api";
 import { useAppStore } from "../store/appStore";
+import { useThemeStore } from "../store/themeStore";
+
+const LIGHT_THEMES = ['light', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'retro', 'cyberpunk', 'valentine', 'garden', 'lofi', 'pastel', 'fantasy', 'wireframe', 'cmyk', 'autumn', 'acid', 'lemonade', 'winter'];
 
 // Sandboxed Component Renderer
 interface CustomComponentRendererProps {
@@ -82,7 +86,7 @@ const CustomComponentRenderer: React.FC<CustomComponentRendererProps> = ({
         width: "100%",
         height: typeof height === "number" ? `${height}px` : height,
         border: "none",
-        background: "var(--color-bg-secondary)",
+        background: "var(--color-base-200, #1d232a)",
       }}
       title="Component Preview"
     />
@@ -93,6 +97,8 @@ export const ComponentEditorPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { addToast } = useAppStore();
+  const currentThemeId = useThemeStore((s) => s.currentThemeId);
+  const monacoTheme = LIGHT_THEMES.includes(currentThemeId) ? 'vs' : 'vs-dark';
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"html" | "css" | "js">("html");
@@ -232,36 +238,30 @@ export const ComponentEditorPage: React.FC = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-7rem)] flex flex-col">
-      {/* Page Header */}
-      <div className="shrink-0 sticky top-0 bg-bg-primary z-10 pb-4 -mx-6 px-6">
-        <div className="flex items-center justify-between py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/components")}
-              leftIcon={<ArrowLeft size={18} />}
-            >
-              Back
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">
-                {isEditing ? "Edit Component" : "Create Custom Component"}
-              </h1>
-              <p className="text-text-secondary mt-1">Build with HTML, CSS & JavaScript</p>
-            </div>
-          </div>
+    <div className="h-full flex flex-col bg-base-100 min-h-0">
+      <WorkspaceHeader
+        title={isEditing ? "Edit Component" : "Create Custom Component"}
+        description="Build with HTML, CSS & JavaScript"
+        leading={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/components")}
+            leftIcon={<ArrowLeft size={18} />}
+          >
+            Back
+          </Button>
+        }
+        actions={
           <Button onClick={handleSubmit} isLoading={isSaving} leftIcon={<Save size={16} />}>
             {isEditing ? "Update" : "Create"} Component
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Main Content */}
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 p-4 space-y-4">
         {/* Component Name and Description */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Component Name"
             placeholder="My Custom Widget"
@@ -280,9 +280,9 @@ export const ComponentEditorPage: React.FC = () => {
         {/* Main Editor Area */}
         <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
           {/* Code Editor Panel */}
-          <div className="flex flex-col border border-border rounded-lg overflow-hidden">
+          <div className="flex flex-col border border-base-300 rounded-lg overflow-hidden bg-base-200/50">
             {/* Tabs */}
-            <div className="flex bg-bg-tertiary border-b border-border">
+            <div className="flex bg-base-200 border-b border-base-300">
               {(["html", "css", "js"] as const).map((tab) => (
                 <button
                   key={tab}
@@ -290,8 +290,8 @@ export const ComponentEditorPage: React.FC = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
                     activeTab === tab
-                      ? "bg-border text-accent-primary border-b-2 border-accent-primary"
-                      : "text-text-muted hover:text-text-primary hover:bg-bg-elevated"
+                      ? "bg-base-300 text-primary border-b-2 border-primary font-bold"
+                      : "text-base-content/60 hover:text-base-content hover:bg-base-300/50"
                   }`}
                 >
                   {tab.toUpperCase()}
@@ -316,23 +316,23 @@ export const ComponentEditorPage: React.FC = () => {
                     activeTab === "html" ? "html_content" : activeTab === "css" ? "css_content" : "js_content";
                   setFormData((prev) => ({ ...prev, [key]: value || "" }));
                 }}
-                theme="vs-dark"
+                theme={monacoTheme}
                 options={editorOptions}
               />
             </div>
           </div>
 
           {/* Preview Panel */}
-          <div className="flex flex-col border border-border rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 bg-bg-tertiary border-b border-border">
-              <span className="text-sm font-medium text-text-muted">Live Preview</span>
+          <div className="flex flex-col border border-base-300 rounded-lg overflow-hidden bg-base-200/50">
+            <div className="flex items-center justify-between px-4 py-2 bg-base-200 border-b border-base-300">
+              <span className="text-sm font-medium text-base-content/60">Live Preview</span>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
                 <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
               </div>
             </div>
-            <div className="flex-1 bg-bg-secondary">
+            <div className="flex-1 bg-base-200">
               <CustomComponentRenderer
                 htmlContent={formData.html_content}
                 cssContent={formData.css_content}
@@ -345,9 +345,9 @@ export const ComponentEditorPage: React.FC = () => {
         </div>
 
         {/* Data Source Section */}
-        <div className="mt-4 p-4 rounded-lg bg-bg-tertiary border border-border">
-          <h4 className="text-sm font-medium text-text-primary mb-3 flex items-center gap-2">
-            <Layers size={16} />
+        <div className="p-4 rounded-lg bg-base-200 border border-base-300">
+          <h4 className="text-sm font-medium text-base-content mb-3 flex items-center gap-2">
+            <Layers size={16} className="text-primary" />
             Data Source (Optional)
           </h4>
           <div className="grid grid-cols-3 gap-4">
@@ -367,10 +367,10 @@ export const ComponentEditorPage: React.FC = () => {
 
             <div className="col-span-2">
               {selectedDataset ? (
-                <div className="p-3 rounded-lg bg-bg-secondary border border-border h-full flex items-center">
+                <div className="p-3 rounded-lg bg-base-100 border border-base-300 h-full flex items-center">
                   <div className="text-sm">
-                    <p className="text-text-primary font-medium">{selectedDataset.name}</p>
-                    <p className="text-text-muted text-xs mt-1">
+                    <p className="text-base-content font-medium">{selectedDataset.name}</p>
+                    <p className="text-base-content/60 text-xs mt-1">
                       {selectedDataset.dataset_type === "physical"
                         ? `${selectedDataset.table_schema}.${selectedDataset.table_name}`
                         : "Virtual dataset (SQL query)"}
@@ -380,19 +380,19 @@ export const ComponentEditorPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-lg bg-bg-secondary border border-border h-full flex items-center">
-                  <p className="text-sm text-text-muted">
+                <div className="p-3 rounded-lg bg-base-100 border border-base-300 h-full flex items-center">
+                  <p className="text-sm text-base-content/60">
                     Select a dataset to provide data to your component via{" "}
-                    <code className="text-accent-primary">window.componentData</code>
+                    <code className="text-primary font-mono">window.componentData</code>
                   </p>
                 </div>
               )}
             </div>
           </div>
           {datasets.length === 0 && (
-            <p className="mt-3 text-sm text-accent-warning">
+            <p className="mt-3 text-sm text-warning">
               No datasets available.{" "}
-              <a href="/datasets" className="underline">
+              <a href="/datasets" className="underline font-medium">
                 Create a dataset
               </a>{" "}
               to use data in your component.
@@ -403,3 +403,4 @@ export const ComponentEditorPage: React.FC = () => {
     </div>
   );
 };
+
