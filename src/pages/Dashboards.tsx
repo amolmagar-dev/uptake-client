@@ -8,10 +8,7 @@ import {
   Search,
   Star,
   Copy,
-  RefreshCw,
   MoreHorizontal,
-  Timer,
-  Check,
   ArrowLeft,
   BarChart3,
   LineChart,
@@ -478,141 +475,7 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose, dashbo
   );
 };
 
-// More Options Dropdown Component for Dashboard View
-interface MoreOptionsDropdownProps {
-  onRefresh: () => void;
-  isRefreshing: boolean;
-  lastRefresh: Date | null;
-  autoRefresh: boolean;
-  setAutoRefresh: (value: boolean) => void;
-  refreshInterval: number;
-  setRefreshInterval: (value: number) => void;
-}
 
-const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
-  onRefresh,
-  isRefreshing,
-  lastRefresh,
-  autoRefresh,
-  setAutoRefresh,
-  refreshInterval,
-  setRefreshInterval,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showIntervalMenu, setShowIntervalMenu] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setShowIntervalMenu(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const intervalOptions = [
-    { value: 0, label: "Off" },
-    { value: 10, label: "10 seconds" },
-    { value: 30, label: "30 seconds" },
-    { value: 60, label: "1 minute" },
-    { value: 300, label: "5 minutes" },
-  ];
-
-  const handleIntervalSelect = (value: number) => {
-    if (value === 0) {
-      setAutoRefresh(false);
-    } else {
-      setAutoRefresh(true);
-      setRefreshInterval(value);
-    }
-    setShowIntervalMenu(false);
-    setIsOpen(false);
-  };
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Last refresh indicator */}
-      {lastRefresh && <span className="text-xs text-base-content/50 mr-2">Updated {lastRefresh.toLocaleTimeString()}</span>}
-
-      {/* More Options Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg bg-base-300 border border-base-300 text-base-content/50 hover:text-base-content hover:border-primary transition-colors"
-        title="More options"
-      >
-        <MoreHorizontal size={20} />
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-56 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
-          {/* Refresh Dashboard */}
-          <button
-            onClick={() => {
-              onRefresh();
-              setIsOpen(false);
-            }}
-            disabled={isRefreshing}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left text-base-content hover:bg-base-300 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={16} className={isRefreshing ? "animate-spin text-primary" : ""} />
-            <span>Refresh dashboard</span>
-          </button>
-
-          {/* Auto-refresh Interval (with submenu) */}
-          <div className="relative">
-            <button
-              onClick={() => setShowIntervalMenu(!showIntervalMenu)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left text-base-content hover:bg-base-300 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Timer size={16} />
-                <span>Set auto-refresh interval</span>
-              </div>
-              <span className="text-xs text-base-content/50">
-                {autoRefresh ? intervalOptions.find((o) => o.value === refreshInterval)?.label : "Off"}
-              </span>
-            </button>
-
-            {/* Submenu */}
-            {showIntervalMenu && (
-              <div className="absolute left-full top-0 ml-1 w-40 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
-                {intervalOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleIntervalSelect(option.value)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-base-content hover:bg-base-300 transition-colors"
-                  >
-                    <span className="text-sm">{option.label}</span>
-                    {((option.value === 0 && !autoRefresh) || (autoRefresh && option.value === refreshInterval)) && (
-                      <Check size={14} className="text-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-base-300" />
-
-          {/* Auto-refresh status indicator */}
-          {autoRefresh && (
-            <div className="px-4 py-2 text-xs text-base-content/50 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Auto-refreshing every {intervalOptions.find((o) => o.value === refreshInterval)?.label}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const getChartIcon = (type?: string) => {
   switch (type?.toLowerCase()) {
@@ -654,11 +517,7 @@ export const DashboardViewPage: React.FC = () => {
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilter[]>([]);
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
-  // Auto-refresh state
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState(30); // seconds
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
 
   // Filter items in drawer based on search
   const filteredCharts = useMemo(() => {
@@ -860,42 +719,7 @@ export const DashboardViewPage: React.FC = () => {
     };
   }, [isEditMode, filtersOpen]);
 
-  // Auto-refresh effect (passes resolved filters)
-  useEffect(() => {
-    if (!autoRefresh || !id) return;
 
-    const refreshData = async () => {
-      setIsRefreshing(true);
-      try {
-        const dataRes = await dashboardsApi.getData(id, getResolvedFilters(filterValues));
-        setChartData(dataRes.data.chartData);
-        setLastRefresh(new Date());
-      } catch (error) {
-        console.error("Auto-refresh failed:", error);
-      } finally {
-        setIsRefreshing(false);
-      }
-    };
-
-    const intervalId = setInterval(refreshData, refreshInterval * 1000);
-    return () => clearInterval(intervalId);
-  }, [autoRefresh, refreshInterval, id, filterValues, getResolvedFilters]);
-
-  // Manual refresh function (passes resolved filters)
-  const handleManualRefresh = async () => {
-    if (!id || isRefreshing) return;
-    setIsRefreshing(true);
-    try {
-      const dataRes = await dashboardsApi.getData(id, getResolvedFilters(filterValues));
-      setChartData(dataRes.data.chartData);
-      setLastRefresh(new Date());
-      addToast("success", "Dashboard refreshed");
-    } catch (error) {
-      addToast("error", "Failed to refresh dashboard");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   const handleLayoutChange = useCallback(
     (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
@@ -1142,17 +966,6 @@ export const DashboardViewPage: React.FC = () => {
           actions={
             <>
               {isUpdating && <span className="text-xs text-primary animate-pulse mr-2">Saving layout...</span>}
-              {!isEditMode && (
-                <MoreOptionsDropdown
-                  onRefresh={handleManualRefresh}
-                  isRefreshing={isRefreshing}
-                  lastRefresh={lastRefresh}
-                  autoRefresh={autoRefresh}
-                  setAutoRefresh={setAutoRefresh}
-                  refreshInterval={refreshInterval}
-                  setRefreshInterval={setRefreshInterval}
-                />
-              )}
               {isEditMode ? (
                 <Button variant="ghost" onClick={() => navigate(`/dashboard/${id}`)}>
                   Exit Edit
