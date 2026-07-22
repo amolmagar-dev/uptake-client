@@ -5,6 +5,7 @@ import { useAuthStore } from "../store/authStore";
 import { useAppStore } from "../store/appStore";
 import { authApi } from "../lib/api";
 import { ThemeSettings } from "./Settings/ThemeSettings";
+import { PageContainer, PageHeader } from "../shared/components";
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -17,49 +18,47 @@ export const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 lg:p-10 space-y-8">
-      {/* Page Header */}
-      <div className="shrink-0">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-base-content/60 mt-1 text-sm">Manage your account and preferences</p>
-      </div>
+    <PageContainer>
+      <div className="space-y-6">
+        <PageHeader title="Settings" description="Manage your account and preferences" />
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Sidebar */}
-        <div className="w-full lg:w-64 shrink-0">
-          <div className="card bg-base-100 border border-base-300 shadow-sm">
-            <div className="card-body p-2">
-              <ul className="menu menu-md w-full gap-1">
-                {tabs.map((tab) => (
-                  <li key={tab.id}>
-                    <button
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`
-                        flex items-center gap-3 px-4 py-3 rounded-xl
-                        ${activeTab === tab.id ? "active bg-primary text-primary-content" : "hover:bg-base-200"}
-                      `}
-                    >
-                      <tab.icon size={18} />
-                      <span className="font-medium">{tab.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar */}
+          <div className="w-full lg:w-64 shrink-0">
+            <div className="card bg-base-100 border border-base-300 shadow-sm">
+              <div className="card-body p-2">
+                <ul className="menu menu-md w-full gap-1">
+                  {tabs.map((tab) => (
+                    <li key={tab.id}>
+                      <button
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`
+                          flex items-center gap-3 px-4 py-3 rounded-xl
+                          ${activeTab === tab.id ? "active bg-primary text-primary-content" : "hover:bg-base-200"}
+                        `}
+                      >
+                        <tab.icon size={18} />
+                        <span className="font-medium">{tab.label}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {activeTab === "profile" && <ProfileSettings />}
+              {activeTab === "security" && <SecuritySettings />}
+              {activeTab === "api" && <APISettings />}
+              {activeTab === "appearance" && <AppearanceSettings />}
             </div>
           </div>
         </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-            {activeTab === "profile" && <ProfileSettings />}
-            {activeTab === "security" && <SecuritySettings />}
-            {activeTab === "api" && <APISettings />}
-            {activeTab === "appearance" && <AppearanceSettings />}
-          </div>
-        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 
