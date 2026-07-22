@@ -9,9 +9,18 @@ interface ModalProps {
   children: React.ReactNode;
   size?: "sm" | "md" | "lg" | "xl" | "full";
   showClose?: boolean;
+  bodyClassName?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = "md", showClose = true }) => {
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = "md",
+  showClose = true,
+  bodyClassName,
+}) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -83,7 +92,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         )}
 
         {/* Content */}
-        <div className={`p-5 overflow-y-auto flex-1 ${isFullscreen ? "h-full" : ""}`}>{children}</div>
+        <div className={bodyClassName ?? `p-5 overflow-y-auto flex-1 ${isFullscreen ? "h-full" : ""}`}>{children}</div>
       </div>
 
       {/* Backdrop */}
