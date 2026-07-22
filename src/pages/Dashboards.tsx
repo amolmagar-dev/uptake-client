@@ -13,6 +13,11 @@ import {
   Timer,
   Check,
   ArrowLeft,
+  BarChart3,
+  LineChart,
+  AreaChart,
+  PieChart,
+  Code2,
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
@@ -609,6 +614,20 @@ const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
   );
 };
 
+const getChartIcon = (type?: string) => {
+  switch (type?.toLowerCase()) {
+    case "line":
+      return <LineChart size={18} />;
+    case "area":
+      return <AreaChart size={18} />;
+    case "pie":
+      return <PieChart size={18} />;
+    case "bar":
+    default:
+      return <BarChart3 size={18} />;
+  }
+};
+
 // Dashboard View Page
 export const DashboardViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -1181,84 +1200,105 @@ export const DashboardViewPage: React.FC = () => {
       {isEditMode && (
         <div className="w-80 shrink-0 border-l border-base-300 bg-base-100 flex flex-col overflow-hidden">
           {/* Tabs Header */}
-          <div className="tabs tabs-boxed rounded-none bg-base-300/50 p-1">
-            <button
-              onClick={() => setDrawerTab("charts")}
-              className={`tab flex-1 transition-all ${
-                drawerTab === "charts" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
-              }`}
-            >
-              Charts
-            </button>
-            <button
-              onClick={() => setDrawerTab("components")}
-              className={`tab flex-1 transition-all ${
-                drawerTab === "components" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
-              }`}
-            >
-              Components
-            </button>
-          </div>
-
-          <div className="flex-1 flex flex-col min-h-0 bg-base-100">
-            {/* Create New Link */}
-            <div className="p-4 border-b border-base-200">
+          <div className="h-14 px-4 flex items-center border-b border-base-300 shrink-0">
+            <div className="flex items-center gap-1 rounded-lg bg-base-200 p-1 w-full">
               <button
-                onClick={() => navigate(drawerTab === "charts" ? "/charts" : "/components")}
-                className="btn btn-outline btn-primary btn-sm btn-block gap-2"
+                type="button"
+                onClick={() => setDrawerTab("charts")}
+                className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  drawerTab === "charts"
+                    ? "bg-primary text-primary-content"
+                    : "text-base-content/70 hover:text-base-content"
+                }`}
               >
-                <Plus size={16} />
-                New {drawerTab === "charts" ? "Chart" : "Component"}
+                Charts
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrawerTab("components")}
+                className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  drawerTab === "components"
+                    ? "bg-primary text-primary-content"
+                    : "text-base-content/70 hover:text-base-content"
+                }`}
+              >
+                Components
               </button>
             </div>
+          </div>
+
+          <div className="flex-1 flex flex-col min-h-0 bg-base-100 p-4 space-y-3">
+            {/* Create New Link */}
+            <button
+              type="button"
+              onClick={() => navigate(drawerTab === "charts" ? "/charts" : "/components")}
+              className="btn btn-outline btn-primary btn-sm btn-block gap-2"
+            >
+              <Plus size={16} />
+              New {drawerTab === "charts" ? "Chart" : "Component"}
+            </button>
 
             {/* Search */}
-            <div className="p-4 bg-base-200/50">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
-                <input
-                  type="text"
-                  placeholder={`Search ${drawerTab}...`}
-                  value={drawerSearch}
-                  onChange={(e) => setDrawerSearch(e.target.value)}
-                  className="input input-bordered input-sm w-full pl-9"
-                />
-              </div>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
+              <input
+                type="text"
+                placeholder={`Search ${drawerTab}...`}
+                value={drawerSearch}
+                onChange={(e) => setDrawerSearch(e.target.value)}
+                className="input input-bordered input-sm w-full pl-9 bg-base-100 text-base-content"
+              />
             </div>
 
             {/* Items List */}
-            <div className="flex-1 overflow-y-auto">
-              <ul className="menu menu-md p-2">
-                {drawerTab === "charts" ? (
-                  filteredCharts.length === 0 ? (
-                    <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
-                  ) : (
-                    filteredCharts.map((chart) => (
-                      <li key={chart.id}>
-                        <button
-                          onClick={() => handleAddChart(chart.id)}
-                          className="flex flex-col items-start gap-0.5"
-                        >
-                          <span className="font-medium">{chart.name}</span>
-                          <span className="text-[10px] opacity-50 uppercase tracking-tight">
-                            {chart.chart_type}
-                          </span>
-                        </button>
-                      </li>
-                    ))
-                  )
-                ) : filteredComponents.length === 0 ? (
-                  <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
+            <div className="flex-1 overflow-y-auto space-y-2">
+              {drawerTab === "charts" ? (
+                filteredCharts.length === 0 ? (
+                  <div className="text-base-content/50 text-sm text-center py-8">No charts found</div>
                 ) : (
-                  filteredComponents.map((comp) => (
-                    <li key={comp.id}>
-                      <button onClick={() => handleAddComponent(comp.id)}>
-                        <span className="font-medium">{comp.name}</span>
-                      </button>
-                    </li>
+                  filteredCharts.map((chart) => (
+                    <button
+                      key={chart.id}
+                      type="button"
+                      onClick={() => handleAddChart(chart.id)}
+                      className="w-full flex items-center gap-3 rounded-lg border border-base-300 bg-base-200 p-3 text-left hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        {getChartIcon(chart.chart_type)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-base-content truncate">{chart.name}</div>
+                        <div className="text-xs text-base-content/50 uppercase tracking-wide truncate">
+                          {chart.chart_type}
+                        </div>
+                      </div>
+                      <Plus size={16} className="text-base-content/40 shrink-0" />
+                    </button>
                   ))
-                )}
-              </ul>
+                )
+              ) : filteredComponents.length === 0 ? (
+                <div className="text-base-content/50 text-sm text-center py-8">No components found</div>
+              ) : (
+                filteredComponents.map((comp) => (
+                  <button
+                    key={comp.id}
+                    type="button"
+                    onClick={() => handleAddComponent(comp.id)}
+                    className="w-full flex items-center gap-3 rounded-lg border border-base-300 bg-base-200 p-3 text-left hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Code2 size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-base-content truncate">{comp.name}</div>
+                      <div className="text-xs text-base-content/50 uppercase tracking-wide truncate">
+                        Custom Component
+                      </div>
+                    </div>
+                    <Plus size={16} className="text-base-content/40 shrink-0" />
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>

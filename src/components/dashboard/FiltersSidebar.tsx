@@ -81,7 +81,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   if (!isOpen) {
     // Collapsed state - show just the toggle button
     return (
-      <div className="w-10 shrink-0 h-full flex flex-col items-center py-4 overflow-hidden bg-base-200 border-r border-base-300">
+      <div className="w-10 shrink-0 h-full flex flex-col items-center py-4 overflow-hidden bg-base-100 border-r border-base-300">
         <button
           onClick={onToggle}
           className="p-2 rounded-lg text-base-content/50 hover:text-primary hover:bg-base-300 transition-colors"
@@ -101,9 +101,9 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
   // Expanded state
   return (
-    <div className="w-72 shrink-0 h-full flex flex-col overflow-hidden bg-base-200 border-r border-base-300">
+    <div className="w-72 shrink-0 h-full flex flex-col overflow-hidden bg-base-100 border-r border-base-300">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-base-300 min-h-[57px]">
+      <div className="h-14 px-4 flex items-center justify-between border-b border-base-300 shrink-0">
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-primary" />
           <span className="text-sm font-medium text-base-content">Filters</span>
@@ -127,10 +127,10 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
       </div>
 
       {/* Add Filter Link */}
-      <div className="px-4 py-3 border-b border-base-300">
+      <div className="p-4 border-b border-base-300 bg-base-100">
         <button
           onClick={onAddFilter}
-          className="flex items-center gap-2 text-sm text-primary hover:text-info transition-colors"
+          className="w-full flex items-center justify-center gap-2 rounded-lg border border-base-300 p-3 bg-base-100 text-sm font-medium text-primary hover:border-primary hover:bg-base-200/20 transition-all cursor-pointer"
         >
           <Plus size={16} />
           Add or edit filters
@@ -138,9 +138,9 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
       </div>
 
       {/* Filters List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {filters.length === 0 ? (
-          <div className="px-4 py-8 text-center">
+          <div className="py-8 text-center">
             <Filter size={32} className="mx-auto mb-3 text-base-content/40" />
             <p className="text-sm text-base-content/50">No global filters are currently added</p>
             <p className="text-xs text-base-content/45 mt-2">
@@ -148,31 +148,30 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
             </p>
           </div>
         ) : (
-          <div className="p-3 space-y-3">
-            {filters.map((filter) => (
-              <div
-                key={filter.id}
-                className="bg-base-300 rounded-lg border border-base-300 p-3"
-              >
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-sm font-semibold text-base-content">{filter.name}</span>
-                  <div className="flex items-center gap-0.5">
-                    <button
-                      onClick={() => onEditFilter(filter)}
-                      className="w-7 h-7 flex items-center justify-center rounded text-base-content/50 hover:text-primary hover:bg-base-100/50 transition-colors"
-                      title="Edit Filter"
-                    >
-                      <Settings size={14} />
-                    </button>
-                    <button
-                      onClick={() => onRemoveFilter(filter.id)}
-                      className="w-7 h-7 flex items-center justify-center rounded text-base-content/50 hover:text-error hover:bg-base-100/50 transition-colors"
-                      title="Remove Filter"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+          filters.map((filter) => (
+            <div
+              key={filter.id}
+              className="bg-base-100 rounded-lg border border-base-300 p-3"
+            >
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-sm font-semibold text-base-content">{filter.name}</span>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => onEditFilter(filter)}
+                    className="w-7 h-7 flex items-center justify-center rounded text-base-content/50 hover:text-primary hover:bg-base-200 transition-colors"
+                    title="Edit Filter"
+                  >
+                    <Settings size={14} />
+                  </button>
+                  <button
+                    onClick={() => onRemoveFilter(filter.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded text-base-content/50 hover:text-error hover:bg-base-200 transition-colors"
+                    title="Remove Filter"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
+              </div>
                 
                 {/* Filter Input based on type */}
                 {filter.type === 'value' && (
@@ -225,15 +224,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                     />
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
+            </div>
+          ))
         )}
       </div>
 
       {/* Footer Actions */}
       {filters.length > 0 && (
-        <div className="px-4 py-3 border-t border-base-300 space-y-2">
+        <div className="border-t border-base-300 p-4 shrink-0 space-y-2 bg-base-100">
           <Button onClick={onApplyFilters} className="w-full">
             Apply filters
           </Button>
