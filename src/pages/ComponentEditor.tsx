@@ -372,16 +372,6 @@ export const ComponentEditorPage: React.FC = () => {
     addToast("success", `Applied preset starter: ${selectedPreset.name}`);
   };
 
-  const handleFormatCode = () => {
-    setFormData((prev) => ({
-      ...prev,
-      html_content: prev.html_content.split("\n").map((l) => l.trimEnd()).join("\n"),
-      css_content: prev.css_content.split("\n").map((l) => l.trimEnd()).join("\n"),
-      js_content: prev.js_content.split("\n").map((l) => l.trimEnd()).join("\n"),
-    }));
-    addToast("info", "Formatted HTML, CSS & JS code");
-  };
-
   const handleAiGenerate = async (chipPrompt?: string) => {
     const promptToUse = chipPrompt || aiPrompt;
     if (!promptToUse.trim()) {
@@ -518,72 +508,69 @@ export const ComponentEditorPage: React.FC = () => {
         {/* Left Workbench Panel (lg:col-span-4 => ~33-35% width matching image copy 2.png) */}
         <div className="lg:col-span-4 xl:col-span-4 flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-200/50 min-h-0">
           {/* Workbench Top Switcher Bar */}
-          <div className="flex items-center justify-between bg-base-200 px-2.5 py-1.5 border-b border-base-300 shrink-0 gap-1">
-            <div className="flex items-center gap-1 overflow-x-auto">
+          <div className="flex items-center justify-between bg-base-200/90 backdrop-blur-md px-2.5 py-2 border-b border-base-300 shrink-0 gap-2">
+            <div className="flex items-center gap-1.5 overflow-x-auto">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/components")}
-                className="px-2"
+                className="px-2 text-base-content/70 hover:text-base-content hover:bg-base-300/50 rounded-lg"
                 title="Back to components"
               >
                 <ArrowLeft size={16} />
               </Button>
 
-              <button
-                type="button"
-                onClick={() => setWorkbenchTab("code")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${
-                  workbenchTab === "code"
-                    ? "bg-base-100 text-primary shadow-xs"
-                    : "text-base-content/60 hover:text-base-content"
-                }`}
-              >
-                <Code2 size={13} />
-                Code
-              </button>
+              {/* Segmented Pill Tabs Container */}
+              <div className="flex items-center gap-1 p-1 bg-base-300/60 rounded-xl border border-base-300/70 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setWorkbenchTab("code")}
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all duration-200 ${
+                    workbenchTab === "code"
+                      ? "bg-base-100 text-primary shadow-xs ring-1 ring-base-300/60 font-bold"
+                      : "text-base-content/60 hover:text-base-content hover:bg-base-100/40"
+                  }`}
+                >
+                  <Code2 size={13} className={workbenchTab === "code" ? "text-primary" : "text-base-content/60"} />
+                  <span>Editors</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setWorkbenchTab("ai")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${
-                  workbenchTab === "ai"
-                    ? "bg-primary/20 text-primary border border-primary/30"
-                    : "text-base-content/60 hover:text-base-content"
-                }`}
-              >
-                <Sparkles size={13} className="text-primary animate-pulse" />
-                Gemini AI
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setWorkbenchTab("ai")}
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all duration-200 ${
+                    workbenchTab === "ai"
+                      ? "bg-primary text-primary-content shadow-xs font-bold ring-1 ring-primary/40"
+                      : "text-base-content/70 hover:text-primary hover:bg-primary/10"
+                  }`}
+                >
+                  <Sparkles size={13} className={workbenchTab === "ai" ? "text-white animate-pulse" : "text-primary"} />
+                  <span>Gemini AI</span>
+                  {workbenchTab === "ai" && (
+                    <span className="badge badge-xs bg-white text-primary font-bold text-[9px] px-1 py-0 border-0">
+                      ACTIVE
+                    </span>
+                  )}
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setWorkbenchTab("settings")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${
-                  workbenchTab === "settings"
-                    ? "bg-base-100 text-primary shadow-xs"
-                    : "text-base-content/60 hover:text-base-content"
-                }`}
-              >
-                <Settings size={13} />
-                Settings
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setWorkbenchTab("settings")}
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all duration-200 ${
+                    workbenchTab === "settings"
+                      ? "bg-base-100 text-primary shadow-xs ring-1 ring-base-300/60 font-bold"
+                      : "text-base-content/60 hover:text-base-content hover:bg-base-100/40"
+                  }`}
+                >
+                  <Settings size={13} className={workbenchTab === "settings" ? "text-primary" : "text-base-content/60"} />
+                  <span>Settings</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1">
-              {workbenchTab === "code" && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleFormatCode}
-                  leftIcon={<Code2 size={13} />}
-                >
-                  Format
-                </Button>
-              )}
-              <Button type="submit" size="sm" isLoading={isSaving} leftIcon={<Save size={14} />}>
+            <div className="flex items-center gap-1.5">
+              <Button type="submit" size="sm" isLoading={isSaving} leftIcon={<Save size={14} />} variant="primary">
                 Save
               </Button>
             </div>
@@ -906,45 +893,45 @@ export const ComponentEditorPage: React.FC = () => {
           {/* Column 2: Right Live Preview & Inspector Panel (65-67% Width matching CodePen image copy 2.png) */}
           <div className="lg:col-span-8 xl:col-span-8 flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-200/50 min-h-0">
             {/* Header Tabs & Controls */}
-            <div className="flex flex-wrap items-center justify-between px-3 py-1.5 bg-base-200 border-b border-base-300 shrink-0 gap-2">
-              <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-between px-3 py-2 bg-base-200/90 backdrop-blur-md border-b border-base-300 shrink-0 gap-2">
+              <div className="flex items-center gap-1 p-1 bg-base-300/60 rounded-xl border border-base-300/70 shadow-inner">
                 <button
                   type="button"
                   onClick={() => setPreviewTab("preview")}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors ${
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all duration-200 ${
                     previewTab === "preview"
-                      ? "bg-base-300 text-primary"
-                      : "text-base-content/60 hover:text-base-content"
+                      ? "bg-base-100 text-primary shadow-xs ring-1 ring-base-300/60 font-bold"
+                      : "text-base-content/60 hover:text-base-content hover:bg-base-100/40"
                   }`}
                 >
-                  <Play size={14} />
-                  Live Preview
+                  <Play size={13} className={previewTab === "preview" ? "text-primary" : "text-base-content/60"} />
+                  <span>Live Preview</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewTab("data")}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors ${
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all duration-200 ${
                     previewTab === "data"
-                      ? "bg-base-300 text-primary"
-                      : "text-base-content/60 hover:text-base-content"
+                      ? "bg-base-100 text-primary shadow-xs ring-1 ring-base-300/60 font-bold"
+                      : "text-base-content/60 hover:text-base-content hover:bg-base-100/40"
                   }`}
                 >
-                  <Database size={14} />
-                  Dataset Inspector
+                  <Database size={13} className={previewTab === "data" ? "text-primary" : "text-base-content/60"} />
+                  <span>Dataset Inspector</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewTab("console")}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors ${
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all duration-200 ${
                     previewTab === "console"
-                      ? "bg-base-300 text-primary"
-                      : "text-base-content/60 hover:text-base-content"
+                      ? "bg-base-100 text-primary shadow-xs ring-1 ring-base-300/60 font-bold"
+                      : "text-base-content/60 hover:text-base-content hover:bg-base-100/40"
                   }`}
                 >
-                  <Terminal size={14} />
-                  Console Logs
+                  <Terminal size={13} className={previewTab === "console" ? "text-primary" : "text-base-content/60"} />
+                  <span>Console Logs</span>
                   {consoleLogs.length > 0 && (
-                    <span className={`badge badge-xs ${errorCount > 0 ? "badge-error text-white" : "bg-base-100 text-base-content/70"}`}>
+                    <span className={`badge badge-xs px-1.5 py-0 border-0 ${errorCount > 0 ? "bg-error text-white font-bold" : "bg-base-300 text-base-content/70"}`}>
                       {consoleLogs.length}
                     </span>
                   )}
