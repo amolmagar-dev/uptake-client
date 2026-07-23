@@ -13,20 +13,23 @@ import {
   Smartphone,
   Terminal,
   Database,
-  Wand2,
   Check,
-  X,
   Trash2,
   Filter,
   Info,
   AlertTriangle,
   AlertCircle,
-  FileCode,
+  Plus,
+  SlidersHorizontal,
+  ArrowUp,
+  CornerDownLeft,
+  ChevronDown,
+  ChevronUp,
+  Settings,
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Button } from "../shared/components/ui/Button";
 import { Input, Select } from "../shared/components/ui/Input";
-import { WorkspaceHeader } from "../shared/components";
 import {
   customComponentsApi,
   datasetsApi,
@@ -203,7 +206,6 @@ export const ComponentEditorPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   
   // Tabs & Viewports
-  const [activeTab, setActiveTab] = useState<"html" | "css" | "js">("html");
   const [previewTab, setPreviewTab] = useState<"preview" | "data" | "console">("preview");
   const [viewportMode, setViewportMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -218,11 +220,16 @@ export const ComponentEditorPage: React.FC = () => {
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLogEntry[]>([]);
   const [logFilter, setLogFilter] = useState<"all" | "info" | "warn" | "error">("all");
 
+  // Workbench & Editor Accordion State
+  const [workbenchTab, setWorkbenchTab] = useState<"code" | "ai" | "settings">("code");
+  const [isHtmlOpen, setIsHtmlOpen] = useState(true);
+  const [isCssOpen, setIsCssOpen] = useState(true);
+  const [isJsOpen, setIsJsOpen] = useState(true);
+
   // AI Copilot State
-  const [isAiOpen, setIsAiOpen] = useState(false);
+  const [aiMessages, setAiMessages] = useState<ChatMessage[]>([]);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiResponseText, setAiResponseText] = useState("");
   const [aiResponseCode, setAiResponseCode] = useState<{ html?: string; css?: string; js?: string } | null>(null);
 
   // Component Form State
@@ -366,23 +373,13 @@ export const ComponentEditorPage: React.FC = () => {
   };
 
   const handleFormatCode = () => {
-    if (activeTab === "html") {
-      setFormData((prev) => ({
-        ...prev,
-        html_content: prev.html_content.split("\n").map((l) => l.trimEnd()).join("\n"),
-      }));
-    } else if (activeTab === "css") {
-      setFormData((prev) => ({
-        ...prev,
-        css_content: prev.css_content.split("\n").map((l) => l.trimEnd()).join("\n"),
-      }));
-    } else if (activeTab === "js") {
-      setFormData((prev) => ({
-        ...prev,
-        js_content: prev.js_content.split("\n").map((l) => l.trimEnd()).join("\n"),
-      }));
-    }
-    addToast("info", `Formatted ${activeTab.toUpperCase()} code`);
+    setFormData((prev) => ({
+      ...prev,
+      html_content: prev.html_content.split("\n").map((l) => l.trimEnd()).join("\n"),
+      css_content: prev.css_content.split("\n").map((l) => l.trimEnd()).join("\n"),
+      js_content: prev.js_content.split("\n").map((l) => l.trimEnd()).join("\n"),
+    }));
+    addToast("info", "Formatted HTML, CSS & JS code");
   };
 
   const handleAiGenerate = async (chipPrompt?: string) => {
@@ -392,16 +389,13 @@ export const ComponentEditorPage: React.FC = () => {
       return;
     }
 
+    const userMsg: ChatMessage = { role: "user", content: promptToUse };
+    setAiMessages((prev) => [...prev, userMsg]);
+    setAiPrompt("");
     setAiLoading(true);
     setAiResponseCode(null);
-    setAiResponseText("");
 
     try {
-      const userMessage: ChatMessage = {
-        role: "user",
-        content: promptToUse,
-      };
-
       const contexts: AIContext[] = [
         {
           type: "component",
@@ -419,9 +413,11 @@ export const ComponentEditorPage: React.FC = () => {
         });
       }
 
-      const response = await aiApi.chat([userMessage], contexts);
+      const response = await aiApi.chat([...aiMessages, userMsg], contexts);
       const responseContent = response.data.message?.content || "";
-      setAiResponseText(responseContent);
+
+      const assistantMsg: ChatMessage = { role: "assistant", content: responseContent };
+      setAiMessages((prev) => [...prev, assistantMsg]);
 
       const parsed = parseAiResponse(responseContent);
       setAiResponseCode(parsed);
@@ -510,263 +506,405 @@ export const ComponentEditorPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="spinner" />
+        <div className="loading loading-spinner loading-lg text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-base-100 min-h-0 overflow-hidden">
-      {/* Workspace Header */}
-      <WorkspaceHeader
-        title={isEditing ? "Edit Custom Component" : "AI Component Studio"}
-        description="Design & build interactive widgets with HTML, CSS, JS & AI Copilot"
-        leading={
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/components")}
-            leftIcon={<ArrowLeft size={18} />}
-          >
-            Back
-          </Button>
-        }
-        actions={
-          <>
-            <div className="w-52">
-              <Select
-                value=""
-                onChange={(val: string | null) => val && handlePresetChange(val)}
-                options={[
-                  { value: "", label: "Load Starter Preset..." },
-                  ...COMPONENT_PRESETS.map((p) => ({
-                    value: p.id,
-                    label: p.name,
-                  })),
-                ]}
-                isClearable={false}
-              />
-            </div>
-            <Button
-              variant={isAiOpen ? "primary" : "secondary"}
-              size="sm"
-              onClick={() => setIsAiOpen(!isAiOpen)}
-              leftIcon={<Sparkles size={16} className={isAiOpen ? "animate-pulse" : ""} />}
-            >
-              AI Copilot
-            </Button>
-            <Button onClick={handleSubmit} isLoading={isSaving} leftIcon={<Save size={16} />}>
-              {isEditing ? "Update" : "Save"} Component
-            </Button>
-          </>
-        }
-      />
-
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 p-4 space-y-3 overflow-hidden">
-        {/* Meta Bar */}
-        <div className="p-3 bg-base-200/80 border border-base-300 rounded-xl grid grid-cols-1 md:grid-cols-4 gap-3 items-center shrink-0">
-          <Input
-            label="Component Name"
-            placeholder="e.g. Sales KPI Card"
-            value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-            required
-          />
-          <Input
-            label="Description (optional)"
-            placeholder="Brief explanation of widget purpose"
-            value={formData.description}
-            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-          />
-          <div className="flex flex-col">
-            <Select
-              label="Dataset Source"
-              value={formData.dataset_id || null}
-              onChange={(val: string | null) => handleDatasetChange(val || "")}
-              options={[
-                { value: "", label: "Static (No Data Source)" },
-                ...datasets.map((d) => ({
-                  value: d.id,
-                  label: `${d.name} (${d.dataset_type})`,
-                })),
-              ]}
-              isClearable={false}
-            />
-          </div>
-          <div className="flex flex-col justify-end pt-5">
-            {selectedDataset ? (
-              <div className="flex items-center gap-2 px-3 py-2 bg-success/15 border border-success/30 rounded-lg text-xs text-success font-medium">
-                <Layers size={14} />
-                <span>
-                  {previewLoading
-                    ? "Loading dataset..."
-                    : previewData
-                    ? `Loaded ${previewData.length} Rows`
-                    : "Dataset Selected"}
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-3 py-2 bg-base-300/50 border border-base-300 rounded-lg text-xs text-base-content/60 font-medium">
-                <Layers size={14} />
-                <span>Static Component Mode</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* AI Copilot Drawer */}
-        {isAiOpen && (
-          <div className="p-4 bg-gradient-to-r from-base-200 via-primary/5 to-base-200 border border-primary/30 rounded-xl shadow-lg shrink-0 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-primary animate-pulse" />
-                <h3 className="type-h3 text-sm text-base-content font-bold">AI Studio Copilot</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAiOpen(false)}
-                className="btn btn-ghost btn-xs btn-circle"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            {/* Prompt Chips */}
-            <div className="flex flex-wrap gap-2">
-              {quickPromptChips.map((chip, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setAiPrompt(chip);
-                    handleAiGenerate(chip);
-                  }}
-                  className="px-2.5 py-1 text-xs bg-base-100 hover:bg-primary/20 hover:border-primary/40 border border-base-300 rounded-full text-base-content/80 transition-colors flex items-center gap-1"
-                >
-                  <Wand2 size={12} className="text-primary" />
-                  {chip}
-                </button>
-              ))}
-            </div>
-
-            {/* Prompt Form */}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Ask AI to generate component code or add features (e.g. 'Build a stat card with green trend pill')"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                className="input input-sm flex-1 bg-base-100 border-base-300 text-xs focus:outline-none focus:border-primary"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAiGenerate();
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => handleAiGenerate()}
-                isLoading={aiLoading}
-                leftIcon={<Sparkles size={14} />}
-              >
-                Generate
-              </Button>
-            </div>
-
-            {/* AI Response Output */}
-            {(aiResponseText || aiResponseCode) && (
-              <div className="mt-3 p-3 bg-base-100 border border-base-300 rounded-lg text-xs space-y-2 max-h-48 overflow-y-auto">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-primary">AI Response Preview</span>
-                  {aiResponseCode && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="primary"
-                      onClick={handleApplyAiCode}
-                      leftIcon={<Check size={12} />}
-                    >
-                      Apply AI Code
-                    </Button>
-                  )}
-                </div>
-                {aiResponseText && <p className="text-base-content/80 whitespace-pre-wrap">{aiResponseText}</p>}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Main 2-Pane Studio Workspace */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0 overflow-hidden">
-          {/* Left Editor Panel */}
-          <div className="flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-200/50 min-h-0">
-            {/* Tabs & Format */}
-            <div className="flex items-center justify-between bg-base-200 px-2 border-b border-base-300 shrink-0">
-              <div className="flex">
-                {(["html", "css", "js"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors ${
-                      activeTab === tab
-                        ? "bg-base-300/80 text-primary border-primary"
-                        : "text-base-content/60 border-transparent hover:text-base-content hover:bg-base-300/30"
-                    }`}
-                  >
-                    <span>{tab}</span>
-                    <span className="badge badge-xs bg-base-100 text-base-content/60 font-mono">
-                      {tab === "html"
-                        ? formData.html_content.length
-                        : tab === "css"
-                        ? formData.css_content.length
-                        : formData.js_content.length}
-                    </span>
-                  </button>
-                ))}
-              </div>
+    <form onSubmit={handleSubmit} className="h-full flex flex-col min-h-0 p-3 space-y-2 overflow-hidden bg-base-100">
+      {/* Main Studio Workspace Layout (CodePen Style: 35% Left Workbench ↔ 65% Right Live Preview) */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0 overflow-hidden">
+        {/* Left Workbench Panel (lg:col-span-4 => ~33-35% width matching image copy 2.png) */}
+        <div className="lg:col-span-4 xl:col-span-4 flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-200/50 min-h-0">
+          {/* Workbench Top Switcher Bar */}
+          <div className="flex items-center justify-between bg-base-200 px-2.5 py-1.5 border-b border-base-300 shrink-0 gap-1">
+            <div className="flex items-center gap-1 overflow-x-auto">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={handleFormatCode}
-                leftIcon={<Code2 size={14} />}
+                onClick={() => navigate("/components")}
+                className="px-2"
+                title="Back to components"
               >
-                Format Code
+                <ArrowLeft size={16} />
               </Button>
+
+              <button
+                type="button"
+                onClick={() => setWorkbenchTab("code")}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${
+                  workbenchTab === "code"
+                    ? "bg-base-100 text-primary shadow-xs"
+                    : "text-base-content/60 hover:text-base-content"
+                }`}
+              >
+                <Code2 size={13} />
+                Code
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setWorkbenchTab("ai")}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${
+                  workbenchTab === "ai"
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "text-base-content/60 hover:text-base-content"
+                }`}
+              >
+                <Sparkles size={13} className="text-primary animate-pulse" />
+                Gemini AI
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setWorkbenchTab("settings")}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${
+                  workbenchTab === "settings"
+                    ? "bg-base-100 text-primary shadow-xs"
+                    : "text-base-content/60 hover:text-base-content"
+                }`}
+              >
+                <Settings size={13} />
+                Settings
+              </button>
             </div>
 
-            {/* Monaco Instance */}
-            <div className="flex-1 min-h-0">
-              <Editor
-                height="100%"
-                language={activeTab === "js" ? "javascript" : activeTab}
-                value={
-                  activeTab === "html"
-                    ? formData.html_content
-                    : activeTab === "css"
-                    ? formData.css_content
-                    : formData.js_content
-                }
-                onChange={(value) => {
-                  const key =
-                    activeTab === "html"
-                      ? "html_content"
-                      : activeTab === "css"
-                      ? "css_content"
-                      : "js_content";
-                  setFormData((prev) => ({ ...prev, [key]: value || "" }));
-                }}
-                theme={monacoTheme}
-                options={editorOptions}
-              />
+            <div className="flex items-center gap-1">
+              {workbenchTab === "code" && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFormatCode}
+                  leftIcon={<Code2 size={13} />}
+                >
+                  Format
+                </Button>
+              )}
+              <Button type="submit" size="sm" isLoading={isSaving} leftIcon={<Save size={14} />}>
+                Save
+              </Button>
             </div>
           </div>
 
-          {/* Right Preview & Inspector Panel */}
-          <div className="flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-200/50 min-h-0">
+            {/* Panel Body */}
+            {workbenchTab === "code" ? (
+              /* Stacked HTML/CSS/JS Editors (CodePen Style) */
+              <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+                {/* HTML Block */}
+                <div className="border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs">
+                  <div className="flex items-center justify-between bg-base-200 px-3 py-2 border-b border-base-300 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-error"></span>
+                      <span className="text-xs font-bold text-base-content uppercase tracking-wider">HTML</span>
+                      <span className="badge badge-xs bg-base-200 text-base-content/60 font-mono">
+                        {formData.html_content.length} chars
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsHtmlOpen(!isHtmlOpen)}
+                      className="btn btn-ghost btn-xs btn-square text-base-content/70 hover:text-base-content"
+                      title={isHtmlOpen ? "Collapse HTML" : "Expand HTML"}
+                    >
+                      {isHtmlOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                  </div>
+                  {isHtmlOpen && (
+                    <div className="h-44 min-h-[110px]">
+                      <Editor
+                        height="100%"
+                        language="html"
+                        value={formData.html_content}
+                        onChange={(val) => setFormData((prev) => ({ ...prev, html_content: val || "" }))}
+                        theme={monacoTheme}
+                        options={editorOptions}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* CSS Block */}
+                <div className="border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs">
+                  <div className="flex items-center justify-between bg-base-200 px-3 py-2 border-b border-base-300 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-info"></span>
+                      <span className="text-xs font-bold text-base-content uppercase tracking-wider">CSS</span>
+                      <span className="badge badge-xs bg-base-200 text-base-content/60 font-mono">
+                        {formData.css_content.length} chars
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsCssOpen(!isCssOpen)}
+                      className="btn btn-ghost btn-xs btn-square text-base-content/70 hover:text-base-content"
+                      title={isCssOpen ? "Collapse CSS" : "Expand CSS"}
+                    >
+                      {isCssOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                  </div>
+                  {isCssOpen && (
+                    <div className="h-44 min-h-[110px]">
+                      <Editor
+                        height="100%"
+                        language="css"
+                        value={formData.css_content}
+                        onChange={(val) => setFormData((prev) => ({ ...prev, css_content: val || "" }))}
+                        theme={monacoTheme}
+                        options={editorOptions}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* JS Block */}
+                <div className="border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs">
+                  <div className="flex items-center justify-between bg-base-200 px-3 py-2 border-b border-base-300 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-warning"></span>
+                      <span className="text-xs font-bold text-base-content uppercase tracking-wider">JavaScript</span>
+                      <span className="badge badge-xs bg-base-200 text-base-content/60 font-mono">
+                        {formData.js_content.length} chars
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsJsOpen(!isJsOpen)}
+                      className="btn btn-ghost btn-xs btn-square text-base-content/70 hover:text-base-content"
+                      title={isJsOpen ? "Collapse JS" : "Expand JS"}
+                    >
+                      {isJsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                  </div>
+                  {isJsOpen && (
+                    <div className="h-44 min-h-[110px]">
+                      <Editor
+                        height="100%"
+                        language="javascript"
+                        value={formData.js_content}
+                        onChange={(val) => setFormData((prev) => ({ ...prev, js_content: val || "" }))}
+                        theme={monacoTheme}
+                        options={editorOptions}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : workbenchTab === "ai" ? (
+              /* Gemini AI Chat View */
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-base-100/50">
+                {/* Chat Body & Suggestions Area */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+                  {aiMessages.length === 0 ? (
+                    <div className="h-full flex flex-col justify-between py-4">
+                      <div className="my-auto text-center px-2">
+                        <h2 className="text-lg md:text-xl font-semibold text-primary tracking-tight">
+                          Type @ to reference sources
+                        </h2>
+                      </div>
+
+                      <div className="space-y-1.5 shrink-0">
+                        {quickPromptChips.map((chip, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setAiPrompt(chip);
+                              handleAiGenerate(chip);
+                            }}
+                            className="w-full p-2 bg-base-200/60 hover:bg-base-200 border border-base-300/60 rounded-xl text-left text-xs text-base-content/90 transition-colors flex items-center gap-2 group"
+                          >
+                            <CornerDownLeft size={13} className="text-base-content/40 group-hover:text-primary shrink-0 transition-colors" />
+                            <span className="font-medium text-[11px]">{chip}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {aiMessages.map((msg, idx) => (
+                        <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                          <div className={`max-w-[90%] p-2.5 rounded-2xl text-xs leading-relaxed ${msg.role === 'user' ? 'bg-primary text-primary-content rounded-br-none' : 'bg-base-200 border border-base-300 text-base-content rounded-bl-none space-y-2'}`}>
+                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                        </div>
+                      ))}
+
+                      {aiResponseCode && (
+                        <div className="p-2.5 bg-base-200/80 border border-primary/40 rounded-xl text-xs space-y-2">
+                          <div className="flex items-center justify-between font-semibold text-primary text-[11px]">
+                            <span>AI Generated Code</span>
+                            <Button type="button" size="sm" variant="primary" onClick={handleApplyAiCode} leftIcon={<Check size={12} />}>
+                              Apply Code
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {aiLoading && (
+                        <div className="flex justify-start">
+                          <div className="p-2.5 bg-base-200 rounded-2xl rounded-bl-none text-xs text-base-content/60 flex items-center gap-2">
+                            <span className="loading loading-dots loading-xs text-primary"></span>
+                            <span>Gemini is thinking...</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Gemini Input Pill Container */}
+                <div className="p-3 bg-base-100 border-t border-base-300 shrink-0 space-y-1.5">
+                  <div className="bg-base-200/70 border border-base-300 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 rounded-3xl p-2.5 space-y-2 transition-all">
+                    <textarea
+                      rows={2}
+                      placeholder="Ask Gemini"
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAiGenerate();
+                        }
+                      }}
+                      className="w-full bg-transparent text-xs text-base-content placeholder:text-base-content/40 focus:outline-none resize-none"
+                    />
+
+                    <div className="flex items-center justify-between pt-1 border-t border-base-300/40">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          className="btn btn-circle btn-xs btn-ghost text-base-content/70 hover:text-base-content"
+                          title="Add attachment or context @"
+                        >
+                          <Plus size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-circle btn-xs btn-ghost text-base-content/70 hover:text-base-content"
+                          title="Adjust settings"
+                        >
+                          <SlidersHorizontal size={13} />
+                        </button>
+                        <span className="badge badge-primary bg-primary/20 border-0 text-primary font-bold text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded-full">
+                          Beta
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAiGenerate()}
+                        disabled={aiLoading || !aiPrompt.trim()}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shadow-sm ${
+                          aiPrompt.trim() && !aiLoading
+                            ? "bg-primary text-primary-content hover:bg-primary-focus"
+                            : "bg-base-300 text-base-content/40 cursor-not-allowed"
+                        }`}
+                        title="Send Message"
+                      >
+                        <ArrowUp size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-base-content/50 text-center select-none pt-0.5">
+                    Gemini in Workspace can make mistakes. <span className="underline cursor-pointer">Learn more</span>
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* Component Settings & Dataset Tab */
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs bg-base-100/50">
+                <div className="space-y-4.5 p-4 bg-base-100 border border-base-300 rounded-2xl shadow-xs">
+                  <div className="border-b border-base-300 pb-3">
+                    <h4 className="font-bold text-sm text-base-content flex items-center gap-2">
+                      <Settings size={16} className="text-primary" />
+                      Component Metadata & Configuration
+                    </h4>
+                    <p className="text-base-content/60 text-xs mt-0.5">
+                      Configure widget details, preset templates, and backend data sources.
+                    </p>
+                  </div>
+
+                  <Input
+                    label="Component Name"
+                    placeholder="e.g. Sales KPI Card"
+                    value={formData.name}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                    required
+                  />
+
+                  <Input
+                    label="Description (optional)"
+                    placeholder="Brief explanation of widget purpose"
+                    value={formData.description}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  />
+
+                  <div className="flex flex-col">
+                    <Select
+                      label="Starter Preset Template"
+                      value=""
+                      onChange={(val: string | null) => val && handlePresetChange(val)}
+                      options={[
+                        { value: "", label: "⚡ Load Starter Template..." },
+                        ...COMPONENT_PRESETS.map((p) => ({
+                          value: p.id,
+                          label: p.name,
+                        })),
+                      ]}
+                      isClearable={false}
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <Select
+                      label="Dataset Source"
+                      value={formData.dataset_id || null}
+                      onChange={(val: string | null) => handleDatasetChange(val || "")}
+                      options={[
+                        { value: "", label: "Static (No Data Source)" },
+                        ...datasets.map((d) => ({
+                          value: d.id,
+                          label: `${d.name} (${d.dataset_type})`,
+                        })),
+                      ]}
+                      isClearable={false}
+                    />
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between border-t border-base-300">
+                    {selectedDataset ? (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-success/15 border border-success/30 rounded-lg text-xs text-success font-medium">
+                        <Layers size={14} />
+                        <span>
+                          {previewLoading
+                            ? "Loading dataset..."
+                            : previewData
+                            ? `Loaded ${previewData.length} Rows`
+                            : "Dataset Selected"}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-base-300/50 border border-base-300 rounded-lg text-xs text-base-content/60 font-medium">
+                        <Layers size={14} />
+                        <span>Static Component Mode</span>
+                      </div>
+                    )}
+
+                    <Button type="submit" isLoading={isSaving} leftIcon={<Save size={14} />}>
+                      {isEditing ? "Update" : "Save"} Component
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Column 2: Right Live Preview & Inspector Panel (65-67% Width matching CodePen image copy 2.png) */}
+          <div className="lg:col-span-8 xl:col-span-8 flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-200/50 min-h-0">
             {/* Header Tabs & Controls */}
             <div className="flex flex-wrap items-center justify-between px-3 py-1.5 bg-base-200 border-b border-base-300 shrink-0 gap-2">
               <div className="flex items-center gap-1">
@@ -806,26 +944,19 @@ export const ComponentEditorPage: React.FC = () => {
                   <Terminal size={14} />
                   Console Logs
                   {consoleLogs.length > 0 && (
-                    <span
-                      className={`badge badge-xs ${
-                        errorCount > 0 ? "badge-error text-white" : "bg-base-100 text-base-content/70"
-                      }`}
-                    >
+                    <span className={`badge badge-xs ${errorCount > 0 ? "badge-error text-white" : "bg-base-100 text-base-content/70"}`}>
                       {consoleLogs.length}
                     </span>
                   )}
                 </button>
               </div>
 
-              {/* Viewport Controls */}
               <div className="flex items-center gap-1">
                 <div className="join bg-base-100 border border-base-300 rounded-lg p-0.5">
                   <button
                     type="button"
                     onClick={() => setViewportMode("desktop")}
-                    className={`join-item btn btn-xs btn-ghost gap-1 ${
-                      viewportMode === "desktop" ? "btn-active text-primary" : ""
-                    }`}
+                    className={`join-item btn btn-xs btn-ghost gap-1 ${viewportMode === "desktop" ? "btn-active text-primary" : ""}`}
                     title="Desktop View (100%)"
                   >
                     <Monitor size={13} />
@@ -833,9 +964,7 @@ export const ComponentEditorPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setViewportMode("tablet")}
-                    className={`join-item btn btn-xs btn-ghost gap-1 ${
-                      viewportMode === "tablet" ? "btn-active text-primary" : ""
-                    }`}
+                    className={`join-item btn btn-xs btn-ghost gap-1 ${viewportMode === "tablet" ? "btn-active text-primary" : ""}`}
                     title="Tablet View (768px)"
                   >
                     <Tablet size={13} />
@@ -843,9 +972,7 @@ export const ComponentEditorPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setViewportMode("mobile")}
-                    className={`join-item btn btn-xs btn-ghost gap-1 ${
-                      viewportMode === "mobile" ? "btn-active text-primary" : ""
-                    }`}
+                    className={`join-item btn btn-xs btn-ghost gap-1 ${viewportMode === "mobile" ? "btn-active text-primary" : ""}`}
                     title="Mobile View (375px)"
                   >
                     <Smartphone size={13} />
@@ -862,9 +989,7 @@ export const ComponentEditorPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Tab Body */}
             <div className="flex-1 bg-base-200 overflow-hidden min-h-0 flex flex-col">
-              {/* Tab 1: Live Preview */}
               {previewTab === "preview" && (
                 <div className="flex-1 w-full h-full flex items-center justify-center p-2 bg-base-300/30 overflow-auto min-h-0">
                   <div
@@ -888,7 +1013,6 @@ export const ComponentEditorPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Tab 2: Dataset Inspector */}
               {previewTab === "data" && (
                 <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
                   {selectedDataset ? (
@@ -905,7 +1029,6 @@ export const ComponentEditorPage: React.FC = () => {
                         </span>
                       </div>
 
-                      {/* Schema Table */}
                       <div className="space-y-2">
                         <h5 className="font-semibold text-base-content/80 flex items-center gap-1.5">
                           <Database size={14} className="text-primary" />
@@ -943,10 +1066,9 @@ export const ComponentEditorPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* JSON Payload Viewer */}
                       <div className="space-y-2">
                         <h5 className="font-semibold text-base-content/80 flex items-center gap-1.5">
-                          <FileCode size={14} className="text-primary" />
+                          <Code2 size={14} className="text-primary" />
                           window.componentData Payload
                         </h5>
                         <pre className="p-3 bg-base-100 border border-base-300 rounded-lg font-mono text-xs overflow-x-auto max-h-64 text-base-content/90">
@@ -958,34 +1080,28 @@ export const ComponentEditorPage: React.FC = () => {
                     <div className="flex flex-col items-center justify-center h-full text-center text-base-content/50 p-8 space-y-2">
                       <Database size={32} className="opacity-40" />
                       <p className="font-medium">No Dataset Selected</p>
-                      <p className="text-xs max-w-sm">
-                        Select a dataset source from the Meta Bar above to inject real data into{" "}
-                        <code className="text-primary font-mono">window.componentData</code>.
-                      </p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Tab 3: Console Log Viewer */}
               {previewTab === "console" && (
                 <div className="flex-1 flex flex-col overflow-hidden text-xs">
-                  {/* Filter Toolbar */}
                   <div className="flex items-center justify-between px-3 py-2 bg-base-100 border-b border-base-300 shrink-0">
                     <div className="flex items-center gap-1">
                       <Filter size={13} className="text-base-content/50 mr-1" />
-                      {(["all", "info", "warn", "error"] as const).map((level) => (
+                      {(["all", "info", "warn", "error"] as const).map((lvl) => (
                         <button
-                          key={level}
+                          key={lvl}
                           type="button"
-                          onClick={() => setLogFilter(level)}
+                          onClick={() => setLogFilter(lvl)}
                           className={`px-2 py-0.5 text-[11px] font-semibold rounded uppercase tracking-wider transition-colors ${
-                            logFilter === level
+                            logFilter === lvl
                               ? "bg-primary text-primary-content"
                               : "bg-base-200 text-base-content/70 hover:bg-base-300"
                           }`}
                         >
-                          {level}
+                          {lvl}
                         </button>
                       ))}
                     </div>
@@ -1000,7 +1116,6 @@ export const ComponentEditorPage: React.FC = () => {
                     </Button>
                   </div>
 
-                  {/* Log Entries List */}
                   <div className="flex-1 p-2 overflow-y-auto font-mono space-y-1 bg-base-100/50">
                     {filteredLogs.length > 0 ? (
                       filteredLogs.map((log) => (
@@ -1039,6 +1154,5 @@ export const ComponentEditorPage: React.FC = () => {
           </div>
         </div>
       </form>
-    </div>
   );
 };
