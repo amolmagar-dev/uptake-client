@@ -480,10 +480,11 @@ export const ComponentEditorPage: React.FC = () => {
   };
 
   const quickPromptChips = [
-    "Generate from dataset fields",
-    "Apply glowing dark glassmorphism",
-    "Add search & filter logic",
-    "Fix JS syntax or runtime error",
+    "Build KPI metric card from active dataset",
+    "Generate search & filterable data table widget",
+    "Create progress ring chart for dataset metrics",
+    "Apply dark glassmorphism styling & animations",
+    "Fix JS syntax or dataset binding script",
   ];
 
   const filteredLogs = consoleLogs.filter((log) => {
@@ -546,7 +547,7 @@ export const ComponentEditorPage: React.FC = () => {
                   }`}
                 >
                   <Sparkles size={13} className={workbenchTab === "ai" ? "text-white animate-pulse" : "text-primary"} />
-                  <span>Gemini AI</span>
+                  <span>AI</span>
                   {workbenchTab === "ai" && (
                     <span className="badge badge-xs bg-white text-primary font-bold text-[9px] px-1 py-0 border-0">
                       ACTIVE
@@ -570,18 +571,25 @@ export const ComponentEditorPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-1.5">
-              <Button type="submit" size="sm" isLoading={isSaving} leftIcon={<Save size={14} />} variant="primary">
-                Save
-              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                isLoading={isSaving}
+                leftIcon={<Save size={15} />}
+                variant="primary"
+                title="Save"
+                aria-label="Save"
+                className="btn-square"
+              />
             </div>
           </div>
 
             {/* Panel Body */}
             {workbenchTab === "code" ? (
               /* Stacked HTML/CSS/JS Editors (CodePen Style) */
-              <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+              <div className="flex-1 p-3 min-h-0 flex flex-col gap-3 overflow-hidden">
                 {/* HTML Block */}
-                <div className="border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs">
+                <div className={`border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs transition-all duration-200 ${isHtmlOpen ? "flex-1 min-h-[120px]" : "shrink-0"}`}>
                   <div className="flex items-center justify-between bg-base-200 px-3 py-2 border-b border-base-300 shrink-0">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-error"></span>
@@ -600,7 +608,7 @@ export const ComponentEditorPage: React.FC = () => {
                     </button>
                   </div>
                   {isHtmlOpen && (
-                    <div className="h-44 min-h-[110px]">
+                    <div className="flex-1 min-h-0">
                       <Editor
                         height="100%"
                         language="html"
@@ -614,7 +622,7 @@ export const ComponentEditorPage: React.FC = () => {
                 </div>
 
                 {/* CSS Block */}
-                <div className="border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs">
+                <div className={`border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs transition-all duration-200 ${isCssOpen ? "flex-1 min-h-[120px]" : "shrink-0"}`}>
                   <div className="flex items-center justify-between bg-base-200 px-3 py-2 border-b border-base-300 shrink-0">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-info"></span>
@@ -633,7 +641,7 @@ export const ComponentEditorPage: React.FC = () => {
                     </button>
                   </div>
                   {isCssOpen && (
-                    <div className="h-44 min-h-[110px]">
+                    <div className="flex-1 min-h-0">
                       <Editor
                         height="100%"
                         language="css"
@@ -647,7 +655,7 @@ export const ComponentEditorPage: React.FC = () => {
                 </div>
 
                 {/* JS Block */}
-                <div className="border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs">
+                <div className={`border border-base-300 rounded-xl overflow-hidden bg-base-100/70 flex flex-col shadow-xs transition-all duration-200 ${isJsOpen ? "flex-1 min-h-[120px]" : "shrink-0"}`}>
                   <div className="flex items-center justify-between bg-base-200 px-3 py-2 border-b border-base-300 shrink-0">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-warning"></span>
@@ -666,7 +674,7 @@ export const ComponentEditorPage: React.FC = () => {
                     </button>
                   </div>
                   {isJsOpen && (
-                    <div className="h-44 min-h-[110px]">
+                    <div className="flex-1 min-h-0">
                       <Editor
                         height="100%"
                         language="javascript"
@@ -680,16 +688,19 @@ export const ComponentEditorPage: React.FC = () => {
                 </div>
               </div>
             ) : workbenchTab === "ai" ? (
-              /* Gemini AI Chat View */
+              /* AI Chat View */
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-base-100/50">
                 {/* Chat Body & Suggestions Area */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
                   {aiMessages.length === 0 ? (
                     <div className="h-full flex flex-col justify-between py-4">
-                      <div className="my-auto text-center px-2">
+                      <div className="my-auto text-center px-2 space-y-1">
                         <h2 className="text-lg md:text-xl font-semibold text-primary tracking-tight">
-                          Type @ to reference sources
+                          Build custom widgets with AI
                         </h2>
+                        <p className="text-xs text-base-content/60">
+                          Type @ to reference datasets and component sources
+                        </p>
                       </div>
 
                       <div className="space-y-1.5 shrink-0">
@@ -734,7 +745,7 @@ export const ComponentEditorPage: React.FC = () => {
                         <div className="flex justify-start">
                           <div className="p-2.5 bg-base-200 rounded-2xl rounded-bl-none text-xs text-base-content/60 flex items-center gap-2">
                             <span className="loading loading-dots loading-xs text-primary"></span>
-                            <span>Gemini is thinking...</span>
+                            <span>AI is thinking...</span>
                           </div>
                         </div>
                       )}
@@ -742,12 +753,12 @@ export const ComponentEditorPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Gemini Input Pill Container */}
+                {/* AI Input Pill Container */}
                 <div className="p-3 bg-base-100 border-t border-base-300 shrink-0 space-y-1.5">
                   <div className="bg-base-200/70 border border-base-300 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 rounded-3xl p-2.5 space-y-2 transition-all">
                     <textarea
                       rows={2}
-                      placeholder="Ask Gemini"
+                      placeholder="Ask AI"
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
                       onKeyDown={(e) => {
@@ -797,7 +808,7 @@ export const ComponentEditorPage: React.FC = () => {
                   </div>
 
                   <p className="text-[10px] text-base-content/50 text-center select-none pt-0.5">
-                    Gemini in Workspace can make mistakes. <span className="underline cursor-pointer">Learn more</span>
+                    AI in Workspace can make mistakes. <span className="underline cursor-pointer">Learn more</span>
                   </p>
                 </div>
               </div>
@@ -1001,72 +1012,108 @@ export const ComponentEditorPage: React.FC = () => {
               )}
 
               {previewTab === "data" && (
-                <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+                <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs flex flex-col min-h-0">
                   {selectedDataset ? (
                     <>
-                      <div className="p-3 bg-base-100 border border-base-300 rounded-lg flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold text-sm text-base-content">{selectedDataset.name}</h4>
-                          <p className="text-base-content/60 text-xs">
-                            Type: {selectedDataset.dataset_type} | ID: {selectedDataset.id}
-                          </p>
+                      {/* Top Header Card */}
+                      <div className="p-3 bg-base-100 border border-base-300 rounded-xl flex items-center justify-between shadow-xs shrink-0">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                            <Database size={18} />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-sm text-base-content">{selectedDataset.name}</h4>
+                              <span className="badge badge-sm badge-primary font-mono text-[10px] uppercase">
+                                {selectedDataset.dataset_type}
+                              </span>
+                            </div>
+                            <p className="text-base-content/60 text-xs mt-0.5 font-mono">
+                              ID: {selectedDataset.id}
+                            </p>
+                          </div>
                         </div>
-                        <span className="badge badge-primary font-semibold">
-                          {previewData ? `${previewData.length} Rows` : "0 Rows"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="badge badge-neutral bg-base-200 border-base-300 text-base-content/80 font-semibold px-2.5 py-1">
+                            {previewData ? `${previewData.length} Rows` : "0 Rows"}
+                          </span>
+                          <span className="badge badge-neutral bg-base-200 border-base-300 text-base-content/80 font-semibold px-2.5 py-1">
+                            {datasetColumns.length} Fields
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <h5 className="font-semibold text-base-content/80 flex items-center gap-1.5">
-                          <Database size={14} className="text-primary" />
-                          Table Schema
-                        </h5>
-                        <div className="border border-base-300 rounded-lg overflow-hidden bg-base-100">
-                          <table className="table table-xs w-full">
-                            <thead>
-                              <tr className="bg-base-200">
-                                <th>Column Name</th>
-                                <th>Data Type</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {datasetColumns.length > 0 ? (
-                                datasetColumns.map((col, idx) => (
-                                  <tr key={idx}>
-                                    <td className="font-mono font-medium text-primary">{col.column_name}</td>
-                                    <td>
-                                      <span className="badge badge-xs bg-base-200 border-base-300 font-mono">
-                                        {col.data_type}
-                                      </span>
+                      {/* Main Split Inspector Grid */}
+                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-1 min-h-0">
+                        {/* Table Schema Card (5 cols) */}
+                        <div className="xl:col-span-5 flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-100 shadow-xs min-h-[220px]">
+                          <div className="px-3 py-2 bg-base-200 border-b border-base-300 flex items-center justify-between shrink-0">
+                            <h5 className="font-semibold text-base-content/90 flex items-center gap-1.5">
+                              <Database size={14} className="text-primary" />
+                              Table Schema
+                            </h5>
+                            <span className="text-[10px] text-base-content/50 font-mono">
+                              {datasetColumns.length} attributes
+                            </span>
+                          </div>
+                          <div className="flex-1 overflow-y-auto min-h-0">
+                            <table className="table table-xs w-full">
+                              <thead>
+                                <tr className="bg-base-200/50 sticky top-0 z-10 border-b border-base-300">
+                                  <th>Column Name</th>
+                                  <th>Data Type</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {datasetColumns.length > 0 ? (
+                                  datasetColumns.map((col, idx) => (
+                                    <tr key={idx} className="hover:bg-base-200/40">
+                                      <td className="font-mono font-medium text-primary">{col.column_name}</td>
+                                      <td>
+                                        <span className="badge badge-xs bg-base-200 border-base-300 font-mono text-[10px]">
+                                          {col.data_type}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan={2} className="text-center text-base-content/50 py-6">
+                                      No schema attributes detected
                                     </td>
                                   </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td colSpan={2} className="text-center text-base-content/50 py-3">
-                                    No schema attributes detected
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="space-y-2">
-                        <h5 className="font-semibold text-base-content/80 flex items-center gap-1.5">
-                          <Code2 size={14} className="text-primary" />
-                          window.componentData Payload
-                        </h5>
-                        <pre className="p-3 bg-base-100 border border-base-300 rounded-lg font-mono text-xs overflow-x-auto max-h-64 text-base-content/90">
-                          {previewData ? JSON.stringify(previewData, null, 2) : "null"}
-                        </pre>
+                        {/* Dataset Payload Card (7 cols) */}
+                        <div className="xl:col-span-7 flex flex-col border border-base-300 rounded-xl overflow-hidden bg-base-100 shadow-xs min-h-[260px]">
+                          <div className="px-3 py-2 bg-base-200 border-b border-base-300 flex items-center justify-between shrink-0">
+                            <h5 className="font-semibold text-base-content/90 flex items-center gap-1.5">
+                              <Code2 size={14} className="text-primary" />
+                              Dataset Payload
+                            </h5>
+                            <span className="badge badge-xs bg-primary/10 text-primary border-0 font-mono text-[10px]">
+                              JSON Array
+                            </span>
+                          </div>
+                          <div className="flex-1 p-3 overflow-y-auto min-h-0 bg-base-100">
+                            <pre className="font-mono text-xs text-base-content/90 leading-relaxed whitespace-pre-wrap">
+                              {previewData ? JSON.stringify(previewData, null, 2) : "null"}
+                            </pre>
+                          </div>
+                        </div>
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-base-content/50 p-8 space-y-2">
-                      <Database size={32} className="opacity-40" />
-                      <p className="font-medium">No Dataset Selected</p>
+                    <div className="flex flex-col items-center justify-center flex-1 text-center text-base-content/50 p-8 space-y-2">
+                      <Database size={36} className="opacity-40 text-primary" />
+                      <p className="font-semibold text-sm">No Dataset Selected</p>
+                      <p className="text-xs max-w-xs text-base-content/60">
+                        Select a dataset source from the Settings tab to inspect its schema and componentData payload.
+                      </p>
                     </div>
                   )}
                 </div>

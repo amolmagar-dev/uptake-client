@@ -17,7 +17,7 @@ import {
   Code2,
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
+import GridLayout, { WidthProvider, type Layout } from "react-grid-layout";
 import { WorkspaceHeader, Button } from "../shared/components";
 import { Input, Textarea, Checkbox } from "../shared/components/ui/Input";
 import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
@@ -31,7 +31,7 @@ import { useFavoritesStore } from "../store/favoritesStore";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+const FixedGridLayout = WidthProvider(GridLayout);
 
 interface Dashboard {
   id: string;
@@ -491,6 +491,19 @@ const getChartIcon = (type?: string) => {
   }
 };
 
+const layoutFromCharts = (charts: DashboardChart[]): Layout[] =>
+  charts.map((chart) => ({
+    i: chart.id,
+    x: chart.position_x || 0,
+    y: chart.position_y || 0,
+    w: chart.width || 6,
+    h: chart.height || 4,
+    minW: 3,
+    minH: 3,
+    maxW: 12,
+    maxH: 12,
+  }));
+
 // Dashboard View Page
 export const DashboardViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -503,7 +516,7 @@ export const DashboardViewPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [availableCharts, setAvailableCharts] = useState<any[]>([]);
   const [availableComponents, setAvailableComponents] = useState<any[]>([]);
-  const [layouts, setLayouts] = useState<Record<string, Layout[]>>({});
+  const [layout, setLayout] = useState<Layout[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedChart, setSelectedChart] = useState<DashboardChart | null>(null);
   const [showChartSettings, setShowChartSettings] = useState(false);
@@ -654,20 +667,9 @@ export const DashboardViewPage: React.FC = () => {
       const dataRes = await dashboardsApi.getData(id, resolvedFilters);
       setChartData(dataRes.data.chartData);
 
-      // Initialize layouts from dashboard charts
+      // Initialize layout from dashboard charts
       if (fetchedDashboard.charts) {
-        const initialLayout = fetchedDashboard.charts.map((chart: DashboardChart) => ({
-          i: chart.id,
-          x: chart.position_x || 0,
-          y: chart.position_y || 0,
-          w: chart.width || 6,
-          h: chart.height || 4,
-          minW: 3,
-          minH: 3,
-          maxW: 12,
-          maxH: 12,
-        }));
-        setLayouts({ lg: initialLayout });
+        setLayout(layoutFromCharts(fetchedDashboard.charts));
       }
     } catch (error) {
       addToast("error", "Failed to load dashboard");
@@ -721,55 +723,96 @@ export const DashboardViewPage: React.FC = () => {
 
 
 
+  const pendingLayoutRef = useRef<Layout[] | null>(null);
+
+  const saveLayoutChanges = useCallback(
+    async (layout: Layout[]) => {
+      if (!id || !dashboard?.charts) return;
+
+      // Filter items that actually changed position or size
+      const changedItems = layout.filter((item) => {
+        const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i);
+        if (!chart) return false;
+        const currX = chart.position_x ?? 0;
+        const currY = chart.position_y ?? 0;
+        const currW = chart.width ?? 6;
+        const currH = chart.height ?? 4;
+        return item.x !== currX || item.y !== currY || item.w !== currW || item.h !== currH;
+      });
+
+      if (changedItems.length === 0) {
+        return;
+      }
+
+      setIsUpdating(true);
+
+      try {
+        const updatePromises = changedItems.map((item) => {
+          const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i)!;
+          return dashboardsApi.updateChart(id, chart.id, {
+            position_x: item.x,
+            position_y: item.y,
+            width: item.w,
+            height: item.h,
+          });
+        });
+
+        await Promise.all(updatePromises);
+
+        // Keep dashboard state in sync with what was just persisted so the
+        // view reflects the real saved layout without needing a refetch.
+        const updatedCharts = dashboard.charts.map((chart) => {
+          const changed = changedItems.find((item) => item.i === chart.id);
+          return changed
+            ? { ...chart, position_x: changed.x, position_y: changed.y, width: changed.w, height: changed.h }
+            : chart;
+        });
+        setDashboard((prev) => (prev ? { ...prev, charts: updatedCharts } : prev));
+
+        setLayout(layoutFromCharts(updatedCharts));
+
+        addToast("success", "Layout updated");
+      } catch (error) {
+        addToast("error", "Failed to update layout");
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [id, dashboard, addToast]
+  );
+
+  // Flushes a pending debounced save immediately. Needed before navigating
+  // away from edit mode, since a plain setTimeout doesn't await before unmount
+  // and would otherwise persist against a stale closure after the view page
+  // has already refetched.
+  const flushPendingLayoutSave = useCallback(async () => {
+    if (layoutTimeoutRef.current) {
+      clearTimeout(layoutTimeoutRef.current);
+      layoutTimeoutRef.current = null;
+    }
+    if (pendingLayoutRef.current) {
+      const layout = pendingLayoutRef.current;
+      pendingLayoutRef.current = null;
+      await saveLayoutChanges(layout);
+    }
+  }, [saveLayoutChanges]);
+
   const handleLayoutChange = useCallback(
-    (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
-      setLayouts(allLayouts);
+    (layout: Layout[]) => {
+      setLayout(layout);
+      pendingLayoutRef.current = layout;
 
       if (layoutTimeoutRef.current) {
         clearTimeout(layoutTimeoutRef.current);
       }
 
-      layoutTimeoutRef.current = setTimeout(async () => {
-        if (!id || !dashboard?.charts) return;
-
-        // Filter items that actually changed position or size
-        const changedItems = layout.filter((item) => {
-          const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i);
-          if (!chart) return false;
-          const currX = chart.position_x ?? 0;
-          const currY = chart.position_y ?? 0;
-          const currW = chart.width ?? 6;
-          const currH = chart.height ?? 4;
-          return item.x !== currX || item.y !== currY || item.w !== currW || item.h !== currH;
-        });
-
-        if (changedItems.length === 0) {
-          return;
-        }
-
-        setIsUpdating(true);
-
-        try {
-          const updatePromises = changedItems.map((item) => {
-            const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i)!;
-            return dashboardsApi.updateChart(id, chart.id, {
-              position_x: item.x,
-              position_y: item.y,
-              width: item.w,
-              height: item.h,
-            });
-          });
-
-          await Promise.all(updatePromises);
-          addToast("success", "Layout updated");
-        } catch (error) {
-          addToast("error", "Failed to update layout");
-        } finally {
-          setIsUpdating(false);
-        }
+      layoutTimeoutRef.current = setTimeout(() => {
+        layoutTimeoutRef.current = null;
+        pendingLayoutRef.current = null;
+        saveLayoutChanges(layout);
       }, 500);
     },
-    [id, dashboard, addToast]
+    [saveLayoutChanges]
   );
 
   const handleAddChart = async (chartId: string) => {
@@ -954,7 +997,10 @@ export const DashboardViewPage: React.FC = () => {
           leading={
             <button
               type="button"
-              onClick={() => navigate("/dashboards")}
+              onClick={async () => {
+                await flushPendingLayoutSave();
+                navigate("/dashboards");
+              }}
               className="btn btn-ghost btn-sm btn-square"
               aria-label="Back to dashboards"
             >
@@ -967,12 +1013,23 @@ export const DashboardViewPage: React.FC = () => {
             <>
               {isUpdating && <span className="text-xs text-primary animate-pulse mr-2">Saving layout...</span>}
               {isEditMode ? (
-                <Button variant="ghost" onClick={() => navigate(`/dashboard/${id}`)}>
+                <Button
+                  variant="ghost"
+                  onClick={async () => {
+                    await flushPendingLayoutSave();
+                    navigate(`/dashboard/${id}`);
+                  }}
+                >
                   Exit Edit
                 </Button>
               ) : (
-                <Button onClick={() => navigate(`/dashboard/${id}/edit`)}>
-                  Edit Dashboard
+                <Button
+                  onClick={() => navigate(`/dashboard/${id}/edit`)}
+                  className="btn-square"
+                  aria-label="Edit Dashboard"
+                  title="Edit Dashboard"
+                >
+                  <Edit size={18} />
                 </Button>
               )}
             </>
@@ -982,12 +1039,11 @@ export const DashboardViewPage: React.FC = () => {
         <div className="flex-1 overflow-auto p-6">
           {dashboard.charts && dashboard.charts.length > 0 ? (
             <div className="dashboard-grid w-full">
-              <ResponsiveGridLayout
+              <FixedGridLayout
                 key="dashboard-grid"
                 className="layout"
-                layouts={layouts}
-                breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
-                cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
+                layout={layout}
+                cols={12}
                 rowHeight={100}
                 onLayoutChange={isEditMode ? handleLayoutChange : undefined}
                 isDraggable={isEditMode}
@@ -1036,7 +1092,7 @@ export const DashboardViewPage: React.FC = () => {
                     </div>
                   );
                 })}
-              </ResponsiveGridLayout>
+              </FixedGridLayout>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-32 opacity-20">
