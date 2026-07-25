@@ -25,20 +25,8 @@ export const SQLEditorPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col p-6 lg:p-10 space-y-8 overflow-hidden">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-        <div>
-          <h1 className="text-3xl font-bold">SQL Editor</h1>
-          <p className="text-base-content/60 mt-1 text-sm">
-            Write and execute SQL queries • Press <kbd className="kbd kbd-sm font-sans">Ctrl + Enter</kbd> to run
-          </p>
-        </div>
-      </div>
-
-      <div className="flex-1 bg-base-200 border border-base-300 rounded-2xl overflow-hidden shadow-inner">
-        <SQLEditor onSave={handleSaveQuery} />
-      </div>
+    <div className="h-full">
+      <SQLEditor onSave={handleSaveQuery} />
     </div>
   );
 };

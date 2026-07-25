@@ -23,7 +23,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const errorData = error.response?.data as any;
+    
+    if (status === 401 || (status === 403 && errorData?.error === "Invalid or expired token")) {
       localStorage.removeItem("uptake_token");
       localStorage.removeItem("uptake_user");
       window.location.href = "/login";

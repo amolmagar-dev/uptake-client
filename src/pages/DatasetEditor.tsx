@@ -5,6 +5,7 @@ import { Button } from '../shared/components/ui/Button';
 import { Card } from '../shared/components/ui/Card';
 import { Input, Select, Textarea } from '../shared/components/ui/Input';
 import { Modal } from '../shared/components/ui/Modal';
+import { WorkspaceHeader } from '../shared/components';
 import { datasetsApi, connectionsApi } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 
@@ -230,53 +231,43 @@ export function DatasetEditorPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <RefreshCw className="w-8 h-8 animate-spin text-accent-primary" />
+        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-bg-primary">
-      {/* Header */}
-      <div className="flex-shrink-0 border-b border-border bg-bg-secondary">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/datasets')}>
-              <ArrowLeft size={20} />
+    <div className="h-full flex flex-col bg-base-100">
+      <WorkspaceHeader
+        leading={
+          <button type="button" onClick={() => navigate('/datasets')} className="btn btn-ghost btn-sm btn-square" aria-label="Back to datasets">
+            <ArrowLeft size={18} />
+          </button>
+        }
+        title={isEditing ? "Edit Dataset" : "New Dataset"}
+        description={isEditing ? 'Modify dataset configuration' : 'Create a new dataset from your data sources'}
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => navigate('/datasets')}>Cancel</Button>
+            <Button onClick={handleSaveClick} isLoading={saving} disabled={saving || !connectionId}>
+              {isEditing ? "Update Dataset" : "Create Dataset"}
             </Button>
-            <div>
-              <h1 className="text-xl font-bold text-text-primary">
-                {isEditing ? 'Edit Dataset' : 'New Dataset'}
-              </h1>
-              <p className="text-sm text-text-tertiary">
-                {isEditing ? 'Modify dataset configuration' : 'Create a new dataset from your data sources'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate('/datasets')}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveClick} disabled={saving || !connectionId}>
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
-              {isEditing ? 'Update Dataset' : 'Create Dataset'}
-            </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left sidebar - Source selection */}
-        <div className="w-80 border-r border-border bg-bg-secondary overflow-y-auto">
+        <div className="w-80 border-r border-base-300 bg-base-200 overflow-y-auto">
           <div className="p-4 space-y-4">
             {/* Source Type */}
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">
+              <label className="block text-sm font-medium text-base-content/70 mb-2">
                 Source Type
               </label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">
                   {sourceType === 'sql' && <Database size={16} />}
                   {sourceType === 'api' && <Globe size={16} />}
                   {sourceType === 'googlesheet' && <FileSpreadsheet size={16} />}
@@ -304,7 +295,7 @@ export function DatasetEditorPage() {
 
             {/* Connection */}
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">
+              <label className="block text-sm font-medium text-base-content/70 mb-2">
                 Connection
               </label>
               <Select
@@ -321,7 +312,7 @@ export function DatasetEditorPage() {
                 placeholder="Select a connection..."
               />
               {filteredConnections.length === 0 && (
-                <p className="text-xs text-accent-warning mt-2">
+                <p className="text-xs text-warning mt-2">
                   No {sourceType} connections available. <a href="/connections" className="underline">Create one</a>.
                 </p>
               )}
@@ -332,7 +323,7 @@ export function DatasetEditorPage() {
               <>
                 {/* Dataset Type */}
                 <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                  <label className="block text-sm font-medium text-base-content/70 mb-2">
                     Dataset Type
                   </label>
                   <div className="space-y-2">
@@ -344,8 +335,8 @@ export function DatasetEditorPage() {
                         key={value}
                         className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                           datasetType === value
-                            ? 'border-accent-primary bg-accent-primary/10'
-                            : 'border-border hover:border-border-hover'
+                            ? 'border-primary bg-primary/10'
+                            : 'border-base-300 hover:border-base-content/30'
                         }`}
                       >
                         <input
@@ -359,14 +350,14 @@ export function DatasetEditorPage() {
                               setTableName('');
                             }
                           }}
-                          className="w-4 h-4 text-accent-primary focus:ring-accent-primary accent-accent-primary"
+                          className="radio radio-primary radio-sm"
                         />
-                        <Icon size={18} className={datasetType === value ? 'text-accent-primary' : 'text-text-tertiary'} />
+                        <Icon size={18} className={datasetType === value ? 'text-primary' : 'text-base-content/50'} />
                         <div className="flex-1">
-                          <span className={`text-sm font-medium ${datasetType === value ? 'text-accent-primary' : 'text-text-primary'}`}>
+                          <span className={`text-sm font-medium ${datasetType === value ? 'text-primary' : 'text-base-content'}`}>
                             {label}
                           </span>
-                          <span className={`text-xs ml-2 ${datasetType === value ? 'text-accent-primary/70' : 'text-text-tertiary'}`}>
+                          <span className={`text-xs ml-2 ${datasetType === value ? 'text-primary/70' : 'text-base-content/50'}`}>
                             {desc}
                           </span>
                         </div>
@@ -379,7 +370,7 @@ export function DatasetEditorPage() {
                 {datasetType === 'physical' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-text-secondary mb-2">
+                      <label className="block text-sm font-medium text-base-content/70 mb-2">
                         Schema
                       </label>
                       <Select
@@ -398,13 +389,13 @@ export function DatasetEditorPage() {
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-text-secondary">
+                        <label className="text-sm font-medium text-base-content/70">
                           Table
                         </label>
                         <button
                           type="button"
                           onClick={fetchTables}
-                          className="text-xs text-accent-primary hover:underline flex items-center gap-1"
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
                         >
                           <RefreshCw size={12} className={loadingTables ? 'animate-spin' : ''} />
                           Refresh
@@ -428,8 +419,8 @@ export function DatasetEditorPage() {
 
             {/* API/Sheet info */}
             {(sourceType === 'api' || sourceType === 'googlesheet') && connectionId && (
-              <div className="p-3 rounded-lg bg-accent-primary/10 border border-accent-primary/20">
-                <p className="text-sm text-text-secondary">
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <p className="text-sm text-base-content/70">
                   {sourceType === 'api' 
                     ? 'Data will be fetched from the API endpoint configured in this connection.'
                     : 'Data will be fetched from the Google Sheet configured in this connection.'}
@@ -445,21 +436,21 @@ export function DatasetEditorPage() {
             {/* SQL Query for Virtual datasets */}
             {sourceType === 'sql' && datasetType === 'virtual' && connectionId && (
               <Card className="p-6">
-                <h2 className="text-lg font-semibold text-text-primary mb-4">SQL Query</h2>
+                <h2 className="text-lg font-semibold text-base-content mb-4">SQL Query</h2>
                 
-                <div className="mb-4 p-3 bg-accent-primary/10 border border-accent-primary/20 rounded-lg">
-                  <p className="text-sm font-medium text-text-secondary mb-2">
+                <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                  <p className="text-sm font-medium text-base-content/70 mb-2">
                     💡 Dynamic Query Templates
                   </p>
-                  <p className="text-xs text-text-tertiary mb-2">
+                  <p className="text-xs text-base-content/50 mb-2">
                     Use global filters in your query with Nunjucks syntax.
                   </p>
-                  <div className="text-xs text-text-tertiary space-y-1 font-mono bg-bg-primary/50 p-2 rounded border border-border">
-                    <p><span className="text-accent-primary">Variable:</span> <code>{'{{ filters.column_name }}'}</code></p>
-                    <p><span className="text-accent-primary">Conditional:</span> <code>{'{% if filters.status %}AND status = ...{% endif %}'}</code></p>
-                    <p><span className="text-accent-primary">Safe String:</span> <code>{'{{ filters.name | safe_string }}'}</code></p>
-                    <p><span className="text-accent-primary">Safe List:</span> <code>{'IN ({{ filters.categories | safe_list }})'}</code></p>
-                    <p><span className="text-accent-primary">Safe Date:</span> <code>{'{{ filters.date | safe_date }}'}</code></p>
+                  <div className="text-xs text-base-content/50 space-y-1 font-mono bg-base-100/50 p-2 rounded border border-base-300">
+                    <p><span className="text-primary">Variable:</span> <code>{'{{ filters.column_name }}'}</code></p>
+                    <p><span className="text-primary">Conditional:</span> <code>{'{% if filters.status %}AND status = ...{% endif %}'}</code></p>
+                    <p><span className="text-primary">Safe String:</span> <code>{'{{ filters.name | safe_string }}'}</code></p>
+                    <p><span className="text-primary">Safe List:</span> <code>{'IN ({{ filters.categories | safe_list }})'}</code></p>
+                    <p><span className="text-primary">Safe Date:</span> <code>{'{{ filters.date | safe_date }}'}</code></p>
                   </div>
                 </div>
                 <Textarea
@@ -469,7 +460,7 @@ export function DatasetEditorPage() {
                   rows={8}
                   className="font-mono text-sm"
                 />
-                <p className="text-xs text-text-tertiary mt-2">
+                <p className="text-xs text-base-content/50 mt-2">
                   Write a SQL query to define this virtual dataset
                 </p>
               </Card>
@@ -479,7 +470,7 @@ export function DatasetEditorPage() {
             {columns.length > 0 && (
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-text-primary">
+                  <h2 className="text-lg font-semibold text-base-content">
                     Columns ({columns.length})
                   </h2>
                   <Button variant="ghost" size="sm" onClick={handlePreviewData}>
@@ -487,22 +478,22 @@ export function DatasetEditorPage() {
                     Preview Data
                   </Button>
                 </div>
-                <div className="border border-border rounded-lg overflow-hidden">
+                <div className="border border-base-300 rounded-lg overflow-hidden">
                   <div className="max-h-[60vh] overflow-y-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-bg-tertiary sticky top-0">
+                      <thead className="bg-base-300 sticky top-0">
                         <tr>
-                          <th className="px-4 py-2 text-left font-medium text-text-secondary">Column Name</th>
-                          <th className="px-4 py-2 text-right font-medium text-text-secondary">Data Type</th>
+                          <th className="px-4 py-2 text-left font-medium text-base-content/70">Column Name</th>
+                          <th className="px-4 py-2 text-right font-medium text-base-content/70">Data Type</th>
                         </tr>
                       </thead>
                       <tbody>
                         {columns.map((col, i) => (
-                          <tr key={i} className="border-t border-border">
-                            <td className="px-4 py-2 text-text-primary font-mono text-xs">
+                          <tr key={i} className="border-t border-base-300">
+                            <td className="px-4 py-2 text-base-content font-mono text-xs">
                               {col.column_name}
                             </td>
-                            <td className="px-4 py-2 text-right text-text-tertiary uppercase text-xs">
+                            <td className="px-4 py-2 text-right text-base-content/50 uppercase text-xs">
                               {col.data_type}
                             </td>
                           </tr>
@@ -517,11 +508,11 @@ export function DatasetEditorPage() {
             {/* Empty state */}
             {!connectionId && (
               <Card className="p-12 text-center">
-                <Database className="w-16 h-16 mx-auto text-text-tertiary mb-4" />
-                <h3 className="text-xl font-semibold text-text-primary mb-2">
+                <Database className="w-16 h-16 mx-auto text-base-content/50 mb-4" />
+                <h3 className="text-xl font-semibold text-base-content mb-2">
                   Select a Data Source
                 </h3>
-                <p className="text-text-tertiary">
+                <p className="text-base-content/50">
                   Choose a source type and connection from the sidebar to start configuring your dataset.
                 </p>
               </Card>
@@ -529,11 +520,11 @@ export function DatasetEditorPage() {
 
             {connectionId && !tableName && sourceType === 'sql' && datasetType === 'physical' && (
               <Card className="p-12 text-center">
-                <Table className="w-16 h-16 mx-auto text-text-tertiary mb-4" />
-                <h3 className="text-xl font-semibold text-text-primary mb-2">
+                <Table className="w-16 h-16 mx-auto text-base-content/50 mb-4" />
+                <h3 className="text-xl font-semibold text-base-content mb-2">
                   Select a Table
                 </h3>
-                <p className="text-text-tertiary">
+                <p className="text-base-content/50">
                   Choose a schema and table from the sidebar to see its columns.
                 </p>
               </Card>
@@ -565,7 +556,7 @@ export function DatasetEditorPage() {
             placeholder="What does this dataset contain?"
             rows={3}
           />
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+          <div className="flex justify-end gap-3 pt-4 border-t border-base-300">
             <Button type="button" variant="ghost" onClick={() => setShowSaveModal(false)}>
               Cancel
             </Button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { ResourceListing } from "../shared/components/ResourceListing";
 import {
   Plus,
@@ -6,17 +6,19 @@ import {
   Trash2,
   Edit,
   Search,
-  X,
   Star,
   Copy,
-  RefreshCw,
   MoreHorizontal,
-  Timer,
-  Check,
+  ArrowLeft,
+  BarChart3,
+  LineChart,
+  AreaChart,
+  PieChart,
+  Code2,
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
-import { Button } from "../shared/components/ui/Button";
+import GridLayout, { WidthProvider, type Layout } from "react-grid-layout";
+import { WorkspaceHeader, Button } from "../shared/components";
 import { Input, Textarea, Checkbox } from "../shared/components/ui/Input";
 import { Modal, ConfirmModal } from "../shared/components/ui/Modal";
 import { DraggableChart } from "../components/charts/DraggableChart";
@@ -29,7 +31,7 @@ import { useFavoritesStore } from "../store/favoritesStore";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+const FixedGridLayout = WidthProvider(GridLayout);
 
 interface Dashboard {
   id: string;
@@ -85,7 +87,7 @@ const FavoriteButton: React.FC<{ dashboard: Dashboard }> = ({ dashboard }) => {
         });
       }}
       className={`p-2 rounded-lg transition-colors ${
-        favorite ? "text-accent-warning hover:text-accent-warning/80" : "text-text-muted hover:text-text-secondary"
+        favorite ? "text-warning hover:text-warning/80" : "text-base-content/50 hover:text-base-content/70"
       }`}
       title={favorite ? "Remove from favorites" : "Add to favorites"}
     >
@@ -117,7 +119,7 @@ const CloneButton: React.FC<{ dashboardId: string; onClone: () => void }> = ({ d
     <button
       onClick={handleClone}
       disabled={isCloning}
-      className="p-2 rounded-lg text-text-muted hover:text-text-secondary transition-colors disabled:opacity-50"
+      className="p-2 rounded-lg text-base-content/50 hover:text-base-content/70 transition-colors disabled:opacity-50"
       title="Clone dashboard"
     >
       <Copy size={16} className={isCloning ? "animate-pulse" : ""} />
@@ -473,141 +475,34 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose, dashbo
   );
 };
 
-// More Options Dropdown Component for Dashboard View
-interface MoreOptionsDropdownProps {
-  onRefresh: () => void;
-  isRefreshing: boolean;
-  lastRefresh: Date | null;
-  autoRefresh: boolean;
-  setAutoRefresh: (value: boolean) => void;
-  refreshInterval: number;
-  setRefreshInterval: (value: number) => void;
-}
 
-const MoreOptionsDropdown: React.FC<MoreOptionsDropdownProps> = ({
-  onRefresh,
-  isRefreshing,
-  lastRefresh,
-  autoRefresh,
-  setAutoRefresh,
-  refreshInterval,
-  setRefreshInterval,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showIntervalMenu, setShowIntervalMenu] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setShowIntervalMenu(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const intervalOptions = [
-    { value: 0, label: "Off" },
-    { value: 10, label: "10 seconds" },
-    { value: 30, label: "30 seconds" },
-    { value: 60, label: "1 minute" },
-    { value: 300, label: "5 minutes" },
-  ];
-
-  const handleIntervalSelect = (value: number) => {
-    if (value === 0) {
-      setAutoRefresh(false);
-    } else {
-      setAutoRefresh(true);
-      setRefreshInterval(value);
-    }
-    setShowIntervalMenu(false);
-    setIsOpen(false);
-  };
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Last refresh indicator */}
-      {lastRefresh && <span className="text-xs text-[#606070] mr-2">Updated {lastRefresh.toLocaleTimeString()}</span>}
-
-      {/* More Options Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg bg-bg-tertiary border border-border text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"
-        title="More options"
-      >
-        <MoreHorizontal size={20} />
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-56 bg-bg-secondary border border-border rounded-lg shadow-xl z-50 overflow-hidden">
-          {/* Refresh Dashboard */}
-          <button
-            onClick={() => {
-              onRefresh();
-              setIsOpen(false);
-            }}
-            disabled={isRefreshing}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left text-text-primary hover:bg-bg-tertiary transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={16} className={isRefreshing ? "animate-spin text-accent-primary" : ""} />
-            <span>Refresh dashboard</span>
-          </button>
-
-          {/* Auto-refresh Interval (with submenu) */}
-          <div className="relative">
-            <button
-              onClick={() => setShowIntervalMenu(!showIntervalMenu)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left text-text-primary hover:bg-bg-tertiary transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Timer size={16} />
-                <span>Set auto-refresh interval</span>
-              </div>
-              <span className="text-xs text-text-muted">
-                {autoRefresh ? intervalOptions.find((o) => o.value === refreshInterval)?.label : "Off"}
-              </span>
-            </button>
-
-            {/* Submenu */}
-            {showIntervalMenu && (
-              <div className="absolute left-full top-0 ml-1 w-40 bg-bg-secondary border border-border rounded-lg shadow-xl z-50 overflow-hidden">
-                {intervalOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleIntervalSelect(option.value)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-text-primary hover:bg-bg-tertiary transition-colors"
-                  >
-                    <span className="text-sm">{option.label}</span>
-                    {((option.value === 0 && !autoRefresh) || (autoRefresh && option.value === refreshInterval)) && (
-                      <Check size={14} className="text-accent-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-border" />
-
-          {/* Auto-refresh status indicator */}
-          {autoRefresh && (
-            <div className="px-4 py-2 text-xs text-text-muted flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
-              Auto-refreshing every {intervalOptions.find((o) => o.value === refreshInterval)?.label}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+const getChartIcon = (type?: string) => {
+  switch (type?.toLowerCase()) {
+    case "line":
+      return <LineChart size={18} />;
+    case "area":
+      return <AreaChart size={18} />;
+    case "pie":
+      return <PieChart size={18} />;
+    case "bar":
+    default:
+      return <BarChart3 size={18} />;
+  }
 };
+
+const layoutFromCharts = (charts: DashboardChart[]): Layout[] =>
+  charts.map((chart) => ({
+    i: chart.id,
+    x: chart.position_x || 0,
+    y: chart.position_y || 0,
+    w: chart.width || 6,
+    h: chart.height || 4,
+    minW: 3,
+    minH: 3,
+    maxW: 12,
+    maxH: 12,
+  }));
 
 // Dashboard View Page
 export const DashboardViewPage: React.FC = () => {
@@ -621,7 +516,7 @@ export const DashboardViewPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [availableCharts, setAvailableCharts] = useState<any[]>([]);
   const [availableComponents, setAvailableComponents] = useState<any[]>([]);
-  const [layouts, setLayouts] = useState<Record<string, Layout[]>>({});
+  const [layout, setLayout] = useState<Layout[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedChart, setSelectedChart] = useState<DashboardChart | null>(null);
   const [showChartSettings, setShowChartSettings] = useState(false);
@@ -635,11 +530,7 @@ export const DashboardViewPage: React.FC = () => {
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilter[]>([]);
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
-  // Auto-refresh state
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState(30); // seconds
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
 
   // Filter items in drawer based on search
   const filteredCharts = useMemo(() => {
@@ -683,8 +574,13 @@ export const DashboardViewPage: React.FC = () => {
           // Filter by exact value match
           filteredData = filteredData.filter((row: any) => {
             const rowValue = row[column];
-            if (filter.config.multiSelect && Array.isArray(filterValue)) {
-              return filterValue.includes(rowValue);
+            if (filter.config?.multiSelect) {
+              const valArr = Array.isArray(filterValue)
+                ? filterValue
+                : typeof filterValue === 'string'
+                ? filterValue.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : [filterValue];
+              return valArr.map(String).includes(String(rowValue));
             }
             return rowValue === filterValue || String(rowValue) === String(filterValue);
           });
@@ -715,60 +611,65 @@ export const DashboardViewPage: React.FC = () => {
     });
   }, [chartData, dashboardFilters, filterValues, filtersApplied]);
 
-  const fetchDashboard = async (filters: Record<string, any> = {}) => {
+  const layoutTimeoutRef = useRef<any>(null);
+
+  const getResolvedFilters = useCallback((filtersMap: Record<string, any>, filtersList = dashboardFilters) => {
+    const resolved: Record<string, any> = {};
+    filtersList.forEach((f) => {
+      let val = filtersMap[f.id];
+      if (f.type === 'value' && f.config?.multiSelect && typeof val === 'string') {
+        val = val.split(',').map((s: string) => s.trim()).filter(Boolean);
+      }
+      if (val !== undefined && val !== null && val !== "" && !(Array.isArray(val) && val.length === 0)) {
+        resolved[f.column] = val;
+        resolved[f.id] = val;
+      }
+    });
+    return resolved;
+  }, [dashboardFilters]);
+
+  const fetchDashboard = async (filters: Record<string, any> = filterValues) => {
     if (!id) return;
     try {
-      // Build filter context - map filter ID to value, but backend expects column to value?
-      // The plan said: "filterContext[filter.column] = filterValues[filter.id]"
-      
-      // We need to map filterValues (by ID) to actual filter columns if we want cleaner usage in SQL
-      // But we can also just pass the map we have. 
-      // Let's pass the raw filterValues map (by ID) AND a mapped version if we have dashboard filters loaded?
-      // Actually, let's look at how filterValues is structured: { [filterId]: value }
-      
-      // Best to resolve columns here if possible, but dashboard might not be loaded yet on first run.
-      // However, for handleApplyFilters, dashboard IS loaded.
-      
-      let resolvedFilters = filters;
-      
-      // If we have dashboard definitions, map id -> column for easier SQL usage
-      if (dashboardFilters.length > 0) {
-        resolvedFilters = {};
-        dashboardFilters.forEach(f => {
-          if (filters[f.id] !== undefined) {
-             resolvedFilters[f.column] = filters[f.id];
-             // Also keep ID-based mapping for safety/flexibility?
-             resolvedFilters[f.id] = filters[f.id];
+      const dashboardRes = await dashboardsApi.getOne(id);
+      const fetchedDashboard = dashboardRes.data.dashboard;
+      setDashboard(fetchedDashboard);
+
+      let loadedFilters: DashboardFilter[] = [];
+      if (fetchedDashboard.filters && Array.isArray(fetchedDashboard.filters)) {
+        loadedFilters = fetchedDashboard.filters;
+        setDashboardFilters(loadedFilters);
+      }
+
+      // Load saved filters from dashboard and apply default values if present
+      let activeFilters = filters;
+      if (Object.keys(filters).length === 0 && loadedFilters.length > 0) {
+        const defaults: Record<string, any> = {};
+        let hasDefaults = false;
+        loadedFilters.forEach((f) => {
+          if (f.config?.hasDefault && f.config?.defaultValue !== undefined && f.config?.defaultValue !== "") {
+            let defVal = f.config.defaultValue;
+            if (f.type === 'value' && f.config?.multiSelect && typeof defVal === 'string') {
+              defVal = defVal.split(',').map((s: string) => s.trim()).filter(Boolean);
+            }
+            defaults[f.id] = defVal;
+            hasDefaults = true;
           }
         });
+        if (hasDefaults) {
+          activeFilters = defaults;
+          setFilterValues(defaults);
+          setFiltersApplied(true);
+        }
       }
 
-      const [dashboardRes, dataRes] = await Promise.all([
-        dashboardsApi.getOne(id), 
-        dashboardsApi.getData(id, resolvedFilters)
-      ]);
-      setDashboard(dashboardRes.data.dashboard);
+      const resolvedFilters = getResolvedFilters(activeFilters, loadedFilters);
+      const dataRes = await dashboardsApi.getData(id, resolvedFilters);
       setChartData(dataRes.data.chartData);
 
-      // Load saved filters from dashboard
-      if (dashboardRes.data.dashboard.filters && Array.isArray(dashboardRes.data.dashboard.filters)) {
-        setDashboardFilters(dashboardRes.data.dashboard.filters);
-      }
-
-      // Initialize layouts from dashboard charts
-      if (dashboardRes.data.dashboard.charts) {
-        const initialLayout = dashboardRes.data.dashboard.charts.map((chart: DashboardChart) => ({
-          i: chart.id,
-          x: chart.position_x || 0,
-          y: chart.position_y || 0,
-          w: chart.width || 6,
-          h: chart.height || 4,
-          minW: 3,
-          minH: 3,
-          maxW: 12,
-          maxH: 12,
-        }));
-        setLayouts({ lg: initialLayout });
+      // Initialize layout from dashboard charts
+      if (fetchedDashboard.charts) {
+        setLayout(layoutFromCharts(fetchedDashboard.charts));
       }
     } catch (error) {
       addToast("error", "Failed to load dashboard");
@@ -796,92 +697,122 @@ export const DashboardViewPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDashboard();
+    setFilterValues({});
+    setFiltersApplied(false);
+    fetchDashboard({});
     fetchAvailableCharts();
     fetchAvailableComponents();
   }, [id]);
 
-  // Force grid to recalculate width when edit mode or filters sidebar changes
+  // Smoothly recalculate grid width during and after sidebar / edit mode transition
   useEffect(() => {
-    // Small delay to let DOM update first
-    const timer = setTimeout(() => {
+    const interval = setInterval(() => {
       window.dispatchEvent(new Event("resize"));
-    }, 100);
-    return () => clearTimeout(timer);
+    }, 50);
+
+    const timer = setTimeout(() => {
+      clearInterval(interval);
+      window.dispatchEvent(new Event("resize"));
+    }, 350);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
   }, [isEditMode, filtersOpen]);
 
-  // Auto-refresh effect
-  useEffect(() => {
-    if (!autoRefresh || !id) return;
 
-    const refreshData = async () => {
-      setIsRefreshing(true);
-      try {
-        const dataRes = await dashboardsApi.getData(id);
-        setChartData(dataRes.data.chartData);
-        setLastRefresh(new Date());
-      } catch (error) {
-        console.error("Auto-refresh failed:", error);
-      } finally {
-        setIsRefreshing(false);
+
+  const pendingLayoutRef = useRef<Layout[] | null>(null);
+
+  const saveLayoutChanges = useCallback(
+    async (layout: Layout[]) => {
+      if (!id || !dashboard?.charts) return;
+
+      // Filter items that actually changed position or size
+      const changedItems = layout.filter((item) => {
+        const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i);
+        if (!chart) return false;
+        const currX = chart.position_x ?? 0;
+        const currY = chart.position_y ?? 0;
+        const currW = chart.width ?? 6;
+        const currH = chart.height ?? 4;
+        return item.x !== currX || item.y !== currY || item.w !== currW || item.h !== currH;
+      });
+
+      if (changedItems.length === 0) {
+        return;
       }
-    };
 
-    const intervalId = setInterval(refreshData, refreshInterval * 1000);
-    return () => clearInterval(intervalId);
-  }, [autoRefresh, refreshInterval, id]);
-
-  // Manual refresh function
-  const handleManualRefresh = async () => {
-    if (!id || isRefreshing) return;
-    setIsRefreshing(true);
-    try {
-      const dataRes = await dashboardsApi.getData(id);
-      setChartData(dataRes.data.chartData);
-      setLastRefresh(new Date());
-      addToast("success", "Dashboard refreshed");
-    } catch (error) {
-      addToast("error", "Failed to refresh dashboard");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const handleLayoutChange = useCallback(
-    async (layout: Layout[], allLayouts: Record<string, Layout[]>) => {
-      setLayouts(allLayouts);
-
-      // Debounce API calls to avoid too many requests
-      if (isUpdating) return;
       setIsUpdating(true);
 
-      setTimeout(async () => {
-        if (!id || !dashboard?.charts) return;
-
-        try {
-          const updatePromises = layout.map((item) => {
-            const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i);
-            if (chart) {
-              return dashboardsApi.updateChart(id, chart.id, {
-                position_x: item.x,
-                position_y: item.y,
-                width: item.w,
-                height: item.h,
-              });
-            }
-            return Promise.resolve();
+      try {
+        const updatePromises = changedItems.map((item) => {
+          const chart = dashboard.charts!.find((c: DashboardChart) => c.id === item.i)!;
+          return dashboardsApi.updateChart(id, chart.id, {
+            position_x: item.x,
+            position_y: item.y,
+            width: item.w,
+            height: item.h,
           });
+        });
 
-          await Promise.all(updatePromises);
-          addToast("success", "Layout updated");
-        } catch (error) {
-          addToast("error", "Failed to update layout");
-        } finally {
-          setIsUpdating(false);
-        }
+        await Promise.all(updatePromises);
+
+        // Keep dashboard state in sync with what was just persisted so the
+        // view reflects the real saved layout without needing a refetch.
+        const updatedCharts = dashboard.charts.map((chart) => {
+          const changed = changedItems.find((item) => item.i === chart.id);
+          return changed
+            ? { ...chart, position_x: changed.x, position_y: changed.y, width: changed.w, height: changed.h }
+            : chart;
+        });
+        setDashboard((prev) => (prev ? { ...prev, charts: updatedCharts } : prev));
+
+        setLayout(layoutFromCharts(updatedCharts));
+
+        addToast("success", "Layout updated");
+      } catch (error) {
+        addToast("error", "Failed to update layout");
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [id, dashboard, addToast]
+  );
+
+  // Flushes a pending debounced save immediately. Needed before navigating
+  // away from edit mode, since a plain setTimeout doesn't await before unmount
+  // and would otherwise persist against a stale closure after the view page
+  // has already refetched.
+  const flushPendingLayoutSave = useCallback(async () => {
+    if (layoutTimeoutRef.current) {
+      clearTimeout(layoutTimeoutRef.current);
+      layoutTimeoutRef.current = null;
+    }
+    if (pendingLayoutRef.current) {
+      const layout = pendingLayoutRef.current;
+      pendingLayoutRef.current = null;
+      await saveLayoutChanges(layout);
+    }
+  }, [saveLayoutChanges]);
+
+  const handleLayoutChange = useCallback(
+    (layout: Layout[]) => {
+      setLayout(layout);
+      pendingLayoutRef.current = layout;
+
+      if (layoutTimeoutRef.current) {
+        clearTimeout(layoutTimeoutRef.current);
+      }
+
+      layoutTimeoutRef.current = setTimeout(() => {
+        layoutTimeoutRef.current = null;
+        pendingLayoutRef.current = null;
+        saveLayoutChanges(layout);
       }, 500);
     },
-    [id, dashboard, isUpdating, addToast]
+    [saveLayoutChanges]
   );
 
   const handleAddChart = async (chartId: string) => {
@@ -987,8 +918,6 @@ export const DashboardViewPage: React.FC = () => {
         console.error("Failed to delete filter:", error);
         addToast("error", "Failed to delete filter");
         setDashboardFilters(oldFilters); 
-        // Note: We don't necessarily need to revert filterValues since the filter is back, 
-        // but the value might be lost. That's acceptable for a revert scenario.
       }
     }
   };
@@ -1012,25 +941,28 @@ export const DashboardViewPage: React.FC = () => {
     }
   };
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = (newValues?: Record<string, any>) => {
+    const appliedValues = newValues !== undefined ? newValues : filterValues;
+    setFilterValues(appliedValues);
     setFiltersApplied(true);
     addToast("success", "Filters applied");
-    fetchDashboard(filterValues);
+    fetchDashboard(appliedValues);
   };
 
   const handleClearFilters = () => {
     setFilterValues({});
     setFiltersApplied(false);
     addToast("info", "Filters cleared");
+    fetchDashboard({});
   };
 
   const handleFilterValueChange = (filterId: string, value: any) => {
-    setFilterValues({ ...filterValues, [filterId]: value });
+    setFilterValues((prev) => ({ ...prev, [filterId]: value }));
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-full">
         <div className="spinner" />
       </div>
     );
@@ -1038,15 +970,15 @@ export const DashboardViewPage: React.FC = () => {
 
   if (!dashboard) {
     return (
-      <div className="text-center py-12">
-        <p className="text-[#a0a0b0]">Dashboard not found</p>
+      <div className="flex items-center justify-center h-full">
+        <p className="text-base-content/50">Dashboard not found</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col relative bg-base-100 overflow-visible">
-      {/* Filters Sidebar - at root level, fixed position */}
+    <div className="flex h-full overflow-hidden bg-base-100">
+      {/* Filters Sidebar */}
       <FiltersSidebar
         isOpen={filtersOpen}
         onToggle={handleToggleFilters}
@@ -1060,106 +992,81 @@ export const DashboardViewPage: React.FC = () => {
         onFilterValueChange={handleFilterValueChange}
       />
 
-      {/* Main wrapper with left margin for sidebar */}
-      <div
-        className={`flex-1 flex flex-col ${
-          filtersOpen ? "ml-72" : "ml-10"
-        } transition-all duration-200 h-full overflow-visible`}
-      >
-        {/* Fixed Header */}
-        <div className="navbar bg-base-100/95 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-300 min-h-14">
-          <div className="flex-1 flex items-center gap-4">
-            <div className="p-2.5 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <LayoutDashboard size={22} />
-            </div>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-xl font-bold leading-tight text-base-content">{dashboard.name}</h1>
-              {dashboard.description && (
-                <p className="opacity-50 text-[10px] uppercase tracking-wider font-bold truncate max-w-md mt-0.5">
-                  {dashboard.description}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex-none flex items-center gap-3">
-            {!isEditMode && (
-              <MoreOptionsDropdown
-                onRefresh={handleManualRefresh}
-                isRefreshing={isRefreshing}
-                lastRefresh={lastRefresh}
-                autoRefresh={autoRefresh}
-                setAutoRefresh={setAutoRefresh}
-                refreshInterval={refreshInterval}
-                setRefreshInterval={setRefreshInterval}
-              />
-            )}
-
-            {isEditMode ? (
-              <button className="btn btn-secondary btn-sm gap-2" onClick={() => navigate(`/dashboard/${id}`)}>
-                <X size={16} />
-                <span className="hidden sm:inline">Exit Edit Mode</span>
-              </button>
-            ) : (
-              <button className="btn btn-primary btn-sm gap-2" onClick={() => navigate(`/dashboard/${id}/edit`)}>
-                <Edit size={16} />
-                <span className="hidden sm:inline">Edit dashboard</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex overflow-visible">
-          <div className="transition-all duration-200 p-6 flex-1">
-            {dashboard.charts && dashboard.charts.length > 0 ? (
-              <div className="dashboard-grid w-full">
-                <ResponsiveGridLayout
-                  key={`grid-${isEditMode ? "edit" : "view"}-${filtersOpen ? "filters" : "nofilters"}`}
-                  className="layout"
-                  layouts={layouts}
-                  breakpoints={{ lg: 1200, md: 900, sm: 600, xs: 400, xxs: 0 }}
-                  cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
-                  rowHeight={100}
-                  onLayoutChange={isEditMode ? handleLayoutChange : undefined}
-                  isDraggable={isEditMode}
-                  isResizable={isEditMode}
-                  useCSSTransforms={true}
-                  compactType="vertical"
-                  preventCollision={false}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <WorkspaceHeader
+          leading={
+            <button
+              type="button"
+              onClick={async () => {
+                await flushPendingLayoutSave();
+                navigate("/dashboards");
+              }}
+              className="btn btn-ghost btn-sm btn-square"
+              aria-label="Back to dashboards"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          }
+          title={dashboard.name}
+          description={dashboard.description || undefined}
+          actions={
+            <>
+              {isUpdating && <span className="text-xs text-primary animate-pulse mr-2">Saving layout...</span>}
+              {isEditMode ? (
+                <Button
+                  variant="ghost"
+                  onClick={async () => {
+                    await flushPendingLayoutSave();
+                    navigate(`/dashboard/${id}`);
+                  }}
                 >
-                  {dashboard.charts.map((item) => {
-                    const itemId = item.component_id || item.chart_id;
-                    const data = filteredChartData.find((d) => d.chartId === itemId);
-                    const itemHeight = (item.height || 4) * 100 - 50;
+                  Exit Edit
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => navigate(`/dashboard/${id}/edit`)}
+                  className="btn-square"
+                  aria-label="Edit Dashboard"
+                  title="Edit Dashboard"
+                >
+                  <Edit size={18} />
+                </Button>
+              )}
+            </>
+          }
+        />
 
-                    if (item.type === "component" || item.component_id) {
-                      return (
-                        <div key={item.id} className="grid-item">
-                          <DraggableComponent
-                            id={item.id}
-                            name={item.name}
-                            htmlContent={item.html_content || ""}
-                            cssContent={item.css_content}
-                            jsContent={item.js_content}
-                            data={data?.data}
-                            error={data?.error}
-                            onRemove={isEditMode ? handleRemoveChart : undefined}
-                            onSettings={isEditMode ? handleChartSettings : undefined}
-                            height={itemHeight}
-                          />
-                        </div>
-                      );
-                    }
+        <div className="flex-1 overflow-auto p-6">
+          {dashboard.charts && dashboard.charts.length > 0 ? (
+            <div className="dashboard-grid w-full">
+              <FixedGridLayout
+                key="dashboard-grid"
+                className="layout"
+                layout={layout}
+                cols={12}
+                rowHeight={100}
+                onLayoutChange={isEditMode ? handleLayoutChange : undefined}
+                isDraggable={isEditMode}
+                isResizable={isEditMode}
+                useCSSTransforms={true}
+                compactType="vertical"
+                preventCollision={false}
+              >
+                {dashboard.charts.map((item) => {
+                  const itemId = item.component_id || item.chart_id;
+                  const data = filteredChartData.find((d) => d.chartId === itemId);
+                  const itemHeight = (item.height || 4) * 100 - 50;
 
+                  if (item.type === "component" || item.component_id) {
                     return (
                       <div key={item.id} className="grid-item">
-                        <DraggableChart
+                        <DraggableComponent
                           id={item.id}
                           name={item.name}
-                          chartType={item.chart_type || "bar"}
+                          htmlContent={item.html_content || ""}
+                          cssContent={item.css_content}
+                          jsContent={item.js_content}
                           data={data?.data}
-                          config={data?.config || item.config}
                           error={data?.error}
                           onRemove={isEditMode ? handleRemoveChart : undefined}
                           onSettings={isEditMode ? handleChartSettings : undefined}
@@ -1167,115 +1074,151 @@ export const DashboardViewPage: React.FC = () => {
                         />
                       </div>
                     );
-                  })}
-                </ResponsiveGridLayout>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-32 opacity-20">
-                <LayoutDashboard size={80} className="mb-6" />
-                <h3 className="text-2xl font-bold mb-2">Empty Dashboard</h3>
-                <p className="max-w-md text-center mb-8">
-                  {isEditMode
-                    ? "Add charts or components from the right panel to build your dashboard."
-                    : "This dashboard doesn't have any content yet. Click edit to add some."}
-                </p>
-                {!isEditMode && (
-                  <button className="btn btn-primary" onClick={() => navigate(`/dashboard/${id}/edit`)}>
-                    <Edit size={18} /> Edit Dashboard
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+                  }
 
-          {/* Right Sidebar Panel - Only in Edit Mode */}
-          {isEditMode && (
-            <div className="sticky top-20 self-start w-80 h-[calc(100vh-144px)] bg-base-200 border-l border-base-300 flex flex-col z-40 animate-in slide-in-from-right duration-300">
-              {/* Tabs Header */}
-              <div className="tabs tabs-boxed rounded-none bg-base-300/50 p-1">
-                <button
-                  onClick={() => setDrawerTab("charts")}
-                  className={`tab flex-1 transition-all ${
-                    drawerTab === "charts" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
-                  }`}
-                >
-                  Charts
+                  return (
+                    <div key={item.id} className="grid-item">
+                      <DraggableChart
+                        id={item.id}
+                        name={item.name}
+                        chartType={item.chart_type || "bar"}
+                        data={data?.data}
+                        config={data?.config || item.config}
+                        error={data?.error}
+                        onRemove={isEditMode ? handleRemoveChart : undefined}
+                        onSettings={isEditMode ? handleChartSettings : undefined}
+                        height={itemHeight}
+                      />
+                    </div>
+                  );
+                })}
+              </FixedGridLayout>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-32 opacity-20">
+              <LayoutDashboard size={80} className="mb-6" />
+              <h3 className="text-2xl font-bold mb-2">Empty Dashboard</h3>
+              <p className="max-w-md text-center mb-8">
+                {isEditMode
+                  ? "Add charts or components from the right panel to build your dashboard."
+                  : "This dashboard doesn't have any content yet. Click edit to add some."}
+              </p>
+              {!isEditMode && (
+                <button className="btn btn-primary" onClick={() => navigate(`/dashboard/${id}/edit`)}>
+                  <Edit size={18} /> Edit Dashboard
                 </button>
-                <button
-                  onClick={() => setDrawerTab("components")}
-                  className={`tab flex-1 transition-all ${
-                    drawerTab === "components" ? "tab-active bg-primary! text-primary-content!" : "text-base-content/60"
-                  }`}
-                >
-                  Components
-                </button>
-              </div>
-
-              <div className="flex-1 flex flex-col min-h-0 bg-base-100">
-                {/* Create New Link */}
-                <div className="p-4 border-b border-base-200">
-                  <button
-                    onClick={() => navigate(drawerTab === "charts" ? "/charts" : "/components")}
-                    className="btn btn-outline btn-primary btn-sm btn-block gap-2"
-                  >
-                    <Plus size={16} />
-                    New {drawerTab === "charts" ? "Chart" : "Component"}
-                  </button>
-                </div>
-
-                {/* Search */}
-                <div className="p-4 bg-base-200/50">
-                  <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
-                    <input
-                      type="text"
-                      placeholder={`Search ${drawerTab}...`}
-                      value={drawerSearch}
-                      onChange={(e) => setDrawerSearch(e.target.value)}
-                      className="input input-bordered input-sm w-full pl-9"
-                    />
-                  </div>
-                </div>
-
-                {/* Items List */}
-                <div className="flex-1 overflow-y-auto">
-                  <ul className="menu menu-md p-2">
-                    {drawerTab === "charts" ? (
-                      filteredCharts.length === 0 ? (
-                        <div className="p-8 text-center opacity-40 italic text-sm">No charts found</div>
-                      ) : (
-                        filteredCharts.map((chart) => (
-                          <li key={chart.id}>
-                            <button
-                              onClick={() => handleAddChart(chart.id)}
-                              className="flex flex-col items-start gap-0.5"
-                            >
-                              <span className="font-medium">{chart.name}</span>
-                              <span className="text-[10px] opacity-50 uppercase tracking-tight">
-                                {chart.chart_type}
-                              </span>
-                            </button>
-                          </li>
-                        ))
-                      )
-                    ) : filteredComponents.length === 0 ? (
-                      <div className="p-8 text-center opacity-40 italic text-sm">No components found</div>
-                    ) : (
-                      filteredComponents.map((comp) => (
-                        <li key={comp.id}>
-                          <button onClick={() => handleAddComponent(comp.id)}>
-                            <span className="font-medium">{comp.name}</span>
-                          </button>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {isEditMode && (
+        <div className="w-80 shrink-0 border-l border-base-300 bg-base-100 flex flex-col overflow-hidden">
+          {/* Tabs Header */}
+          <div className="h-14 px-4 flex items-center border-b border-base-300 shrink-0">
+            <div className="flex items-center gap-1 rounded-lg bg-base-200 p-1 w-full">
+              <button
+                type="button"
+                onClick={() => setDrawerTab("charts")}
+                className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  drawerTab === "charts"
+                    ? "bg-primary text-primary-content"
+                    : "text-base-content/70 hover:text-base-content"
+                }`}
+              >
+                Charts
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrawerTab("components")}
+                className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  drawerTab === "components"
+                    ? "bg-primary text-primary-content"
+                    : "text-base-content/70 hover:text-base-content"
+                }`}
+              >
+                Components
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col min-h-0 bg-base-100 p-4 space-y-3">
+            {/* Create New Link */}
+            <button
+              type="button"
+              onClick={() => navigate(drawerTab === "charts" ? "/charts" : "/components")}
+              className="btn btn-outline btn-primary btn-sm btn-block gap-2"
+            >
+              <Plus size={16} />
+              New {drawerTab === "charts" ? "Chart" : "Component"}
+            </button>
+
+            {/* Search */}
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" />
+              <input
+                type="text"
+                placeholder={`Search ${drawerTab}...`}
+                value={drawerSearch}
+                onChange={(e) => setDrawerSearch(e.target.value)}
+                className="input input-bordered input-sm w-full pl-9 bg-base-100 text-base-content"
+              />
+            </div>
+
+            {/* Items List */}
+            <div className="flex-1 overflow-y-auto space-y-2">
+              {drawerTab === "charts" ? (
+                filteredCharts.length === 0 ? (
+                  <div className="text-base-content/50 text-sm text-center py-8">No charts found</div>
+                ) : (
+                  filteredCharts.map((chart) => (
+                    <button
+                      key={chart.id}
+                      type="button"
+                      onClick={() => handleAddChart(chart.id)}
+                      className="w-full flex items-center gap-3 rounded-lg border border-base-300 bg-base-200 p-3 text-left hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        {getChartIcon(chart.chart_type)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-base-content truncate">{chart.name}</div>
+                        <div className="text-xs text-base-content/50 uppercase tracking-wide truncate">
+                          {chart.chart_type}
+                        </div>
+                      </div>
+                      <Plus size={16} className="text-base-content/40 shrink-0" />
+                    </button>
+                  ))
+                )
+              ) : filteredComponents.length === 0 ? (
+                <div className="text-base-content/50 text-sm text-center py-8">No components found</div>
+              ) : (
+                filteredComponents.map((comp) => (
+                  <button
+                    key={comp.id}
+                    type="button"
+                    onClick={() => handleAddComponent(comp.id)}
+                    className="w-full flex items-center gap-3 rounded-lg border border-base-300 bg-base-200 p-3 text-left hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Code2 size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-base-content truncate">{comp.name}</div>
+                      <div className="text-xs text-base-content/50 uppercase tracking-wide truncate">
+                        Custom Component
+                      </div>
+                    </div>
+                    <Plus size={16} className="text-base-content/40 shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chart Dimensions Settings Modal */}
       <Modal
@@ -1289,7 +1232,7 @@ export const DashboardViewPage: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Width (Columns: 3-12)</label>
+            <label className="block text-sm font-medium text-base-content mb-2">Width (Columns: 3-12)</label>
             <Input
               type="number"
               min={3}
@@ -1306,7 +1249,7 @@ export const DashboardViewPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Height (Rows: 3-12)</label>
+            <label className="block text-sm font-medium text-base-content mb-2">Height (Rows: 3-12)</label>
             <Input
               type="number"
               min={3}
@@ -1322,8 +1265,8 @@ export const DashboardViewPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-4 rounded-lg bg-bg-tertiary border border-border">
-            <p className="text-sm text-text-muted">
+          <div className="p-4 rounded-lg bg-base-300 border border-base-300">
+            <p className="text-sm text-base-content/50">
               💡 Tip: You can also resize charts by dragging the bottom-right corner or drag charts to rearrange them.
             </p>
           </div>

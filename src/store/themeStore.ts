@@ -57,9 +57,9 @@ const getInitialThemeId = () => {
 
 const getInitialFont = () => {
   try {
-    return localStorage.getItem("theme_font") || "system";
+    return localStorage.getItem("theme_font") || "outfit";
   } catch {
-    return "system";
+    return "outfit";
   }
 };
 

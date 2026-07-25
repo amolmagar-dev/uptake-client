@@ -23,27 +23,35 @@ export const SeriesSettings: React.FC<SeriesSettingsProps> = ({ config, onChange
   };
 
   if (seriesNames.length === 0) {
-      return <div className="text-xs text-text-tertiary italic">Add metrics to configure series</div>;
+      return <div className="text-xs text-base-content/50 italic">Add metrics to configure series</div>;
   }
 
   return (
     <div className="space-y-4">
-      <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">Series Override</h4>
+      <h4 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider mb-3">Series Override</h4>
       
       <div className="space-y-4">
         {seriesNames.map((series) => {
             const currentConfig = config.seriesParams?.[series] || {};
 
             return (
-                <div key={series} className="p-3 border border-border rounded-lg bg-bg-tertiary/20">
-                    <h5 className="text-xs font-bold text-text-primary mb-2 truncate">{series}</h5>
+                <div key={series} className="p-3 border border-base-300 rounded-lg bg-base-300/20">
+                    <h5 className="text-xs font-bold text-base-content mb-2 truncate">{series}</h5>
                     
                     <div className="grid grid-cols-2 gap-2 mb-2">
                         <div>
-                             <label className="block text-[10px] text-text-tertiary mb-1">Chart Type</label>
+                             <label className="block text-[10px] text-base-content/50 mb-1">Chart Type</label>
                              <Select
                                 value={currentConfig.type || 'default'}
-                                onChange={(val: string | null) => updateSeries(series, { type: val === 'default' ? undefined : val })}
+                                onChange={(val: string | null) => {
+                                  const nextConfig = { ...currentConfig };
+                                  if (!val || val === 'default') {
+                                    delete nextConfig.type;
+                                  } else {
+                                    nextConfig.type = val;
+                                  }
+                                  updateSeries(series, nextConfig);
+                                }}
                                 options={[
                                     { value: 'default', label: 'Default' },
                                     { value: 'bar', label: 'Bar' },
@@ -55,7 +63,7 @@ export const SeriesSettings: React.FC<SeriesSettingsProps> = ({ config, onChange
                              />
                         </div>
                         <div>
-                             <label className="block text-[10px] text-text-tertiary mb-1">Stack Group</label>
+                             <label className="block text-[10px] text-base-content/50 mb-1">Stack Group</label>
                              <Select
                                 value={currentConfig.stack || 'none'}
                                 onChange={(val: string | null) => updateSeries(series, { stack: val === 'none' ? undefined : val })}

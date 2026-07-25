@@ -22,19 +22,19 @@ export const LegendSettings: React.FC<LegendSettingsProps> = ({ config, onChange
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Legend</h4>
+        <h4 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider">Legend</h4>
         <input
           type="checkbox"
           checked={config.legend?.show !== false}
           onChange={(e) => updateLegend({ show: e.target.checked })}
-          className="w-4 h-4 rounded border-border text-accent-primary focus:ring-accent-primary"
+          className="checkbox checkbox-primary checkbox-sm"
         />
       </div>
 
       {config.legend?.show !== false && (
-        <div className="space-y-3 pl-2 border-l-2 border-border/50">
+        <div className="space-y-3 pl-2 border-l-2 border-base-300/50">
           <div>
-            <label className="block text-xs text-text-tertiary mb-1">Orientation</label>
+            <label className="block text-xs text-base-content/50 mb-1">Orientation</label>
             <Select
               value={config.legend?.orient || 'horizontal'}
               onChange={(val: string | null) => updateLegend({ orient: val as any })}
@@ -47,7 +47,7 @@ export const LegendSettings: React.FC<LegendSettingsProps> = ({ config, onChange
 
           <div className="grid grid-cols-2 gap-3">
              <div>
-            <label className="block text-xs text-text-tertiary mb-1">Horizontal Pos</label>
+            <label className="block text-xs text-base-content/50 mb-1">Horizontal Pos</label>
             <Select
               value={config.legend?.left?.toString() || 'center'}
               onChange={(val: string | null) => updateLegend({ left: val as any })}
@@ -59,7 +59,7 @@ export const LegendSettings: React.FC<LegendSettingsProps> = ({ config, onChange
             />
           </div>
           <div>
-            <label className="block text-xs text-text-tertiary mb-1">Vertical Pos</label>
+            <label className="block text-xs text-base-content/50 mb-1">Vertical Pos</label>
             <Select
               value={config.legend?.top?.toString() || 'bottom'}
               onChange={(val: string | null) => updateLegend({ top: val as any })}

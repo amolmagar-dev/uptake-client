@@ -1,7 +1,6 @@
 /**
  * AI Workspace Page
- * Main interface for conversational AI interactions with database
- * Supports context selection and follows chat UX best practices
+ * Matching exact background & card structure of image.png
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -9,20 +8,22 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   Send,
-  Sparkles,
   Bot,
   User,
-  Trash2,
   RefreshCw,
-  Database,
   Code2,
   BarChart3,
   LayoutDashboard,
+  Database,
   Clock,
   Command,
   ChevronRight,
   Mic,
   MicOff,
+  Copy,
+  Check,
+  Plus,
+  X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { aiApi, type ChatMessage, type AIContext } from "../lib/api";
@@ -32,68 +33,33 @@ import type { BaseWidget, WidgetAction } from "../shared/types/widgets";
 
 interface EnhancedChatMessage extends ChatMessage {
   timestamp: string;
-  widget?: BaseWidget; // NEW: Support for rendering widgets in messages
+  widget?: BaseWidget;
 }
 
 export const AIWorkspacePage: React.FC = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<EnhancedChatMessage[]>([
-    {
-      role: "assistant",
-      content:
-        "Hello! I'm your AI data assistant. I can help you explore your databases, query your data using SQL, create charts, or build dashboards. What would you like to do today?",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    },
-  ]);
+  const [messages, setMessages] = useState<EnhancedChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCommands, setShowCommands] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Context Selection States
   const [selectedContexts, setSelectedContexts] = useState<SelectedContext[]>([]);
   const [showContextSelector, setShowContextSelector] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   // Voice recognition states
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
-  const [showRightSidebar, setShowRightSidebar] = useState(true);
-
-  const promptChips = [
-    { label: "Explore Datasets", icon: Database, prompt: "Show me all available datasets and their tables." },
-    { label: "Generate SQL", icon: Code2, prompt: "Help me write a SQL query to analyze my data." },
-    { label: "Create Chart", icon: BarChart3, prompt: "I want to create a new chart from my sales data." },
-    { label: "Build Dashboard", icon: LayoutDashboard, prompt: "How do I build a dashboard with multiple charts?" },
-  ];
-
   const commands = [
     { cmd: "/sql", description: "Open SQL Editor", action: () => navigate("/sql-editor"), icon: Code2 },
     { cmd: "/chart", description: "Go to Charts", action: () => navigate("/charts"), icon: BarChart3 },
-    { cmd: "/dashboard", description: "View Dashboards", action: () => navigate("/"), icon: LayoutDashboard },
+    { cmd: "/dashboard", description: "View Dashboards", action: () => navigate("/dashboards"), icon: LayoutDashboard },
     { cmd: "/datasets", description: "Manage Datasets", action: () => navigate("/datasets"), icon: Database },
-  ];
-
-  const quickActions = [
-    { label: "Preview data", icon: Database },
-    { label: "Show statistics", icon: BarChart3 },
-    { label: "Find null values", icon: Code2 },
-    { label: "Analyze trends", icon: BarChart3 },
-    { label: "Create dashboard", icon: LayoutDashboard },
-  ];
-
-  const activeTasks = [
-    { name: "Sales Analysis Dashboard", status: "In Progress", progress: 60 },
-    { name: "Data Quality Check", status: "Completed", progress: 100 },
-    { name: "Monthly Report", status: "Queued", progress: 0 },
-  ];
-
-  const suggestedSteps = [
-    "Group by Status",
-    "Calculate Averages",
-    "Time Series Chart",
-    "Export Report",
   ];
 
   // Auto-scroll to bottom
@@ -103,12 +69,10 @@ export const AIWorkspacePage: React.FC = () => {
     }
   }, [messages, loading]);
 
-  // Track if user wants to keep listening (to handle auto-restart)
   const shouldKeepListeningRef = useRef(false);
 
-  // Initialize speech recognition
+  // Speech recognition initialization
   useEffect(() => {
-    // Check if browser supports the Web Speech API
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       setSpeechSupported(true);
@@ -128,7 +92,6 @@ export const AIWorkspacePage: React.FC = () => {
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        // Don't stop on 'no-speech' error, just ignore it
         if (event.error !== 'no-speech' && event.error !== 'aborted') {
           shouldKeepListeningRef.current = false;
           setIsListening(false);
@@ -136,7 +99,6 @@ export const AIWorkspacePage: React.FC = () => {
       };
 
       recognition.onend = () => {
-        // Auto-restart if user didn't manually stop
         if (shouldKeepListeningRef.current) {
           try {
             recognition.start();
@@ -161,12 +123,10 @@ export const AIWorkspacePage: React.FC = () => {
     };
   }, []);
 
-  // Toggle voice recording
   const toggleListening = useCallback(() => {
     if (!recognitionRef.current) return;
 
     if (isListening) {
-      // User manually stopping
       shouldKeepListeningRef.current = false;
       recognitionRef.current.stop();
       setIsListening(false);
@@ -182,11 +142,10 @@ export const AIWorkspacePage: React.FC = () => {
     }
   }, [isListening]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInput(value);
 
-    // Show commands if user starts with /
     if (value.startsWith("/")) {
       setShowCommands(true);
     } else {
@@ -204,7 +163,6 @@ export const AIWorkspacePage: React.FC = () => {
     const textToSend = customPrompt || input.trim();
     if (!textToSend || loading) return;
 
-    // Check if input is a command
     const matchedCmd = commands.find((c) => textToSend.toLowerCase().startsWith(c.cmd));
     if (matchedCmd && !customPrompt) {
       executeCommand(matchedCmd);
@@ -221,11 +179,11 @@ export const AIWorkspacePage: React.FC = () => {
     setMessages(nextMessages);
     setInput("");
     setShowCommands(false);
+    setShowContextSelector(false);
     setLoading(true);
     setError(null);
 
     try {
-      // Map selected contexts to AIContext format
       const aiContexts: AIContext[] = selectedContexts.map((ctx) => ({
         type: ctx.type,
         id: ctx.id,
@@ -239,14 +197,12 @@ export const AIWorkspacePage: React.FC = () => {
         aiContexts.length > 0 ? aiContexts : undefined
       );
       const reply = response.data?.message || "No response received.";
-      const widgets = response.data?.widgets || null; // NEW: Extract widget data
+      const widgets = response.data?.widgets || null;
 
-      // Create assistant message with widget support
       const assistantMessage: EnhancedChatMessage = {
         role: "assistant",
         content: reply,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        // NEW: Include first widget if available (can be extended to support multiple)
         widget: widgets && widgets.length > 0 ? widgets[0] : undefined,
       };
 
@@ -259,14 +215,7 @@ export const AIWorkspacePage: React.FC = () => {
     }
   };
 
-  /**
-   * Handle widget action execution
-   * Executes client tools based on widget action definitions
-   */
   const handleWidgetAction = (action: WidgetAction) => {
-    console.log("[AIWorkspace] Widget action triggered:", action);
-
-    // Handle client tool execution
     if (action.clientTool) {
       switch (action.clientTool) {
         case "navigate_to_page":
@@ -274,7 +223,6 @@ export const AIWorkspacePage: React.FC = () => {
             navigate(`/${action.params.page}`, { state: action.params.params });
           }
           break;
-
         case "add_to_context":
           if (action.params?.type && action.params?.id && action.params?.name) {
             setSelectedContexts(prev => [...prev, {
@@ -285,486 +233,298 @@ export const AIWorkspacePage: React.FC = () => {
             }]);
           }
           break;
-
-        case "show_notification":
-          // For now, just log. You can integrate with a toast library later
-          console.log(`[Notification ${action.params?.type}]:`, action.params?.message);
-          break;
-
         default:
           console.warn("Unknown client tool:", action.clientTool);
       }
     }
   };
 
-  const clearChat = () => {
-    setMessages([
-      {
-        role: "assistant",
-        content:
-          "Hello! I'm your AI data assistant. I can help you explore your databases, query your data using SQL, create charts, or build dashboards. What would you like to do today?",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
+  const copyToClipboard = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  const removeSelectedContext = (ctx: SelectedContext) => {
+    setSelectedContexts(prev => prev.filter(c => !(c.type === ctx.type && c.id === ctx.id)));
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-base-200/30 overflow-hidden">
-      {/* Page Header */}
-      <div className="flex items-center justify-between gap-4 shrink-0 px-4 py-3 bg-base-100 border-b border-base-300">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-sm border border-primary/20">
-            <Sparkles size={20} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black tracking-tight text-base-content">Data Analysis Session</h1>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            className="btn btn-ghost btn-sm gap-2 text-base-content/40 hover:text-error transition-all hover:bg-error/10"
-            onClick={clearChat}
-            aria-label="Clear chat session"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Three-column layout */}
-      <div className="flex-1 flex gap-0 overflow-hidden">
-        {/* LEFT SIDEBAR */}
-        <div
-          className={`${
-            showLeftSidebar ? "w-64" : "w-0"
-          } bg-base-100 border-r border-base-300 flex flex-col transition-all duration-300 overflow-hidden`}
-        >
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* Active Context */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-black uppercase tracking-widest opacity-40">Active Context</h2>
-                <span className="badge badge-xs">1/5</span>
-              </div>
-              <div className="bg-base-200/50 rounded-lg p-3 border border-base-300">
-                <div className="flex items-start gap-3">
-                  <Database className="w-8 h-8 text-primary mt-1" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm truncate">UAT-AESM</div>
-                    <div className="text-xs opacity-50 truncate">PostgreSQL</div>
-                    <div className="text-xs text-primary mt-1">2,345 rows with no null values</div>
+    <div className="h-full w-full bg-base-100 flex flex-col overflow-hidden relative min-h-0 font-sans antialiased text-base-content">
+      {/* Center Main View Canvas */}
+      <main className="flex-1 flex flex-col min-w-0 bg-base-100 overflow-hidden relative">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth custom-scrollbar">
+            <div className="max-w-3xl mx-auto w-full flex flex-col justify-center min-h-full">
+              {messages.length === 0 ? (
+                /* Hero Graphic & Subtitle */
+                <div className="my-auto py-12 flex flex-col items-center text-center animate-in fade-in duration-500">
+                  {/* Glowing purple sphere illustration */}
+                  <div className="relative mb-6 flex items-center justify-center">
+                    <div className="w-44 h-44 rounded-full bg-primary/20 blur-2xl absolute"></div>
+                    
+                    <div className="w-36 h-36 rounded-full bg-gradient-to-tr from-primary via-purple-500 to-indigo-400 shadow-xl flex items-center justify-center relative border border-white/30">
+                      <div className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/30 flex items-center gap-2 text-white shadow-sm">
+                        <div className="w-5 h-5 rounded-md bg-white/30 flex items-center justify-center font-bold text-xs">
+                          ⚡
+                        </div>
+                        <div className="w-16 h-1.5 rounded-full bg-white/60"></div>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Main Title */}
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-base-content tracking-tight mb-2">
+                    Let the Data Speak
+                  </h1>
+
+                  {/* Subtitle */}
+                  <p className="text-base-content/60 text-sm max-w-md font-normal leading-relaxed">
+                    Data-driven dialogues are ready to transform your curiosity into strategic actions.
+                  </p>
                 </div>
-                <button className="btn btn-xs btn-ghost w-full mt-3 opacity-60">+ Add Database / Table</button>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-2">
-              <h2 className="text-xs font-black uppercase tracking-widest opacity-40">Quick Actions</h2>
-              <div className="space-y-1">
-                {quickActions.map((action, idx) => (
-                  <button
-                    key={idx}
-                    className="btn btn-sm btn-ghost w-full justify-start gap-2 text-xs font-medium opacity-70 hover:opacity-100"
-                  >
-                    <action.icon size={14} />
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Active Tasks */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-black uppercase tracking-widest opacity-40">Active Tasks</h2>
-                <button className="btn btn-xs btn-ghost text-primary">+ NEW</button>
-              </div>
-              <div className="space-y-2">
-                {activeTasks.map((task, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-lg border ${
-                      task.status === "In Progress"
-                        ? "bg-primary/5 border-primary/30"
-                        : task.status === "Completed"
-                        ? "bg-success/5 border-success/30 opacity-60"
-                        : "bg-base-200/50 border-base-300 opacity-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      {task.status === "In Progress" ? (
-                        <LayoutDashboard size={14} className="text-primary" />
-                      ) : task.status === "Completed" ? (
-                        <BarChart3 size={14} className="text-success" />
-                      ) : (
-                        <Database size={14} className="text-base-content/40" />
-                      )}
-                      <div className="text-xs font-bold flex-1 truncate">{task.name}</div>
-                    </div>
-                    <div className="text-[10px] font-medium uppercase tracking-wider opacity-40 mb-1">
-                      {task.status}
-                    </div>
-                    {task.progress > 0 && (
-                      <progress className="progress progress-primary w-full h-1" value={task.progress} max="100"></progress>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CENTER CHAT PANEL */}
-        <div className="flex-1 flex flex-col min-w-0 bg-base-100">
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth custom-scrollbar">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
-              >
-                <div
-                  className={`chat ${
-                    msg.role === "user" ? "chat-end" : "chat-start"
-                  } animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-3xl`}
-                >
-                  <div className="chat-image avatar">
+              ) : (
+                /* Active Chat Stream */
+                <div className="space-y-6 py-4">
+                  {messages.map((msg, idx) => (
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border ${
-                        msg.role === "user"
-                          ? "bg-secondary text-secondary-content border-secondary/20"
-                          : "bg-primary text-primary-content border-primary/20"
-                      }`}
+                      key={idx}
+                      className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
                     >
-                      {msg.role === "user" ? <User size={18} /> : <Bot size={18} />}
-                    </div>
-                  </div>
-                  <div className="chat-header opacity-40 text-[10px] font-black uppercase tracking-widest mb-1.5 px-1 flex items-center gap-2">
-                    {msg.role === "user" ? "You" : "AI Assistant"}
-                    <span className="flex items-center gap-1 font-medium lowercase">
-                      <Clock size={10} /> {msg.timestamp}
-                    </span>
-                  </div>
-                  <div
-                    className={`chat-bubble shadow-md text-sm leading-relaxed py-3.5 px-5 transition-all duration-300 ${
-                      msg.role === "user"
-                        ? "chat-bubble-primary rounded-2xl! rounded-tr-none!"
-                        : "chat-bubble-neutral bg-base-200/50 border border-base-300 text-base-content rounded-2xl! rounded-tl-none!"
-                    }`}
-                  >
-                    {/* Render markdown for AI messages, plain text for user messages */}
-                    {msg.role === "assistant" ? (
-                      <div className="prose prose-sm max-w-none prose-invert">
-                        <ReactMarkdown 
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            // Customize rendering of specific elements
-                            p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                            ul: ({node, ...props}) => <ul className="mb-2 list-disc list-inside" {...props} />,
-                            ol: ({node, ...props}) => <ol className="mb-2 list-decimal list-inside" {...props} />,
-                            code: ({node, inline, ...props}: {node?: any; inline?: boolean; [key: string]: any}) => 
-                              inline 
-                                ? <code className="bg-base-300/50 px-1 py-0.5 rounded text-xs" {...props} />
-                                : <code className="block bg-base-300/50 p-2 rounded text-xs overflow-x-auto" {...props} />,
-                            strong: ({node, ...props}) => <strong className="font-bold text-primary" {...props} />,
-                          }}
-                        >
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      <div className="whitespace-pre-wrap">{msg.content}</div>
-                    )}
-
-                    {/* NEW: Widget rendering */}
-                    {msg.widget && (
-                      <WidgetRenderer {...msg.widget} onAction={handleWidgetAction} />
-                    )}
-
-                    {/* Inline Actions for AI messages */}
-                    {msg.role === "assistant" && idx > 0 && (
-                      <div className="mt-3 pt-3 border-t border-base-content/5 flex flex-wrap gap-2">
-                        <button className="btn btn-xs btn-ghost gap-1 opacity-60 hover:opacity-100">
-                          <Database size={10} /> Preview Table
-                        </button>
-                        <button className="btn btn-xs btn-ghost gap-1 opacity-60 hover:opacity-100">
-                          <BarChart3 size={10} /> Show Statistics
-                        </button>
-                        {msg.content.toLowerCase().includes("sql") && (
-                          <button
-                            onClick={() => navigate("/sql-editor")}
-                            className="btn btn-xs btn-ghost gap-1 opacity-60 hover:opacity-100 text-primary"
-                          >
-                            <Code2 size={10} /> Write SQL
-                          </button>
-                        )}
-                        <button className="btn btn-xs btn-ghost gap-1 opacity-60 hover:opacity-100">
-                          <BarChart3 size={10} /> Generate Chart
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Prompt Chips */}
-                {idx === 0 && msg.role === "assistant" && messages.length <= 2 && (
-                  <div className="mt-6 flex flex-wrap gap-2 animate-in fade-in duration-700 max-w-3xl">
-                    <span className="w-full text-[10px] font-bold uppercase tracking-widest opacity-30 mb-1">
-                      Suggestions
-                    </span>
-                    {promptChips.map((chip, cIdx) => (
-                      <button
-                        key={cIdx}
-                        onClick={() => handleSend(chip.prompt)}
-                        className="btn btn-outline btn-sm gap-2 rounded-full border-base-300 hover:border-primary hover:bg-primary/5 text-xs font-bold"
+                      <div
+                        className={`chat ${
+                          msg.role === "user" ? "chat-end" : "chat-start"
+                        } animate-in fade-in slide-in-from-bottom-2 duration-300 w-full`}
                       >
-                        <chip.icon size={14} className="text-primary" />
-                        {chip.label}
+                        <div className="chat-image avatar">
+                          <div
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm border ${
+                              msg.role === "user"
+                                ? "bg-slate-800 text-white border-slate-700"
+                                : "bg-indigo-600 text-white border-indigo-500"
+                            }`}
+                          >
+                            {msg.role === "user" ? <User size={16} /> : <Bot size={16} />}
+                          </div>
+                        </div>
+                        <div className="chat-header text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1 px-1 flex items-center gap-2">
+                          {msg.role === "user" ? "You" : "AI Assistant"}
+                          <span className="flex items-center gap-1 font-medium lowercase text-slate-400">
+                            <Clock size={10} /> {msg.timestamp}
+                          </span>
+                        </div>
+                        
+                        <div
+                          className={`shadow-sm text-sm leading-relaxed py-3 px-4.5 transition-all relative group ${
+                            msg.role === "user"
+                              ? "bg-indigo-600 text-white rounded-2xl rounded-tr-none"
+                              : "bg-slate-50 dark:bg-base-200 border border-slate-200 dark:border-base-300 text-slate-800 dark:text-base-content rounded-2xl rounded-tl-none"
+                          }`}
+                        >
+                          {/* Copy Button */}
+                          {msg.role === "assistant" && (
+                            <button
+                              onClick={() => copyToClipboard(msg.content, idx)}
+                              className="absolute right-3 top-3 p-1 rounded bg-slate-200/50 opacity-0 group-hover:opacity-100 hover:bg-slate-200 text-slate-600 transition-all"
+                              title="Copy response"
+                            >
+                              {copiedIdx === idx ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                            </button>
+                          )}
+
+                          {msg.role === "assistant" ? (
+                            <div className="prose prose-sm max-w-none text-slate-800 dark:text-base-content pr-4">
+                              <ReactMarkdown 
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                  p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                                  ul: ({node, ...props}) => <ul className="mb-2 list-disc list-inside" {...props} />,
+                                  ol: ({node, ...props}) => <ol className="mb-2 list-decimal list-inside" {...props} />,
+                                  code: ({node, inline, ...props}: {node?: any; inline?: boolean; [key: string]: any}) => 
+                                    inline 
+                                      ? <code className="bg-slate-200/70 dark:bg-base-300 px-1 py-0.5 rounded text-xs text-indigo-700 dark:text-indigo-400 font-mono" {...props} />
+                                      : <code className="block bg-slate-100 dark:bg-base-300 p-3 rounded-lg text-xs font-mono overflow-x-auto border border-slate-200 text-slate-800 dark:text-base-content" {...props} />,
+                                  strong: ({node, ...props}) => <strong className="font-bold text-indigo-600 dark:text-indigo-400" {...props} />,
+                                }}
+                              >
+                                {msg.content}
+                              </ReactMarkdown>
+                            </div>
+                          ) : (
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                          )}
+
+                          {/* Widget Output */}
+                          {msg.widget && (
+                            <WidgetRenderer {...msg.widget} onAction={handleWidgetAction} />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {loading && (
+                    <div className="chat chat-start animate-in fade-in duration-200">
+                      <div className="chat-image avatar">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                          <Bot size={16} />
+                        </div>
+                      </div>
+                      <div className="chat-header text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1 px-1">
+                        AI Assistant
+                      </div>
+                      <div className="bg-slate-50 dark:bg-base-200 border border-slate-200 dark:border-base-300 flex items-center gap-3 py-3 px-4 rounded-2xl rounded-tl-none">
+                        <span className="loading loading-dots loading-sm text-indigo-600"></span>
+                        <span className="text-xs font-medium text-slate-500">Analyzing data...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="flex justify-center my-6">
+                      <div className="bg-rose-50 border border-rose-200 text-rose-700 shadow-md py-2.5 px-4 rounded-xl flex items-center gap-3 max-w-md">
+                        <RefreshCw size={16} className="animate-spin text-rose-600" />
+                        <span className="font-semibold text-xs flex-1">{error}</span>
+                        <button onClick={() => handleSend()} className="px-2 py-1 bg-rose-100 hover:bg-rose-200 rounded text-xs font-bold text-rose-800">
+                          RETRY
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} className="h-4" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Integrated Bottom Input Dock matching image copy.png */}
+          <div className="p-4 md:p-6 bg-white dark:bg-base-100 border-t border-slate-100 dark:border-base-200 shrink-0">
+            <div className="max-w-3xl mx-auto w-full space-y-3">
+
+              {/* Context Selector Drawer when expanded */}
+              {showContextSelector && (
+                <div className="mb-3 animate-in slide-in-from-bottom-2 duration-200 border border-slate-200 dark:border-base-300 rounded-xl overflow-hidden shadow-xl">
+                  <ContextSelector
+                    selectedContexts={selectedContexts}
+                    onContextChange={setSelectedContexts}
+                    isExpanded={true}
+                    onToggleExpand={() => setShowContextSelector(false)}
+                  />
+                </div>
+              )}
+
+              {/* Attached Context Badges */}
+              {selectedContexts.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pb-1 animate-in fade-in duration-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Attached:</span>
+                  {selectedContexts.map((ctx) => (
+                    <div
+                      key={`${ctx.type}-${ctx.id}`}
+                      className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs rounded-full font-medium flex items-center gap-1.5"
+                    >
+                      <span className="max-w-[120px] truncate">{ctx.name}</span>
+                      <button
+                        onClick={() => removeSelectedContext(ctx)}
+                        className="hover:text-rose-600 transition-colors"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Command Popover */}
+              {showCommands && (
+                <div className="relative z-40">
+                  <div className="bg-white dark:bg-base-100 border border-indigo-200 dark:border-base-300 rounded-xl shadow-xl p-1.5">
+                    <div className="flex items-center gap-2 px-3 py-1.5 border-b border-slate-100 dark:border-base-200 mb-1 text-slate-400">
+                      <Command size={13} />
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest">Commands</span>
+                    </div>
+                    {commands.map((c, i) => (
+                      <button
+                        key={i}
+                        onClick={() => executeCommand(c)}
+                        className="w-full flex items-center justify-between p-2 hover:bg-indigo-50 dark:hover:bg-base-200 rounded-lg transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1 rounded-md bg-slate-100 dark:bg-base-200 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <c.icon size={13} />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-bold text-xs text-slate-800 dark:text-slate-200">{c.cmd}</div>
+                            <div className="text-[10px] text-slate-400">{c.description}</div>
+                          </div>
+                        </div>
+                        <ChevronRight size={13} className="text-slate-300 group-hover:translate-x-0.5 transition-transform" />
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              )}
 
-            {loading && (
-              <div className="chat chat-start animate-in fade-in duration-300">
-                <div className="chat-image avatar">
-                  <div className="w-10 h-10 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-sm border border-primary/20">
-                    <Bot size={18} />
-                  </div>
-                </div>
-                <div className="chat-header opacity-40 text-[10px] font-black uppercase tracking-widest mb-1.5 px-1">
-                  AI Assistant
-                </div>
-                <div className="chat-bubble chat-bubble-neutral bg-base-200/50 border border-base-300 flex items-center gap-4 py-4 px-5 rounded-2xl! rounded-tl-none!">
-                  <span className="loading loading-dots loading-md text-primary"></span>
-                  <span className="text-sm font-bold opacity-40 italic">Processing...</span>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="flex justify-center my-8">
-                <div className="alert alert-error shadow-xl py-3 px-6 max-w-md">
-                  <RefreshCw size={18} className="animate-spin" />
-                  <span className="font-bold text-sm">{error}</span>
-                  <button onClick={() => handleSend()} className="btn btn-sm btn-ghost">
-                    RETRY
+              {/* Input Bar with Left (+) Attachment Button matching image copy.png */}
+              <div className="relative flex items-center w-full bg-slate-50 dark:bg-base-200/50 hover:bg-slate-100/70 focus-within:bg-white dark:focus-within:bg-base-100 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 border border-slate-200 dark:border-base-300 rounded-xl transition-all shadow-sm">
+                
+                {/* Left (+) Button inside Input Pill */}
+                <div className="pl-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowContextSelector(!showContextSelector)}
+                    className="w-8 h-8 rounded-full bg-slate-200/70 dark:bg-base-300 hover:bg-slate-300 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors shadow-none"
+                    title="Add files and context @"
+                  >
+                    <Plus size={18} className={`transition-transform duration-200 ${showContextSelector ? "rotate-45 text-indigo-600" : ""}`} />
                   </button>
                 </div>
-              </div>
-            )}
 
-            <div ref={messagesEndRef} className="h-4" />
-          </div>
-
-          {/* Input Area */}
-          <div className="sticky bottom-0 z-30 bg-base-100/95 backdrop-blur-sm border-t border-base-300 shrink-0">
-            {/* Context Selector */}
-            <ContextSelector
-              selectedContexts={selectedContexts}
-              onContextChange={setSelectedContexts}
-              isExpanded={showContextSelector}
-              onToggleExpand={() => setShowContextSelector(!showContextSelector)}
-            />
-
-            {/* Command Popover */}
-            {showCommands && (
-              <div className="absolute left-0 right-0 bottom-full px-4 pb-3 z-40">
-                <div className="max-w-4xl mx-auto bg-base-100 border border-primary/30 rounded-xl shadow-2xl p-2">
-                  <div className="flex items-center gap-2 px-3 py-2 border-b border-base-200 mb-1 opacity-40">
-                    <Command size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Commands</span>
-                  </div>
-                  {commands.map((c, i) => (
-                    <button
-                      key={i}
-                      onClick={() => executeCommand(c)}
-                      className="w-full flex items-center justify-between p-3 hover:bg-primary/10 rounded-lg transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-base-200 text-primary group-hover:bg-primary group-hover:text-primary-content transition-colors">
-                          <c.icon size={16} />
-                        </div>
-                        <div className="text-left">
-                          <div className="font-black text-xs uppercase">{c.cmd}</div>
-                          <div className="text-[10px] opacity-50">{c.description}</div>
-                        </div>
-                      </div>
-                      <ChevronRight size={14} className="opacity-20 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Input */}
-            <div className="p-4">
-              <div className="max-w-4xl mx-auto relative">
-                <textarea
-                  className="textarea textarea-bordered w-full pr-24 min-h-[48px] max-h-[48px] resize-none focus:textarea-primary bg-base-200/30 border-base-300 text-base rounded-2xl"
-                  rows={1}
+                {/* Input Text Field */}
+                <input
+                  type="text"
+                  className="w-full bg-transparent py-3.5 pl-3 pr-20 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
                   value={input}
                   onChange={handleInputChange}
-                  placeholder="Ask about your data, write SQL, create visualizations..."
+                  placeholder="What's your next insight? Ask and find out."
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
+                    if (e.key === "Enter") {
                       e.preventDefault();
                       handleSend();
                     }
                   }}
                   disabled={loading}
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                  {/* Mic Button */}
+
+                {/* Right Action Icons (Mic + Send) */}
+                <div className="absolute right-2.5 flex items-center gap-1">
                   {speechSupported && (
                     <button
                       onClick={toggleListening}
                       disabled={loading}
-                      className={`btn btn-circle btn-sm ${
-                        isListening ? "btn-error" : "btn-ghost hover:btn-secondary"
+                      type="button"
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                        isListening ? "bg-rose-500 text-white animate-pulse" : "text-slate-400 hover:text-slate-600 hover:bg-slate-200/60"
                       }`}
+                      title={isListening ? "Stop listening" : "Voice input"}
                     >
-                      {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                      {isListening ? <MicOff size={13} /> : <Mic size={13} />}
                     </button>
                   )}
-                  {/* Send Button */}
                   <button
                     onClick={() => handleSend()}
                     disabled={loading || !input.trim()}
-                    className="btn btn-circle btn-primary btn-sm shadow-lg"
+                    type="button"
+                    className="w-7 h-7 rounded-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white flex items-center justify-center transition-colors shadow-sm"
+                    title="Send message"
                   >
-                    {!loading && <Send size={16} />}
+                    <Send size={12} />
                   </button>
                 </div>
               </div>
+
             </div>
           </div>
-        </div>
-
-        {/* RIGHT SIDEBAR */}
-        <div
-          className={`${
-            showRightSidebar ? "w-80" : "w-0"
-          } bg-base-100 border-l border-base-300 flex flex-col transition-all duration-300 overflow-hidden`}
-        >
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* AI Insights */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Sparkles size={14} className="text-primary" />
-                <h2 className="text-xs font-black uppercase tracking-widest opacity-40">AI Insights</h2>
-              </div>
-
-              {/* Data Quality */}
-              <div className="bg-success/5 border border-success/30 rounded-lg p-3">
-                <div className="flex items-start gap-2 mb-2">
-                  <span className="text-lg">✓</span>
-                  <div>
-                    <div className="text-xs font-bold">Data Quality</div>
-                    <div className="text-xs opacity-70 mt-1">
-                      Your table has 2,345 rows with no null values detected. Data quality: Excellent
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Trend Analysis */}
-              <div className="bg-primary/5 border border-primary/30 rounded-lg p-3">
-                <div className="flex items-start gap-2 mb-2">
-                  <BarChart3 size={16} className="text-primary mt-0.5" />
-                  <div>
-                    <div className="text-xs font-bold">Trend Analysis</div>
-                    <div className="text-xs opacity-70 mt-1">
-                      Values show an upward trend of 12.5% over the last month
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Anomaly Detected */}
-              <div className="bg-warning/5 border border-warning/30 rounded-lg p-3">
-                <div className="flex items-start gap-2 mb-2">
-                  <span className="text-lg">⚠</span>
-                  <div>
-                    <div className="text-xs font-bold">Anomaly Detected</div>
-                    <div className="text-xs opacity-70 mt-1">
-                      3 outlier values found in "Value" column that may need review
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Context Memory */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Database size={14} className="text-primary" />
-                <h2 className="text-xs font-black uppercase tracking-widest opacity-40">Context Memory</h2>
-              </div>
-              <div className="bg-base-200/50 rounded-lg p-3 border border-base-300 space-y-2 text-xs">
-                <div>
-                  <div className="font-bold opacity-50">Current Session:</div>
-                  <div className="opacity-70">Exploring UAT-AESM table</div>
-                </div>
-                <div>
-                  <div className="font-bold opacity-50">Focus:</div>
-                  <div className="opacity-70">Data preview & statistics</div>
-                </div>
-                <div>
-                  <div className="font-bold opacity-50">Queries Executed:</div>
-                  <div className="opacity-70">3 queries</div>
-                </div>
-                <div>
-                  <div className="font-bold opacity-50">User Preferences:</div>
-                  <div className="opacity-70">Prefers visual representations</div>
-                  <div className="opacity-70">Often exports to CSV</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Suggested Next Steps */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <ChevronRight size={14} className="text-primary" />
-                <h2 className="text-xs font-black uppercase tracking-widest opacity-40">Suggested Next Steps</h2>
-              </div>
-              <div className="space-y-1">
-                {suggestedSteps.map((step, idx) => (
-                  <button
-                    key={idx}
-                    className="btn btn-sm btn-ghost w-full justify-start text-xs font-medium opacity-70 hover:opacity-100 hover:bg-primary/5"
-                  >
-                    {step}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sidebar Toggle Buttons (for mobile/responsive) */}
-      <button
-        onClick={() => setShowLeftSidebar(!showLeftSidebar)}
-        className="fixed left-2 top-20 z-50 btn btn-circle btn-sm btn-ghost bg-base-100 border border-base-300 lg:hidden"
-        aria-label="Toggle left sidebar"
-      >
-        <ChevronRight size={16} className={`transition-transform ${showLeftSidebar ? "" : "rotate-180"}`} />
-      </button>
-      <button
-        onClick={() => setShowRightSidebar(!showRightSidebar)}
-        className="fixed right-2 top-20 z-50 btn btn-circle btn-sm btn-ghost bg-base-100 border border-base-300 lg:hidden"
-        aria-label="Toggle right sidebar"
-      >
-        <ChevronRight size={16} className={`transition-transform ${showRightSidebar ? "rotate-180" : ""}`} />
-      </button>
+        </main>
     </div>
   );
 };

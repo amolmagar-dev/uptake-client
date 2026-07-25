@@ -4,13 +4,13 @@ import { ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
 import { datasetsApi } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 import { DataPreviewTable } from "../components/DataPreviewTable";
+import { WorkspaceHeader } from "../shared/components";
 
 export function DataPreviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
-  const [datasetName, setDatasetName] = useState("");
   const { addToast } = useAppStore();
 
   useEffect(() => {
@@ -36,33 +36,36 @@ export function DataPreviewPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] p-6 gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          <button 
-            className="btn btn-ghost btn-sm btn-square"
+    <div className="flex flex-col h-full">
+      <WorkspaceHeader
+        title="Data Preview"
+        description={id ? `ID: ${id}` : undefined}
+        leading={
+          <button
+            type="button"
             onClick={() => navigate("/datasets")}
+            className="btn btn-ghost btn-sm btn-square"
+            aria-label="Back to datasets"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold">Data Preview</h1>
-            {id && <p className="text-xs text-base-content/50 font-mono">ID: {id}</p>}
-          </div>
-        </div>
-        <button 
-          className="btn btn-ghost btn-sm"
-          onClick={() => id && fetchPreviewData(id)}
-          disabled={loading}
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          Refresh
-        </button>
-      </div>
+        }
+        actions={
+          <button 
+            type="button" 
+            onClick={() => id && fetchPreviewData(id)} 
+            disabled={loading}
+            className="btn btn-ghost btn-sm gap-2"
+            aria-label="Refresh"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+        }
+      />
 
       {/* Content */}
-      <div className="flex-1 bg-base-100 rounded-lg border border-base-300 overflow-hidden shadow-sm relative">
+      <div className="flex-1 min-h-0 overflow-hidden relative">
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center bg-base-100/50 backdrop-blur-sm z-50">
             <span className="loading loading-spinner loading-lg text-primary"></span>

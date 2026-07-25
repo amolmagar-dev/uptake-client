@@ -40,12 +40,17 @@
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
 
-  /* Animations */
-  @keyframes slide-up {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  --animate-slide-up: slide-up 0.3s ease-out;
+  /* Motion Durations */
+  --duration-instant: 75ms;
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+
+  /* Motion Easings */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-subtle-snap: cubic-bezier(0.34, 1.25, 0.64, 1);
 }
 
 :root {
@@ -60,6 +65,97 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Typography scale — single source for headings/body across the app */
+@utility type-display {
+  font-size: 1.875rem;   /* 30px — page title / h1 */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+@utility type-h2 {
+  font-size: 1.5rem;     /* 24px — section heading */
+  font-weight: 600;
+  line-height: 1.3;
+}
+@utility type-h3 {
+  font-size: 1.125rem;   /* 18px — card / group title */
+  font-weight: 600;
+  line-height: 1.4;
+}
+@utility type-body {
+  font-size: 0.875rem;   /* 14px — default body text */
+  font-weight: 400;
+  line-height: 1.6;
+}
+@utility type-label {
+  font-size: 0.8125rem;  /* 13px — form labels / UI text */
+  font-weight: 500;
+  line-height: 1.4;
+}
+@utility type-caption {
+  font-size: 0.75rem;    /* 12px — captions / helper text */
+  font-weight: 400;
+  line-height: 1.4;
+}
+@utility transition-standard {
+  transition: all var(--duration-base) var(--ease-standard);
+}
+@utility transition-fast {
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+@utility transition-base {
+  transition: all var(--duration-base) var(--ease-standard);
+}
+
+/* Keyframes */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@utility animate-scale-in {
+  animation: scale-in var(--duration-fast) var(--ease-out) forwards;
+}
+
+@utility animate-slide-up {
+  animation: slide-up var(--duration-fast) var(--ease-out) forwards;
+}
+
+@utility animate-fade-in {
+  animation: fade-in var(--duration-fast) var(--ease-out) forwards;
+}
+
+@utility animate-shimmer {
+  background: linear-gradient(90deg, var(--color-base-200) 25%, var(--color-base-300) 50%, var(--color-base-200) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Reduced Motion Accessibility Safeguard */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @utility spinner {
@@ -92,3 +188,42 @@ body {
   background-color: var(--color-base-100);
   color: var(--color-base-content);
 }
+
+/* React Select Layout & Overflow Safeguards */
+.react-select-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.react-select__control {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.react-select__value-container {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.react-select__single-value {
+  max-width: calc(100% - 8px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.react-select__menu {
+  max-width: calc(100vw - 32px) !important;
+  overflow: hidden !important;
+}
+
+.react-select__option {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+

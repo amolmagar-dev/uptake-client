@@ -70,19 +70,24 @@ const EChartsWrapper = forwardRef<EChartsInstance, EChartsWrapperProps>(({
     };
   }, [theme, renderer]); // Re-init if theme or renderer changes
 
+  const prevOptionRef = useRef<string>('');
+
   // Update Options
   useEffect(() => {
     if (!chartInstance.current) {
-      console.log('⚠️ EChartsWrapper: No chart instance, skipping option update');
       return;
     }
     
-    console.log('🔄 EChartsWrapper: Updating chart with new option:', option);
+    const optionStr = JSON.stringify(option);
+    if (prevOptionRef.current === optionStr) {
+      return;
+    }
+    prevOptionRef.current = optionStr;
+
     chartInstance.current.setOption(option, {
       notMerge: false, // Merge with existing options
       replaceMerge: ['xAxis', 'yAxis', 'series'], // Replace these components if they change
     });
-    console.log('✅ EChartsWrapper: Option applied successfully');
   }, [option]);
 
   // Handle Loading
@@ -102,17 +107,28 @@ const EChartsWrapper = forwardRef<EChartsInstance, EChartsWrapperProps>(({
     }
   }, [loading]);
 
-  // Handle Resize
+  // Handle Resize with requestAnimationFrame throttling
   useEffect(() => {
     if (!autoResize || !chartRef.current || !chartInstance.current) return;
 
+    let rafId: number | null = null;
+
     const resizeObserver = new ResizeObserver(() => {
-      chartInstance.current?.resize();
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        chartInstance.current?.resize();
+        rafId = null;
+      });
     });
 
     resizeObserver.observe(chartRef.current);
 
     return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
       resizeObserver.disconnect();
     };
   }, [autoResize]);

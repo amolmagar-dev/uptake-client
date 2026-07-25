@@ -9,9 +9,18 @@ interface ModalProps {
   children: React.ReactNode;
   size?: "sm" | "md" | "lg" | "xl" | "full";
   showClose?: boolean;
+  bodyClassName?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = "md", showClose = true }) => {
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = "md",
+  showClose = true,
+  bodyClassName,
+}) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -65,7 +74,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         className={`
           modal-box relative w-full ${sizes[size]} p-0
           bg-base-100 border border-base-300 shadow-2xl
-          flex flex-col
+          flex flex-col animate-scale-in
           ${!isFullscreen ? "rounded-xl max-h-[90vh]" : ""}
         `}
         style={fullscreenStyles}
@@ -83,11 +92,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         )}
 
         {/* Content */}
-        <div className={`p-5 overflow-y-auto flex-1 ${isFullscreen ? "h-full" : ""}`}>{children}</div>
+        <div className={bodyClassName ?? `p-5 overflow-y-auto flex-1 ${isFullscreen ? "h-full" : ""}`}>{children}</div>
       </div>
 
       {/* Backdrop */}
-      <div className="modal-backdrop bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="modal-backdrop bg-black/50 backdrop-blur-sm transition-opacity duration-150" onClick={onClose}>
         <button className="cursor-default">close</button>
       </div>
     </dialog>
@@ -144,7 +153,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <Button variant="secondary" onClick={onClose} disabled={isLoading}>
             {cancelText}
           </Button>
-          <Button variant={variant === "danger" ? "danger" : "primary"} onClick={onConfirm} isLoading={isLoading}>
+          <Button variant={variant === "danger" ? "danger" : variant === "warning" ? "warning" : "primary"} onClick={onConfirm} isLoading={isLoading}>
             {confirmText}
           </Button>
         </div>

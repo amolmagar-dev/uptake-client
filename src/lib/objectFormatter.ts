@@ -4,8 +4,6 @@ import echarts from './echarts';
  * Convert an object to a JavaScript object literal string
  */
 export function toJavaScriptObject(obj: any, indent = 2): string {
-  const spaces = ' '.repeat(indent);
-  
   function format(value: any, depth = 0): string {
     const currentIndent = ' '.repeat(depth * indent);
     const nextIndent = ' '.repeat((depth + 1) * indent);

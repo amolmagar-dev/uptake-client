@@ -109,15 +109,12 @@ const KPICard: React.FC<{ data: Record<string, any>[]; config: ChartConfig; heig
   );
 };
 
-// Main Chart Renderer
-export const ChartRenderer: React.FC<ChartRendererProps> = ({
+const ChartRendererComponent: React.FC<ChartRendererProps> = ({
   type,
   data,
   config,
   height = 300,
 }) => {
-  console.log('🎨 ChartRenderer received:', { type, dataLength: data?.length, config, height });
-  
   // Option Generator
   const getOption = (): EChartsOption => {
     console.log('⚙️ getOption called with:', { type, dataLength: data?.length, config });
@@ -214,6 +211,9 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
             data: data.map(d => d[col]),
             areaStyle: type === 'area' ? { opacity: 0.3 } : undefined,
             smooth: type === 'area' || type === 'line',
+            sampling: data.length > 200 ? 'lttb' : undefined,
+            large: data.length > 300,
+            largeThreshold: 300,
             emphasis: { focus: 'series' },
             ...config.seriesParams?.[col]
           }))
@@ -357,8 +357,7 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
   }
 
   // Render ECharts
-  const chartOption = getOption();
-  console.log('📊 Final option being passed to EChartsWrapper:', chartOption);
+  const chartOption = useMemo(() => getOption(), [type, data, config]);
   
   const heightStyle = typeof height === 'number' ? `${height}px` : height;
 
@@ -372,3 +371,5 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({
     </div>
   );
 };
+
+export const ChartRenderer = React.memo(ChartRendererComponent);

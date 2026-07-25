@@ -78,19 +78,23 @@ export function generateEChartsOption(
           axisLabel: { color: '#606070' },
           ...config.yAxis
         },
-        series: yColumns.map((col: string) => ({
-          name: col,
-          type: (type === 'area' ? 'line' : type) as any,
-          encode: {
-            x: xColumn,
-            y: col,
-            tooltip: [xColumn, col]
-          },
-          areaStyle: type === 'area' ? { opacity: 0.3 } : undefined,
-          smooth: type === 'area' || type === 'line',
-          emphasis: { focus: 'series' },
-          ...config.seriesParams?.[col]
-        }))
+        series: yColumns.map((col: string) => {
+          const overrides = { ...config.seriesParams?.[col] };
+          if (!overrides.type) delete overrides.type;
+          return {
+            name: col,
+            type: (type === 'area' ? 'line' : type) as any,
+            encode: {
+              x: xColumn,
+              y: col,
+              tooltip: [xColumn, col]
+            },
+            areaStyle: type === 'area' ? { opacity: 0.3 } : undefined,
+            smooth: type === 'area' || type === 'line',
+            emphasis: { focus: 'series' },
+            ...overrides
+          };
+        })
       };
 
     case 'pie':
